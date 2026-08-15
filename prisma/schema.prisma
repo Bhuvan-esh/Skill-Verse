@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                         String                @id @default(uuid())
+  name                       String
+  role                       String                @default("STUDENT") // STUDENT, VOLUNTEER, FOUNDER
+  usn                        String?               @unique
+  college_email              String                @unique
+  password_hash              String?
+  is_preloaded               Boolean               @default(false)
+  created_at                 DateTime              @default(now())
+  updated_at                 DateTime              @updatedAt
+  student_credits            StudentCredit?
+  ideas                      Idea[]
+  idea_channels              IdeaChannel?
+  idea_messages              IdeaMessage[]
+  idea_approvals             IdeaApproval[]
+  login_requests             LoginRequest[]
+  registrations              Registration[]
+  cancellation_requests      CancellationRequest[]
+  claimed_tasks              Task[]                @relation("TaskClaimer")
+  skill_requests             SkillRequest[]
+  skill_responses            SkillResponse[]
+  skill_chats_requested      SkillChat[]           @relation("ChatRequester")
+  skill_chats_mentored       SkillChat[]           @relation("ChatMentor")
+  chat_messages              ChatMessage[]
+  mentor_profile             MentorProfile?
+  given_feedback             MentorFeedback[]      @relation("MenteeFeedback")
+  received_feedback          MentorFeedback[]      @relation("MentorFeedback")
+  notifications              Notification[]
+  emergency_access_granted   EmergencyAccessLog[]  @relation("EmergencyGrantor")
+  emergency_access_received  EmergencyAccessLog[]  @relation("EmergencyStudent")
+}
+
+model PreloadedUSN {
+  usn           String   @id
+  college_email String   @unique
+  student_name  String
+  used          Boolean  @default(false)
+}
+
+model OTP {
+  id            String   @id @default(uuid())
+  usn           String
+  college_email String
+  code          String
+  expires_at    DateTime
+  attempts      Int      @default(0)
+  verified      Boolean  @default(false)
+  created_at    DateTime @default(now())
+}
+
+model LoginRequest {
+  id           String    @id @default(uuid())
+  volunteer_id String
+  volunteer    User      @relation(fields: [volunteer_id], references: [id], onDelete: Cascade)
+  status       String    @default("PENDING") // PENDING, APPROVED, DENIED, EXPIRED
+  requested_at DateTime  @default(now())
+  approved_by  String?
+  decided_at   DateTime?
+}
+
+model EmergencyAccessLog {
+  id         String   @id @default(uuid())
+  granted_by String
+  grantor    User     @relation("EmergencyGrantor", fields: [granted_by], references: [id], onDelete: Cascade)
+  student_id String
+  student    User     @relation("EmergencyStudent", fields: [student_id], references: [id], onDelete: Cascade)
+  reason     String?
+  timestamp  DateTime @default(now())
+}
+
+model Idea {
+  id                      String         @id @default(uuid())
+  student_id              String
+  student                 User           @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  title                   String
+  description             String
+  category                String
+  lecture_id              String
+  status                  String         @default("PENDING") // PENDING, APPROVED, REJECTED, FEATURED, BUILT
+  created_at              DateTime       @default(now())
+  updated_at              DateTime       @updatedAt
+  approvals               IdeaApproval[]
+  originated_competitions Competition[]
+}
+
+model IdeaChannel {
+  id         String        @id @default(uuid())
+  student_id String        @unique
+  student    User          @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  created_at DateTime      @default(now())
+  messages   IdeaMessage[]
+}
+
+model IdeaMessage {
+  id         String      @id @default(uuid())
+  channel_id String
+  channel    IdeaChannel @relation(fields: [channel_id], references: [id], onDelete: Cascade)
+  sender_id  String
+  sender     User        @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  text       String
+  sent_at    DateTime    @default(now())
+}
+
+model IdeaApproval {
+  id         String   @id @default(uuid())
+  idea_id    String
+  idea       Idea     @relation(fields: [idea_id], references: [id], onDelete: Cascade)
+  founder_id String
+  founder    User     @relation(fields: [founder_id], references: [id], onDelete: Cascade)
+  decision   String   // APPROVE, REJECT
+  reason     String?
+  decided_at DateTime @default(now())
+}
+
+model Competition {
+  id                   String                @id @default(uuid())
+  name                 String
+  description          String
+  domain               String                // DOMAIN_1, DOMAIN_2, DOMAIN_3, DOMAIN_4
+  credit_value         Int
+  type                 String                @default("SCORED") // SCORED, DISPLAY_ONLY
+  volunteer_access     String                @default("CLOSED") // CLOSED, OPEN
+  source               String                @default("FOUNDERS") // FOUNDERS, IDEA_HUB
+  origin_idea_id       String?
+  origin_idea          Idea?                 @relation(fields: [origin_idea_id], references: [id], onDelete: SetNull)
+  event_date           DateTime
+  status               String                @default("UPCOMING") // UPCOMING, ACTIVE, COMPLETED
+  created_at           DateTime              @default(now())
+  updated_at           DateTime              @updatedAt
+  registrations        Registration[]
+  cancellations        CancellationRequest[]
+  tasks                Task[]
+  pending_reports      PendingReport[]
+}
+
+model Registration {
+  id             String      @id @default(uuid())
+  student_id     String
+  student        User        @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  competition_id String
+  competition    Competition @relation(fields: [competition_id], references: [id], onDelete: Cascade)
+  registered_at  DateTime    @default(now())
+
+  @@unique([student_id, competition_id])
+}
+
+model CancellationRequest {
+  id             String      @id @default(uuid())
+  student_id     String
+  student        User        @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  competition_id String
+  competition    Competition @relation(fields: [competition_id], references: [id], onDelete: Cascade)
+  reason         String
+  status         String      @default("PENDING") // AUTO, PENDING, APPROVED, REJECTED
+  credit_penalty Boolean     @default(false)
+  created_at     DateTime    @default(now())
+  decided_at     DateTime?
+}
+
+model StudentCredit {
+  id         String   @id @default(uuid())
+  student_id String   @unique
+  student    User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  domain_1   Int      @default(0)
+  domain_2   Int      @default(0)
+  domain_3   Int      @default(0)
+  domain_4   Int      @default(0)
+  updated_at DateTime @updatedAt
+}
+
+model PendingReport {
+  id             String       @id @default(uuid())
+  type           String       // COMPETITION, MENTORSHIP, IDEA_LAUNCH
+  competition_id String?
+  competition    Competition? @relation(fields: [competition_id], references: [id], onDelete: SetNull)
+  chat_id        String?
+  chat           SkillChat?   @relation(fields: [chat_id], references: [id], onDelete: SetNull)
+  idea_id        String?
+  report_data    String       // JSON string payload
+  status         String       @default("PENDING") // PENDING, APPROVED, REJECTED
+  reviewed_by    String?
+  created_at     DateTime     @default(now())
+  reviewed_at    DateTime?
+}
+
+model Task {
+  id             String      @id @default(uuid())
+  competition_id String
+  competition    Competition @relation(fields: [competition_id], references: [id], onDelete: Cascade)
+  description    String
+  status         String      @default("OPEN") // OPEN, CLAIMED, DONE
+  claimed_by     String?
+  claimer        User?       @relation("TaskClaimer", fields: [claimed_by], references: [id], onDelete: SetNull)
+  claimed_at     DateTime?
+}
+
+model SkillRequest {
+  id           String          @id @default(uuid())
+  requester_id String
+  requester    User            @relation(fields: [requester_id], references: [id], onDelete: Cascade)
+  skill        String
+  message      String
+  status       String          @default("OPEN") // OPEN, MATCHED, COMPLETED
+  created_at   DateTime        @default(now())
+  responses    SkillResponse[]
+  chats        SkillChat[]
+}
+
+model SkillResponse {
+  id           String       @id @default(uuid())
+  request_id   String
+  request      SkillRequest @relation(fields: [request_id], references: [id], onDelete: Cascade)
+  responder_id String
+  responder    User         @relation(fields: [responder_id], references: [id], onDelete: Cascade)
+  status       String       @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  created_at   DateTime     @default(now())
+}
+
+model SkillChat {
+  id              String          @id @default(uuid())
+  request_id      String
+  request         SkillRequest    @relation(fields: [request_id], references: [id], onDelete: Cascade)
+  requester_id    String
+  requester       User            @relation("ChatRequester", fields: [requester_id], references: [id], onDelete: Cascade)
+  mentor_id       String
+  mentor          User            @relation("ChatMentor", fields: [mentor_id], references: [id], onDelete: Cascade)
+  status          String          @default("ACTIVE") // ACTIVE, COMPLETED
+  created_at      DateTime        @default(now())
+  messages        ChatMessage[]
+  feedback        MentorFeedback[]
+  pending_reports PendingReport[]
+}
+
+model ChatMessage {
+  id        String    @id @default(uuid())
+  chat_id   String
+  chat      SkillChat @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  sender_id String
+  sender    User      @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+  text      String
+  sent_at   DateTime  @default(now())
+}
+
+model MentorProfile {
+  student_id    String   @id
+  student       User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  domain        String
+  credits       Int      @default(0)
+  topics_taught String   @default("[]") // JSON string array of topics taught
+}
+
+model MentorFeedback {
+  id           String    @id @default(uuid())
+  chat_id      String
+  chat         SkillChat @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  mentor_id    String
+  mentor       User      @relation("MentorFeedback", fields: [mentor_id], references: [id], onDelete: Cascade)
+  mentee_id    String
+  mentee       User      @relation("MenteeFeedback", fields: [mentee_id], references: [id], onDelete: Cascade)
+  rating       Int
+  comment      String?
+  submitted_at DateTime  @default(now())
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  type       String
+  title      String
+  message    String
+  read       Boolean  @default(false)
+  created_at DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actor_id  String
+  action    String
+  target    String
+  details   String?  // JSON string
+  timestamp DateTime @default(now())
+}
