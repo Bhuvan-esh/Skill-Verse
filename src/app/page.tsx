@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import ScrollHero from '@/components/ui/ethereal';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
+import { CursorDrivenParticleTypography } from '@/components/ui/cursor-driven-particles-typography';
 
 export default function LandingPage() {
   const [entered, setEntered] = useState(false);
@@ -29,7 +30,7 @@ export default function LandingPage() {
           <span>← Back</span>
         </button>
         <ScrollHero
-          logo="SKILLVERSE"
+          logo="ANVAYA"
           menuItems={['About', 'Sign In/Up', 'Contact Us']}
           sections={[
             { id: 'hero', headline: 'Ethereal', subheadline: 'Beyond Reality', body: 'Immersive experiences through computational artistry' },
@@ -79,10 +80,10 @@ export default function LandingPage() {
 
           <div className="space-y-3 max-w-xl">
             <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-wider font-heading animate-text-stagger-1">
-              SKILLVERSE
+              ANVAYA
             </h1>
             <p className="text-xl sm:text-2xl font-playfair italic text-purple-300 animate-text-stagger-2">
-              Your campus. Reimagined.
+              The thread that connects it all
             </p>
             <p className="text-xs font-mono-code text-slate-400 animate-text-stagger-3">
               ✦ Student Club Digital Ecosystem ✦
@@ -99,7 +100,7 @@ export default function LandingPage() {
             </div>
           </div>
           <span className="text-sm font-extrabold bg-gradient-to-r from-white via-slate-200 to-purple-400 bg-clip-text text-transparent font-heading tracking-wider">
-            SKILLVERSE
+            ANVAYA
           </span>
         </div>
       </header>
@@ -111,12 +112,22 @@ export default function LandingPage() {
             <span>Student Club Ecosystem</span>
           </div>
 
+          {/* Cursor-Driven Moving Particle Typography ABOVE Tagline */}
+          <div className="w-full max-w-2xl mx-auto min-h-[200px] h-[200px] relative z-30 -my-2">
+            <CursorDrivenParticleTypography
+              text="ANVAYA"
+              fontSize={110}
+              particleDensity={5}
+              dispersionStrength={20}
+              color="#c084fc"
+              className="w-full h-full min-h-[200px]"
+            />
+          </div>
+
           <div className="space-y-4">
-            <h1 className="text-6xl sm:text-8xl font-normal text-white tracking-tight font-playfair leading-[1.05]">
-              <span>Your campus. </span>
-              <br className="hidden sm:inline" />
+            <h1 className="text-4xl sm:text-6xl font-normal tracking-tight font-playfair leading-[1.1]">
               <span className="italic font-normal bg-gradient-to-r from-purple-400 via-indigo-300 to-amber-300 bg-clip-text text-transparent">
-                Reimagined.
+                The thread that connects it all
               </span>
             </h1>
 
@@ -125,7 +136,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="pt-4 flex justify-center space-x-4">
+          <div className="pt-2 flex justify-center space-x-4">
             <button
               onClick={() => setEntered(true)}
               className="group px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 hover:from-purple-500 hover:to-amber-500 text-white font-extrabold text-sm shadow-2xl shadow-purple-500/25 flex items-center justify-center space-x-3 transition-all transform hover:-translate-y-0.5 font-mono-code cursor-pointer"

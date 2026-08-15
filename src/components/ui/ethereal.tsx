@@ -12,6 +12,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useRouter } from 'next/navigation';
 import AboutUsSection from '@/components/ui/about-us-section';
 import { ContactPage } from '@/components/ui/contact-page';
+import { SignInPage } from '@/components/ui/sign-in-flow-1';
 import LoginModal from '@/components/LoginModal';
 
 if (typeof window !== 'undefined') {
@@ -817,15 +818,21 @@ export default function ScrollHero({
         </div>
       )}
 
-      {/* Sign In / Sign Up Login Modal */}
-      <LoginModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={() => {
-          setIsAuthOpen(false);
-          router.push('/dashboard');
-        }}
-      />
+      {/* Separate Sign In / Up Modal Window */}
+      {isAuthOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black flex items-center justify-center animate-in fade-in duration-300">
+          <div className="relative w-full h-full min-h-screen">
+            <button
+              onClick={() => setIsAuthOpen(false)}
+              className="fixed top-5 right-5 z-50 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110 cursor-pointer shadow-2xl backdrop-blur-md"
+              aria-label="Close Sign In Window"
+            >
+              ✕
+            </button>
+            <SignInPage onClose={() => setIsAuthOpen(false)} />
+          </div>
+        </div>
+      )}
 
       <div className={`loading-overlay fixed inset-0 z-50 bg-[#0a0a0a] flex items-center justify-center transition-opacity duration-700 pointer-events-none ${isLoaded ? 'opacity-0' : 'opacity-100'}`}>
         <div className="loading-text text-purple-400 font-mono-code text-sm uppercase tracking-widest animate-pulse flex items-center space-x-3">

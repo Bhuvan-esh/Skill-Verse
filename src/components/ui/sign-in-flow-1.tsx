@@ -468,11 +468,22 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const AppleIcon = () => (
+  <svg className="w-5 h-5 fill-current text-white" viewBox="0 0 24 24">
+    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.65-.79 1.1-1.9 0.98-3.01-.95.04-2.12.63-2.8 1.43-.6.69-1.13 1.82-.99 2.91 1.07.08 2.17-.54 2.81-1.33z" />
+  </svg>
+);
+
 export const SignInPage = ({ className, onClose }: SignInPageProps) => {
   const router = useRouter();
   const { refreshUser } = useAuth();
 
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [noMarketing, setNoMarketing] = useState(false);
+  const [termsAgreed, setTermsAgreed] = useState(true);
   const [usnInput, setUsnInput] = useState("");
   const [step, setStep] = useState<"email" | "code" | "success">("email");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
@@ -669,154 +680,211 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0.85)_0%,_rgba(0,0,0,0.98)_100%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,1)_0%,_transparent_100%)] pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-black to-transparent pointer-events-none" />
       </div>
 
-      {/* Top Navbar */}
-      <MiniNavbar />
-
       {/* Main Container */}
-      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-20">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-16">
         
-        {/* Outer Frame matching design mockup */}
-        <div className="relative w-full max-w-xl p-6 sm:p-10 rounded-3xl bg-[#09090b]/80 border border-white/10 backdrop-blur-xl shadow-2xl overflow-hidden my-auto">
+        {/* Content Card Container matching Image 2 design */}
+        <div className="w-full max-w-md mx-auto my-auto p-6 sm:p-8 bg-[#09090b]/80 border border-white/10 rounded-3xl backdrop-blur-2xl shadow-2xl relative">
           
-          {/* Top Right Close Button if provided */}
           {onClose && (
             <button
               onClick={onClose}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition-all"
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition-all z-20"
               aria-label="Close modal"
             >
               <X className="w-4 h-4" />
             </button>
           )}
 
-          {/* Inner Content Card */}
-          <div className="w-full max-w-sm mx-auto my-4">
-            <AnimatePresence mode="wait">
-              {step === "email" ? (
-                <motion.div
-                  key="email-step"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="space-y-6 text-center"
-                >
-                  <div className="space-y-2">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white font-heading">
-                      Welcome Developer
-                    </h1>
-                    <p className="text-sm sm:text-base text-gray-400 font-light">
-                      Your sign in component
-                    </p>
+          <AnimatePresence mode="wait">
+            {step === "email" ? (
+              <motion.div
+                key="email-step"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="space-y-5 text-left"
+              >
+                {/* Header */}
+                <div className="space-y-1">
+                  <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white font-sans">
+                    Create an account
+                  </h1>
+                  <p className="text-sm text-slate-400 font-light font-sans">
+                    Brainstorm in chat, build in cowork
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
+                    <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* Social Sign Up Buttons */}
+                <div className="flex items-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickPreset("1MS21CS001", "google.user@gmail.com")}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#0f0f12]/90 hover:bg-[#1a1a22] text-white border border-white/15 rounded-xl py-2.5 px-3 transition-all text-xs sm:text-sm font-medium shadow-sm font-sans"
+                  >
+                    <GoogleIcon />
+                    <span>Sign up with Google</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickPreset("1MS21CS002", "apple.user@icloud.com")}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#0f0f12]/90 hover:bg-[#1a1a22] text-white border border-white/15 rounded-xl py-2.5 px-3 transition-all text-xs sm:text-sm font-medium shadow-sm font-sans"
+                  >
+                    <AppleIcon />
+                    <span>Sign up with Apple</span>
+                  </button>
+                </div>
+
+                {/* Or Divider */}
+                <div className="flex items-center gap-4 py-1">
+                  <div className="h-px bg-white/10 flex-1" />
+                  <span className="text-gray-400 text-sm font-sans">or</span>
+                  <div className="h-px bg-white/10 flex-1" />
+                </div>
+
+                {/* Form Inputs matching Image 2 */}
+                <form onSubmit={handleEmailSubmit} className="space-y-3">
+                  {/* First Name & Last Name */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
+                      <input
+                        type="text"
+                        placeholder="Harshit"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
+                      />
+                      <span className="text-xs sm:text-sm text-slate-300 font-sans pointer-events-none whitespace-nowrap font-medium">
+                        First Name
+                      </span>
+                    </div>
+                    <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
+                      <input
+                        type="text"
+                        placeholder="Sharma"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
+                      />
+                      <span className="text-xs sm:text-sm text-slate-300 font-sans pointer-events-none whitespace-nowrap font-medium">
+                        Last Name
+                      </span>
+                    </div>
                   </div>
 
-                  {error && (
-                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
-                      <ShieldAlert className="w-4 h-4 flex-shrink-0" />
-                      <span>{error}</span>
-                    </div>
-                  )}
+                  {/* Email */}
+                  <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
+                    <input
+                      type="email"
+                      placeholder="harshitlog@gmail.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
+                      required
+                    />
+                    <span className="text-xs sm:text-sm text-slate-300 font-sans pointer-events-none font-medium">
+                      Email
+                    </span>
+                  </div>
 
-                  <div className="space-y-4 pt-2">
-                    
-                    {/* Sign in with Google Button */}
+                  {/* Password */}
+                  <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
+                    <input
+                      type="password"
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
+                    />
+                    <span className="text-xs sm:text-sm text-slate-300 font-sans pointer-events-none font-medium">
+                      Password
+                    </span>
+                  </div>
+
+                  {/* Checkboxes */}
+                  <div className="space-y-2.5 pt-2">
+                    <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-400 leading-snug">
+                      <input
+                        type="checkbox"
+                        checked={noMarketing}
+                        onChange={(e) => setNoMarketing(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded bg-[#0f0f12] border border-white/20 text-purple-500 focus:ring-0 cursor-pointer"
+                      />
+                      <span>I don't want to receive emails about solaceui feature updates</span>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-400 leading-snug">
+                      <input
+                        type="checkbox"
+                        checked={termsAgreed}
+                        onChange={(e) => setTermsAgreed(e.target.checked)}
+                        className="mt-0.5 w-4 h-4 rounded bg-[#0f0f12] border border-white/20 text-purple-500 focus:ring-0 cursor-pointer"
+                        required
+                      />
+                      <span>
+                        By creating an account, you agree to our{" "}
+                        <Link href="#" className="underline text-white font-medium">
+                          Terms and Services
+                        </Link>{" "}
+                        and{" "}
+                        <Link href="#" className="underline text-white font-medium">
+                          Privacy Policy
+                        </Link>
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans"
+                  >
+                    {loading ? (
+                      <span>Creating account...</span>
+                    ) : (
+                      <>
+                        <span>Create Account</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                {/* Quick Presets */}
+                <div className="pt-2 text-center border-t border-white/5">
+                  <p className="text-[11px] text-gray-500 font-mono mb-1.5">⚡ Quick Presets (One-click Login):</p>
+                  <div className="flex justify-center gap-2">
                     <button
                       type="button"
-                      onClick={() => handleQuickPreset("1MS21CS001", "developer@club.edu")}
-                      className="w-full flex items-center justify-center gap-3 bg-[#16161a] hover:bg-[#1f1f26] text-white border border-white/10 rounded-full py-3.5 px-5 transition-all text-sm font-medium shadow-md group"
+                      onClick={() => handleQuickPreset("1MS21CS001", "alex@club.edu")}
+                      className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-xs text-purple-300 border border-purple-500/20 transition-all"
                     >
-                      <GoogleIcon />
-                      <span>Sign in with Google</span>
+                      Alex (1MS21CS001)
                     </button>
-
-                    {/* Or Divider */}
-                    <div className="flex items-center gap-4 py-1">
-                      <div className="h-px bg-white/10 flex-1" />
-                      <span className="text-gray-500 text-xs uppercase tracking-wider font-mono">or</span>
-                      <div className="h-px bg-white/10 flex-1" />
-                    </div>
-
-                    {/* Email Form Input */}
-                    <form onSubmit={handleEmailSubmit}>
-                      <div className="relative flex items-center">
-                        <input
-                          type="email"
-                          placeholder="info@gmail.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full bg-[#121215] text-white border border-white/15 rounded-full py-3.5 pl-6 pr-14 focus:outline-none focus:border-white/40 text-sm placeholder-gray-500 transition-all font-mono"
-                          required
-                        />
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="absolute right-1.5 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all group overflow-hidden"
-                          aria-label="Submit email"
-                        >
-                          <span className="relative w-full h-full block overflow-hidden">
-                            <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-full">
-                              <ArrowRight className="w-4 h-4" />
-                            </span>
-                            <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 -translate-x-full group-hover:translate-x-0">
-                              <ArrowRight className="w-4 h-4" />
-                            </span>
-                          </span>
-                        </button>
-                      </div>
-                    </form>
-
-                    {/* Demo Quick Select Buttons */}
-                    <div className="pt-2">
-                      <p className="text-[11px] text-gray-500 font-mono mb-2">⚡ Quick Presets:</p>
-                      <div className="flex justify-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleQuickPreset("1MS21CS001", "alex@club.edu")}
-                          className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-xs text-purple-300 border border-purple-500/20 transition-all"
-                        >
-                          Alex (1MS21CS001)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleQuickPreset("1MS21CS002", "prior@club.edu")}
-                          className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-xs text-blue-300 border border-blue-500/20 transition-all"
-                        >
-                          Prior (1MS21CS002)
-                        </button>
-                      </div>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickPreset("1MS21CS002", "prior@club.edu")}
+                      className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-xs text-blue-300 border border-blue-500/20 transition-all"
+                    >
+                      Prior (1MS21CS002)
+                    </button>
                   </div>
-
-                  {/* Terms & Legal Disclaimer */}
-                  <p className="text-[11px] text-gray-500 pt-6 leading-relaxed">
-                    By signing up, you agree to the{" "}
-                    <Link href="#" className="underline text-gray-400 hover:text-white transition-colors">
-                      MSA
-                    </Link>
-                    ,{" "}
-                    <Link href="#" className="underline text-gray-400 hover:text-white transition-colors">
-                      Product Terms
-                    </Link>
-                    ,{" "}
-                    <Link href="#" className="underline text-gray-400 hover:text-white transition-colors">
-                      Policies
-                    </Link>
-                    ,{" "}
-                    <Link href="#" className="underline text-gray-400 hover:text-white transition-colors">
-                      Privacy Notice
-                    </Link>
-                    , and{" "}
-                    <Link href="#" className="underline text-gray-400 hover:text-white transition-colors">
-                      Cookie Notice
-                    </Link>
-                    .
-                  </p>
-                </motion.div>
-              ) : step === "code" ? (
+                </div>
+              </motion.div>
+            ) : step === "code" ? (
                 <motion.div
                   key="code-step"
                   initial={{ opacity: 0, x: 50 }}
@@ -951,6 +1019,5 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
