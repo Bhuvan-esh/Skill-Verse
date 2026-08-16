@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAuth } from "@/context/AuthContext";
-import { X, ArrowRight, Check, ShieldAlert } from "lucide-react";
+import { X, ArrowRight, Check, ShieldAlert, Crown, Palette, GraduationCap, Users, ArrowLeft, Sparkles } from "lucide-react";
+import { Component as HorizonHeroSection } from "@/components/ui/horizon-hero-section";
 
 type Uniforms = {
   [key: string]: {
@@ -474,6 +475,49 @@ const AppleIcon = () => (
   </svg>
 );
 
+const roleOptions = [
+  {
+    id: "founder",
+    title: "Founder",
+    badge: "Club Leadership",
+    icon: Crown,
+    gradient: "from-purple-500/25 via-purple-600/10 to-transparent",
+    border: "hover:border-purple-400/60 border-purple-500/30",
+    iconBg: "bg-purple-500/20 text-purple-300",
+    desc: "Oversee club operations, manage team requests, and direct strategy.",
+  },
+  {
+    id: "architect",
+    title: "Visual Architect",
+    badge: "Design & UX Lead",
+    icon: Palette,
+    gradient: "from-pink-500/25 via-pink-600/10 to-transparent",
+    border: "hover:border-pink-400/60 border-pink-500/30",
+    iconBg: "bg-pink-500/20 text-pink-300",
+    desc: "Craft interactive 3D UI, design systems, and aesthetic direction.",
+  },
+  {
+    id: "mentor",
+    title: "Mentors",
+    badge: "Guidance & Review",
+    icon: GraduationCap,
+    gradient: "from-emerald-500/25 via-emerald-600/10 to-transparent",
+    border: "hover:border-emerald-400/60 border-emerald-500/30",
+    iconBg: "bg-emerald-500/20 text-emerald-300",
+    desc: "Provide technical mentorship, code reviews, and guide project teams.",
+  },
+  {
+    id: "participant",
+    title: "Participants",
+    badge: "Student Builder",
+    icon: Users,
+    gradient: "from-blue-500/25 via-blue-600/10 to-transparent",
+    border: "hover:border-blue-400/60 border-blue-500/30",
+    iconBg: "bg-blue-500/20 text-blue-300",
+    desc: "Brainstorm ideas, join hackathons, and build projects with club peers.",
+  },
+];
+
 export const SignInPage = ({ className, onClose }: SignInPageProps) => {
   const router = useRouter();
   const { refreshUser } = useAuth();
@@ -485,13 +529,48 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
   const [noMarketing, setNoMarketing] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(true);
   const [usnInput, setUsnInput] = useState("");
-  const [step, setStep] = useState<"email" | "code" | "success">("email");
+  const [socialProvider, setSocialProvider] = useState<"Google" | "Apple" | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string>("participant");
+  const [step, setStep] = useState<"email" | "role" | "code" | "success">("email");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const handleSocialSignUp = (provider: "Google" | "Apple") => {
+    setSocialProvider(provider);
+    setError("");
+    setStep("role");
+  };
+
+  const handleRoleSelect = async (roleId: string) => {
+    setSelectedRole(roleId);
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/select-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: roleId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await refreshUser();
+        triggerSuccessState();
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+
+    await refreshUser();
+    triggerSuccessState();
+  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -645,6 +724,32 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
     router.push("/dashboard");
   };
 
+  if (step === "success") {
+    return (
+      <div className="fixed inset-0 z-[9999] bg-black text-white w-screen h-screen overflow-y-auto selection:bg-purple-500 selection:text-white pointer-events-auto">
+        {/* Floating Top Control Bar */}
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] flex items-center gap-4 bg-[#09090b]/95 border border-purple-500/40 px-6 py-3 rounded-full backdrop-blur-2xl shadow-2xl pointer-events-auto">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+            <span className="text-xs font-semibold text-white font-sans">
+              Signed in as <span className="text-purple-300 capitalize font-bold">{selectedRole || "Member"}</span>
+            </span>
+          </div>
+          <button
+            onClick={handleGoToDashboard}
+            className="px-4 py-1.5 rounded-full bg-white text-black text-xs font-bold hover:bg-slate-200 transition-all flex items-center gap-1.5 shadow-md cursor-pointer font-sans"
+          >
+            <span>Continue to Dashboard</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* 3D Horizon Hero Section */}
+        <HorizonHeroSection />
+      </div>
+    );
+  }
+
   return (
     <div className={cn("flex w-full flex-col min-h-screen bg-black text-slate-100 relative selection:bg-purple-500 selection:text-white overflow-hidden", className)}>
       
@@ -731,16 +836,16 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                 <div className="flex items-center gap-3 pt-1">
                   <button
                     type="button"
-                    onClick={() => handleQuickPreset("1MS21CS001", "google.user@gmail.com")}
-                    className="flex-1 flex items-center justify-center gap-2 bg-[#0f0f12]/90 hover:bg-[#1a1a22] text-white border border-white/15 rounded-xl py-2.5 px-3 transition-all text-xs sm:text-sm font-medium shadow-sm font-sans"
+                    onClick={() => handleSocialSignUp("Google")}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#0f0f12]/90 hover:bg-[#1a1a22] text-white border border-white/15 hover:border-purple-400/50 rounded-xl py-2.5 px-3 transition-all text-xs sm:text-sm font-medium shadow-sm font-sans group cursor-pointer"
                   >
                     <GoogleIcon />
                     <span>Sign up with Google</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleQuickPreset("1MS21CS002", "apple.user@icloud.com")}
-                    className="flex-1 flex items-center justify-center gap-2 bg-[#0f0f12]/90 hover:bg-[#1a1a22] text-white border border-white/15 rounded-xl py-2.5 px-3 transition-all text-xs sm:text-sm font-medium shadow-sm font-sans"
+                    onClick={() => handleSocialSignUp("Apple")}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#0f0f12]/90 hover:bg-[#1a1a22] text-white border border-white/15 hover:border-purple-400/50 rounded-xl py-2.5 px-3 transition-all text-xs sm:text-sm font-medium shadow-sm font-sans group cursor-pointer"
                   >
                     <AppleIcon />
                     <span>Sign up with Apple</span>
@@ -813,6 +918,35 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                     </span>
                   </div>
 
+                  {/* 4 Role Selector Options */}
+                  <div className="space-y-1.5 pt-1">
+                    <label className="block text-xs font-semibold text-slate-300 font-sans">
+                      Select Role
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {roleOptions.map((r) => {
+                        const Icon = r.icon;
+                        const isSelected = selectedRole === r.id;
+                        return (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() => setSelectedRole(r.id)}
+                            className={cn(
+                              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all text-left font-sans cursor-pointer",
+                              isSelected
+                                ? "bg-purple-500/20 text-white border-purple-400/60 shadow-sm"
+                                : "bg-[#0f0f12]/80 text-slate-400 border-white/10 hover:border-white/20 hover:text-white"
+                            )}
+                          >
+                            <Icon className={cn("w-3.5 h-3.5 flex-shrink-0", isSelected ? "text-purple-300" : "text-slate-400")} />
+                            <span className="truncate">{r.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Checkboxes */}
                   <div className="space-y-2.5 pt-2">
                     <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-400 leading-snug">
@@ -882,6 +1016,91 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                       Prior (1MS21CS002)
                     </button>
                   </div>
+                </div>
+              </motion.div>
+            ) : step === "role" ? (
+              <motion.div
+                key="role-step"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                className="space-y-5 text-left"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-sans">
+                      Select Your Role
+                    </h1>
+                    <p className="text-xs sm:text-sm text-slate-400 font-light font-sans mt-0.5">
+                      {socialProvider ? `Signing up with ${socialProvider}` : "Choose how you'll participate in the hub"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStep("email")}
+                    className="text-xs text-slate-300 hover:text-white flex items-center gap-1 font-sans bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10 transition-all cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Back</span>
+                  </button>
+                </div>
+
+                {error && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
+                    <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* 4 Role Options Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {roleOptions.map((r) => {
+                    const Icon = r.icon;
+                    const isSelected = selectedRole === r.id;
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => handleRoleSelect(r.id)}
+                        disabled={loading}
+                        className={cn(
+                          "relative text-left p-4 rounded-2xl border transition-all duration-300 group cursor-pointer overflow-hidden flex flex-col justify-between min-h-[120px]",
+                          "bg-gradient-to-br bg-[#0f0f14]/90",
+                          r.gradient,
+                          isSelected
+                            ? "border-purple-400 shadow-lg shadow-purple-500/25 ring-1 ring-purple-400/50"
+                            : `border-white/10 ${r.border}`
+                        )}
+                      >
+                        <div className="flex items-center justify-between w-full mb-2">
+                          <div className={cn("p-2 rounded-xl border border-white/10", r.iconBg)}>
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-white/10 text-slate-200 border border-white/10 font-mono">
+                            {r.badge}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h3 className="text-base font-bold font-heading tracking-wide text-white group-hover:translate-x-0.5 transition-transform flex items-center gap-1.5">
+                            <span>{r.title}</span>
+                            <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-purple-400" />
+                          </h3>
+                          <p className="text-[11px] text-slate-400 font-sans mt-1 line-clamp-2 leading-relaxed">
+                            {r.desc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="text-center pt-2">
+                  <p className="text-[11px] text-slate-500 font-sans">
+                    Clicking a role confirms your account with {socialProvider || "Club Idea Hub"}.
+                  </p>
                 </div>
               </motion.div>
             ) : step === "code" ? (
@@ -983,36 +1202,30 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
               ) : (
                 <motion.div
                   key="success-step"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="space-y-6 text-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  className="fixed inset-0 z-50 bg-black overflow-y-auto"
                 >
-                  <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">You're in!</h1>
-                    <p className="text-sm text-gray-400 font-light">Welcome to Club Idea Hub</p>
+                  {/* Floating Action Header Bar */}
+                  <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-slate-900/90 border border-purple-500/40 px-6 py-3 rounded-full backdrop-blur-xl shadow-2xl">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                      <span className="text-xs font-semibold text-white font-sans">
+                        Signed in as <span className="text-purple-300 capitalize">{selectedRole || "Member"}</span>
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleGoToDashboard}
+                      className="px-4 py-1.5 rounded-full bg-white text-black text-xs font-bold hover:bg-slate-200 transition-all flex items-center gap-1.5 shadow-md cursor-pointer font-sans"
+                    >
+                      <span>Continue to Dashboard</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="py-6 flex justify-center"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-white to-gray-300 flex items-center justify-center shadow-xl shadow-white/10">
-                      <Check className="w-8 h-8 text-black stroke-[3]" />
-                    </div>
-                  </motion.div>
-
-                  <motion.button
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    onClick={handleGoToDashboard}
-                    className="w-full rounded-full bg-white text-black font-semibold py-3.5 text-sm hover:bg-gray-200 transition-all shadow-xl"
-                  >
-                    Continue to Dashboard
-                  </motion.button>
+                  {/* 3D Cosmic Horizon Hero Section */}
+                  <HorizonHeroSection />
                 </motion.div>
               )}
             </AnimatePresence>

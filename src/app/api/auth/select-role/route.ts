@@ -7,24 +7,30 @@ export async function POST(req: Request) {
     const { role } = await req.json();
 
     let targetRole: 'STUDENT' | 'VOLUNTEER' | 'FOUNDER' = 'STUDENT';
-    let defaultEmail = 'student@club.edu';
+    let defaultEmail = 'participant@club.edu';
     let defaultName = 'Student Participant';
 
-    if (role === 'founder') {
+    const normalizedRole = (role || '').toLowerCase();
+
+    if (normalizedRole.includes('founder')) {
       targetRole = 'FOUNDER';
       defaultEmail = 'founder@club.edu';
       defaultName = 'Club Founder';
-    } else if (role === 'mentor') {
+    } else if (normalizedRole.includes('architect')) {
+      targetRole = 'VOLUNTEER';
+      defaultEmail = 'architect@club.edu';
+      defaultName = 'Visual Architect';
+    } else if (normalizedRole.includes('mentor')) {
       targetRole = 'VOLUNTEER';
       defaultEmail = 'mentor@club.edu';
       defaultName = 'Club Mentor';
-    } else if (role === 'organizer') {
-      targetRole = 'VOLUNTEER';
-      defaultEmail = 'organizer@club.edu';
-      defaultName = 'Club Organizer';
+    } else if (normalizedRole.includes('participant') || normalizedRole.includes('student')) {
+      targetRole = 'STUDENT';
+      defaultEmail = 'participant@club.edu';
+      defaultName = 'Student Participant';
     } else {
       targetRole = 'STUDENT';
-      defaultEmail = 'student@club.edu';
+      defaultEmail = 'participant@club.edu';
       defaultName = 'Student Participant';
     }
 
@@ -39,7 +45,7 @@ export async function POST(req: Request) {
           name: defaultName,
           college_email: defaultEmail,
           role: targetRole,
-          usn: role === 'student' ? '1RV23CS001' : null,
+          usn: targetRole === 'STUDENT' ? '1RV23CS001' : null,
         },
       });
     }

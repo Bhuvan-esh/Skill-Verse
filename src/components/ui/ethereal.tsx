@@ -820,11 +820,11 @@ export default function ScrollHero({
 
       {/* Separate Sign In / Up Modal Window */}
       {isAuthOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black flex items-center justify-center animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[999] overflow-y-auto bg-black flex items-center justify-center animate-in fade-in duration-300">
           <div className="relative w-full h-full min-h-screen">
             <button
               onClick={() => setIsAuthOpen(false)}
-              className="fixed top-5 right-5 z-50 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110 cursor-pointer shadow-2xl backdrop-blur-md"
+              className="fixed top-5 right-5 z-[1000] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110 cursor-pointer shadow-2xl backdrop-blur-md"
               aria-label="Close Sign In Window"
             >
               ✕

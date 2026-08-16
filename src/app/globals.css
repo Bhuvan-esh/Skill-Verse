@@ -488,3 +488,153 @@ body {
   opacity: 0;
 }
 
+/* HORIZON HERO SECTION COSMOS STYLING */
+.hero-container.cosmos-style {
+  position: relative;
+  width: 100%;
+  min-height: 300vh;
+  background-color: #000;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+.hero-container.cosmos-style .hero-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.side-menu {
+  position: fixed;
+  left: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.menu-icon span {
+  width: 20px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: rgba(255, 255, 255, 0.5);
+  transform: rotate(180deg);
+}
+
+.hero-content.cosmos-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  text-align: center;
+  pointer-events: none;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 1.5rem;
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 7.5rem);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+  text-shadow: 0 0 50px rgba(0, 102, 255, 0.4);
+  white-space: nowrap;
+}
+
+.title-char {
+  display: inline-block;
+}
+
+.hero-subtitle.cosmos-subtitle {
+  margin-top: 1.5rem;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Inter', sans-serif;
+}
+
+.subtitle-line {
+  margin: 0.25rem 0;
+}
+
+.hero-container .scroll-progress {
+  position: fixed;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scroll-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.progress-track {
+  width: 120px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0033ff, #ff0066);
+  transition: width 0.1s linear;
+}
+
+.section-counter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.scroll-sections {
+  position: relative;
+  z-index: 10;
+}
+
+.content-section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+

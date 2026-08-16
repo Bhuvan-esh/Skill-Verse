@@ -96,9 +96,9 @@ export function ContactPage() {
               <div className="flex items-center justify-between gap-x-2">
                 <a
                   href={`tel:${APP_PHONE}`}
-                  className="block font-mono-code text-base font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                  className="block font-mono-code text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
                 >
-                  {APP_PHONE}
+                  {APP_PHONE} <span className="text-slate-400 font-sans text-xs">(Professor)</span>
                 </a>
                 <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE} />
               </div>
@@ -106,9 +106,9 @@ export function ContactPage() {
               <div className="flex items-center justify-between gap-x-2">
                 <a
                   href={`tel:${APP_PHONE_2}`}
-                  className="block font-mono-code text-base font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                  className="block font-mono-code text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
                 >
-                  {APP_PHONE_2}
+                  {APP_PHONE_2} <span className="text-slate-400 font-sans text-xs">(Student)</span>
                 </a>
                 <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE_2} />
               </div>
@@ -116,9 +116,9 @@ export function ContactPage() {
               <div className="flex items-center justify-between gap-x-2">
                 <a
                   href={`tel:${APP_PHONE_3}`}
-                  className="block font-mono-code text-base font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                  className="block font-mono-code text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
                 >
-                  {APP_PHONE_3}
+                  {APP_PHONE_3} <span className="text-slate-400 font-sans text-xs">(Student)</span>
                 </a>
                 <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE_3} />
               </div>

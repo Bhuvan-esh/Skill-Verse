@@ -124,9 +124,9 @@ async function main() {
   });
   console.log('✅ Seeded student accounts & initial credit balances.');
 
-  // 4. Seed Volunteer Accounts
+  // 4. Seed Volunteer, Visual Architect & Mentor Accounts
   const volunteerPasswordHash = await bcrypt.hash('volunteerpass123', 10);
-  const v1 = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { college_email: 'volunteer1@club.edu' },
     update: {},
     create: {
@@ -136,7 +136,29 @@ async function main() {
       password_hash: volunteerPasswordHash,
     },
   });
-  console.log('✅ Seeded Volunteer accounts.');
+
+  await prisma.user.upsert({
+    where: { college_email: 'architect@club.edu' },
+    update: {},
+    create: {
+      name: 'Visual Architect',
+      role: 'VOLUNTEER',
+      college_email: 'architect@club.edu',
+      password_hash: volunteerPasswordHash,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { college_email: 'mentor@club.edu' },
+    update: {},
+    create: {
+      name: 'Club Mentor',
+      role: 'VOLUNTEER',
+      college_email: 'mentor@club.edu',
+      password_hash: volunteerPasswordHash,
+    },
+  });
+  console.log('✅ Seeded Volunteer, Architect & Mentor accounts.');
 
   // 5. Seed Private Idea Channels for Students
   const alexChannel = await prisma.ideaChannel.upsert({

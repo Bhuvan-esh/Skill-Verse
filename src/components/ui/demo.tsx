@@ -1,11 +1,7 @@
-import { SignInPage } from "@/components/ui/sign-in-flow-1";
+import { Component } from "@/components/ui/horizon-hero-section";
 
 const DemoOne = () => {
-  return (
-    <div className="flex w-full h-screen justify-center items-center">
-      <SignInPage />
-    </div>
-  );
+  return <Component />;
 };
 
 export { DemoOne };
