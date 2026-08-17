@@ -151,7 +151,12 @@ export default function LandingPage() {
 
           <div className="pt-2 flex justify-center space-x-4">
             <button
-              onClick={() => setEntered(true)}
+              onClick={() => {
+                setEntered(true);
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('anvaya-tour-event', { detail: { type: 'user-clicked-enter' } }));
+                }
+              }}
               className="group px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 hover:from-purple-500 hover:to-amber-500 text-white font-extrabold text-sm shadow-2xl shadow-purple-500/25 flex items-center justify-center space-x-3 transition-all transform hover:-translate-y-0.5 font-mono-code cursor-pointer"
             >
               <span>ENTER THE STUDENT CLUB</span>

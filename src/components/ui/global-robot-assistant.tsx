@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { RobotOnly } from "./robot-only";
-import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation, KeyRound } from "lucide-react";
+import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatMessage {
@@ -18,6 +18,7 @@ interface TourStep {
   tagline: string;
   description: string;
   robotPositionClass: string;
+  requiresGate?: "enter-club" | "sign-in";
   action: () => void;
 }
 
@@ -31,9 +32,10 @@ const TOUR_STEPS: TourStep[] = [
   {
     step: 1,
     title: "1. Landing Page — Enter the Club 🚀",
-    tagline: "Landing View",
-    description: "Welcome to ANVAYA! To start your tour, please click the 'ENTER THE STUDENT CLUB' button (or click Next below to proceed automatically).",
+    tagline: "Landing View Gate",
+    description: "Welcome to ANVAYA! To begin your guided tour, please click the 'ENTER THE STUDENT CLUB' button on the page.",
     robotPositionClass: "fixed top-1/3 right-6 sm:right-16 z-[100000]",
+    requiresGate: "enter-club",
     action: () => dispatchTourEvent({ type: "back-to-landing" }),
   },
   {
@@ -55,9 +57,10 @@ const TOUR_STEPS: TourStep[] = [
   {
     step: 4,
     title: "4. Sign In / Sign Up Access 🔑",
-    tagline: "Authentication & Role Access",
-    description: "Please sign in or enter your credentials below. Once you complete sign in / up (or click Proceed below), I will guide you through all 4 sections of Horizon 3D!",
+    tagline: "Authentication Gate",
+    description: "Please sign in or enter your credentials below. ONLY when you complete sign in / up, the next tour sections (Horizon 3D) will be unlocked!",
     robotPositionClass: "fixed top-1/4 left-6 sm:left-16 z-[100000]",
+    requiresGate: "sign-in",
     action: () => dispatchTourEvent({ type: "open-signin" }),
   },
   {
@@ -137,10 +140,20 @@ export function GlobalRobotAssistant() {
     }
   }, [isTourActive, currentStepIndex]);
 
-  // Listen for auth-success event to auto-advance from Step 4 (Sign In) to Step 5 (Horizon SKILL BARTER)
+  // Global Tour Event Listener for strict user action gates
   useEffect(() => {
     const handleTourEvent = (e: any) => {
-      if (e.detail?.type === "auth-success" && isTourActive) {
+      const type = e.detail?.type;
+
+      // Gate 1: User clicked "ENTER THE STUDENT CLUB" -> Auto advance from Step 1 to Step 2
+      if (type === "user-clicked-enter" && isTourActive) {
+        if (currentStepIndex === 0) {
+          setCurrentStepIndex(1);
+        }
+      }
+
+      // Gate 2: User completed authentication (sign in / up) -> Auto advance from Step 4 to Step 5 (Horizon 3D: SKILL BARTER)
+      if (type === "auth-success" && isTourActive) {
         const step5Index = TOUR_STEPS.findIndex((s) => s.step === 5);
         if (step5Index !== -1) {
           setCurrentStepIndex(step5Index);
@@ -149,7 +162,7 @@ export function GlobalRobotAssistant() {
     };
     window.addEventListener("anvaya-tour-event", handleTourEvent);
     return () => window.removeEventListener("anvaya-tour-event", handleTourEvent);
-  }, [isTourActive]);
+  }, [isTourActive, currentStepIndex]);
 
   const startTour = () => {
     setShowTourPrompt(false);
@@ -164,14 +177,16 @@ export function GlobalRobotAssistant() {
 
   const handleNextTourStep = () => {
     const currentStep = TOUR_STEPS[currentStepIndex];
-    if (currentStep.step === 4) {
-      // Step 4 is Sign In / Up -> Proceeding triggers auth success & Horizon transition
-      dispatchTourEvent({ type: "skip-to-horizon" });
-      const step5Index = TOUR_STEPS.findIndex((s) => s.step === 5);
-      if (step5Index !== -1) {
-        setCurrentStepIndex(step5Index);
-      }
-    } else if (currentStepIndex < TOUR_STEPS.length - 1) {
+    if (currentStep.requiresGate === "enter-club") {
+      // Do nothing, wait for user to click "ENTER THE STUDENT CLUB" button
+      return;
+    }
+    if (currentStep.requiresGate === "sign-in") {
+      // Do nothing, wait for user to complete sign in / up
+      return;
+    }
+
+    if (currentStepIndex < TOUR_STEPS.length - 1) {
       setCurrentStepIndex((prev) => prev + 1);
     } else {
       endTour();
@@ -325,19 +340,25 @@ export function GlobalRobotAssistant() {
                   <span>Previous</span>
                 </button>
 
-                <button
-                  onClick={handleNextTourStep}
-                  className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-extrabold font-mono-code shadow-lg shadow-purple-500/30 transition-all flex items-center space-x-1 cursor-pointer"
-                >
-                  <span>
-                    {currentTourStep.step === 4
-                      ? "Proceed to 3D Horizon →"
-                      : currentStepIndex === TOUR_STEPS.length - 1
-                      ? "Finish Tour 🎉"
-                      : "Next Step"}
-                  </span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+                {currentTourStep.requiresGate === "enter-club" ? (
+                  <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-mono-code flex items-center gap-1.5 animate-pulse">
+                    <Lock className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Click 'ENTER THE STUDENT CLUB' on page</span>
+                  </div>
+                ) : currentTourStep.requiresGate === "sign-in" ? (
+                  <div className="px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[11px] font-mono-code flex items-center gap-1.5 animate-pulse">
+                    <Lock className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Waiting for Sign In / Up...</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleNextTourStep}
+                    className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-extrabold font-mono-code shadow-lg shadow-purple-500/30 transition-all flex items-center space-x-1 cursor-pointer"
+                  >
+                    <span>{currentStepIndex === TOUR_STEPS.length - 1 ? "Finish Tour 🎉" : "Next Step"}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </motion.div>
           )}
