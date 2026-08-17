@@ -478,7 +478,7 @@ const AppleIcon = () => (
 const roleOptions = [
   {
     id: "founder",
-    title: "Founder",
+    title: "Visual Architects",
     badge: "Club Leadership",
     icon: Crown,
     gradient: "from-purple-500/25 via-purple-600/10 to-transparent",
@@ -488,7 +488,7 @@ const roleOptions = [
   },
   {
     id: "architect",
-    title: "Visual Architect",
+    title: "Community Ambassador",
     badge: "Design & UX Lead",
     icon: Palette,
     gradient: "from-pink-500/25 via-pink-600/10 to-transparent",

@@ -119,13 +119,13 @@ export function AuthFlow({
   }[] = [
     {
       id: "founder",
-      title: "FOUNDER",
+      title: "VISUAL ARCHITECTS",
       description: "Building & managing club initiatives, challenges, and team oversight.",
       icon: Crown,
     },
     {
       id: "mentor",
-      title: "MENTOR",
+      title: "COMMUNITY AMBASSADOR",
       description: "Guiding students, conducting workshops, and reviewing skill barter.",
       icon: GraduationCap,
     },

@@ -221,7 +221,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
               activeTab === 'FOUNDER' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Founder
+            Visual Architects
           </button>
           <button
             onClick={() => { setActiveTab('VOLUNTEER'); setError(''); }}

@@ -12,14 +12,14 @@ export async function POST(req: Request) {
 
     const normalizedRole = (role || '').toLowerCase();
 
-    if (normalizedRole.includes('founder')) {
+    if (normalizedRole.includes('founder') || normalizedRole.includes('visual')) {
       targetRole = 'FOUNDER';
-      defaultEmail = 'founder@club.edu';
-      defaultName = 'Club Founder';
-    } else if (normalizedRole.includes('architect')) {
-      targetRole = 'VOLUNTEER';
       defaultEmail = 'architect@club.edu';
       defaultName = 'Visual Architect';
+    } else if (normalizedRole.includes('architect') || normalizedRole.includes('ambassador')) {
+      targetRole = 'VOLUNTEER';
+      defaultEmail = 'ambassador@club.edu';
+      defaultName = 'Community Ambassador';
     } else if (normalizedRole.includes('mentor')) {
       targetRole = 'VOLUNTEER';
       defaultEmail = 'mentor@club.edu';
