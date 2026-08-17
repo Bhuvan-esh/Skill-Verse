@@ -16,6 +16,19 @@ export default function LandingPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const handleTourEvent = (e: any) => {
+      if (e.detail?.type === 'enter-club') {
+        setOpeningPlaying(false);
+        setEntered(true);
+      } else if (e.detail?.type === 'back-to-landing') {
+        setEntered(false);
+      }
+    };
+    window.addEventListener('anvaya-tour-event', handleTourEvent);
+    return () => window.removeEventListener('anvaya-tour-event', handleTourEvent);
+  }, []);
+
   const skipOpening = () => {
     setOpeningPlaying(false);
   };

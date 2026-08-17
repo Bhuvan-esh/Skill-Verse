@@ -441,6 +441,20 @@ export default function ScrollHero({
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
+  useEffect(() => {
+    const handleTourEvent = (e: any) => {
+      if (e.detail?.type === 'open-signin') {
+        setIsAuthOpen(true);
+      } else if (e.detail?.type === 'open-about') {
+        setIsAboutOpen(true);
+      } else if (e.detail?.type === 'open-contact') {
+        setIsHelpOpen(true);
+      }
+    };
+    window.addEventListener('anvaya-tour-event', handleTourEvent);
+    return () => window.removeEventListener('anvaya-tour-event', handleTourEvent);
+  }, []);
+
   // Initialize Three.js
   useEffect(() => {
     if (!canvasRef.current) return;

@@ -712,6 +712,21 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
     };
   }, [isReady]);
 
+  useEffect(() => {
+    const handleTourEvent = (e: any) => {
+      if (e.detail?.type === 'set-horizon-section') {
+        const index = (e.detail.sectionIndex || 1) - 1;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const maxScroll = documentHeight - windowHeight;
+        const targetScroll = (index / (totalSections - 1)) * maxScroll;
+        window.scrollTo({ top: targetScroll, behavior: "smooth" });
+      }
+    };
+    window.addEventListener('anvaya-tour-event', handleTourEvent);
+    return () => window.removeEventListener('anvaya-tour-event', handleTourEvent);
+  }, [totalSections]);
+
   // Scroll handling & Dynamic Background / Fog / Sun Trajectory Animation
   useEffect(() => {
     const handleScroll = () => {

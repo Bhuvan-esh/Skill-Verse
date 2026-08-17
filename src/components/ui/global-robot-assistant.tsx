@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { RobotOnly } from "./robot-only";
-import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation, CheckCircle2 } from "lucide-react";
+import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatMessage {
@@ -17,50 +17,80 @@ interface TourStep {
   title: string;
   tagline: string;
   description: string;
-  scrollRatio: number;
   robotPositionClass: string;
+  action: () => void;
 }
+
+const dispatchTourEvent = (detail: any) => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("anvaya-tour-event", { detail }));
+  }
+};
 
 const TOUR_STEPS: TourStep[] = [
   {
     step: 1,
-    title: "Welcome to ANVAYA 🚀",
-    tagline: "Student Club Digital Ecosystem",
-    description: "I'm your 3D AI Robot Assistant! I'll guide you through every key feature and section of our platform.",
-    scrollRatio: 0,
+    title: "1. Landing Page — Enter the Club 🚀",
+    tagline: "Landing View",
+    description: "Welcome to ANVAYA! To start your tour, please click the 'ENTER THE STUDENT CLUB' button (or click Next below to proceed automatically).",
     robotPositionClass: "fixed top-1/3 right-6 sm:right-16 z-[100000]",
+    action: () => dispatchTourEvent({ type: "back-to-landing" }),
   },
   {
     step: 2,
-    title: "Skill Barter 🤝",
-    tagline: "Peer-to-Peer Skill Exchange",
-    description: "Trade your knowledge with fellow students! Offer mentorship in React, Python, or UI Design, and learn new skills in return.",
-    scrollRatio: 0.25,
+    title: "2. Ethereal — Digital Ecosystem 🌌",
+    tagline: "Student Club Ecosystem",
+    description: "Entering the Student Club! Ethereal connects students through peer skill exchange, computational design, and innovation.",
     robotPositionClass: "fixed top-1/4 left-6 sm:left-16 z-[100000]",
+    action: () => dispatchTourEvent({ type: "enter-club" }),
   },
   {
     step: 3,
-    title: "Coding Challenges & Skill League 🏆",
-    tagline: "Algorithmic Contests & Benchmarks",
-    description: "Compete in real-time coding challenges, earn credits, unlock badges, and climb the student club leaderboard!",
-    scrollRatio: 0.50,
+    title: "3. Innovation Through Design 🎨",
+    tagline: "About ANVAYA",
+    description: "Explore student project ideas, computational design systems, and club initiatives.",
     robotPositionClass: "fixed top-1/3 right-6 sm:right-16 z-[100000]",
+    action: () => dispatchTourEvent({ type: "open-about" }),
   },
   {
     step: 4,
-    title: "Soft Skills Workshops 🎤",
-    tagline: "Leadership & Communication",
-    description: "Participate in interactive workshops to master public speaking, team management, and collaborative teamwork.",
-    scrollRatio: 0.75,
+    title: "4. Sign In / Sign Up Access 🔑",
+    tagline: "Authentication & Role Architecture",
+    description: "To unlock member privileges, trade skills, or pitch ideas, please sign in or register with your college email!",
     robotPositionClass: "fixed top-1/4 left-6 sm:left-16 z-[100000]",
+    action: () => dispatchTourEvent({ type: "open-signin" }),
   },
   {
     step: 5,
-    title: "Idea Hub & Founder Incubator 💡",
-    tagline: "Student Project Collaboration",
-    description: "Pitch bold project ideas, recruit student collaborators, and work directly with Founders to bring ideas to life!",
-    scrollRatio: 1.0,
+    title: "5. Horizon 3D: SKILL BARTER 🤝",
+    tagline: "Horizon Section 1 of 4",
+    description: "Peer-to-peer skill exchange & micro-mentorship. Trade knowledge in React, Python, or UI Design, and level up with fellow students.",
     robotPositionClass: "fixed top-1/3 right-6 sm:right-16 z-[100000]",
+    action: () => dispatchTourEvent({ type: "set-horizon-section", sectionIndex: 1 }),
+  },
+  {
+    step: 6,
+    title: "6. Horizon 3D: CODING CHALLENGE 🏆",
+    tagline: "Horizon Section 2 of 4",
+    description: "Algorithmic contests & real-time benchmarks. Test your coding skills, earn credits, and climb the leaderboard!",
+    robotPositionClass: "fixed top-1/4 left-6 sm:left-16 z-[100000]",
+    action: () => dispatchTourEvent({ type: "set-horizon-section", sectionIndex: 2 }),
+  },
+  {
+    step: 7,
+    title: "7. Horizon 3D: SOFT SKILLS 🎤",
+    tagline: "Horizon Section 3 of 4",
+    description: "Interactive workshops & communication challenges. Master public speaking, leadership, and collaborative teamwork.",
+    robotPositionClass: "fixed top-1/3 right-6 sm:right-16 z-[100000]",
+    action: () => dispatchTourEvent({ type: "set-horizon-section", sectionIndex: 3 }),
+  },
+  {
+    step: 8,
+    title: "8. Horizon 3D: IDEA HUB 💡",
+    tagline: "Horizon Section 4 of 4",
+    description: "Student project incubator & founder collaboration. Pitch bold ideas and bring them to life with peer teams!",
+    robotPositionClass: "fixed top-1/4 left-6 sm:left-16 z-[100000]",
+    action: () => dispatchTourEvent({ type: "set-horizon-section", sectionIndex: 4 }),
   },
 ];
 
@@ -97,17 +127,13 @@ export function GlobalRobotAssistant() {
     }
   }, [messages, isOpen]);
 
-  // Handle Tour Scroll & Robot Placement
+  // Execute step action on step index change
   useEffect(() => {
     if (isTourActive) {
       const step = TOUR_STEPS[currentStepIndex];
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const targetY = maxScroll * step.scrollRatio;
-      
-      window.scrollTo({
-        top: Math.max(0, targetY),
-        behavior: "smooth",
-      });
+      if (step && step.action) {
+        step.action();
+      }
     }
   }, [isTourActive, currentStepIndex]);
 
@@ -146,7 +172,7 @@ export function GlobalRobotAssistant() {
       {
         id: Date.now().toString(),
         sender: "bot",
-        text: "Tour completed! 🎉 You are ready to explore ANVAYA. Ask me any questions whenever you need help!",
+        text: "Tour completed! 🎉 You have explored the full ANVAYA ecosystem and all 4 Horizon 3D sections. Ask me anything whenever you need help!",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       },
     ]);
@@ -286,7 +312,7 @@ export function GlobalRobotAssistant() {
                   onClick={handleNextTourStep}
                   className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-extrabold font-mono-code shadow-lg shadow-purple-500/30 transition-all flex items-center space-x-1.5 cursor-pointer"
                 >
-                  <span>{currentStepIndex === TOUR_STEPS.length - 1 ? "Finish Tour 🎉" : "Next Section"}</span>
+                  <span>{currentStepIndex === TOUR_STEPS.length - 1 ? "Finish Tour 🎉" : "Next Step"}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
