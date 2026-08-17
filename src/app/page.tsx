@@ -113,14 +113,14 @@ export default function LandingPage() {
           </div>
 
           {/* Cursor-Driven Moving Particle Typography ABOVE Tagline */}
-          <div className="w-full max-w-2xl mx-auto min-h-[200px] h-[200px] relative z-30 -my-2">
+          <div className="w-full max-w-2xl mx-auto min-h-[160px] h-[160px] relative z-30 -my-2">
             <CursorDrivenParticleTypography
               text="ANVAYA"
-              fontSize={110}
+              fontSize={100}
               particleDensity={5}
               dispersionStrength={20}
               color="#c084fc"
-              className="w-full h-full min-h-[200px]"
+              className="w-full h-full min-h-[160px]"
             />
           </div>
 
