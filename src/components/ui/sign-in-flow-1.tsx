@@ -520,7 +520,7 @@ const roleOptions = [
 
 export const SignInPage = ({ className, onClose }: SignInPageProps) => {
   const router = useRouter();
-  const { refreshUser } = useAuth();
+  const { refreshUser, logout } = useAuth();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -720,32 +720,26 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
     setError("");
   };
 
-  const handleGoToDashboard = () => {
-    router.push("/dashboard");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.error(e);
+    }
+    setStep("email");
+    setCode(["", "", "", "", "", ""]);
+    if (onClose) {
+      onClose();
+    } else {
+      window.location.reload();
+    }
   };
 
   if (step === "success") {
     return (
       <div className="fixed inset-0 z-[9999] bg-black text-white w-screen h-screen overflow-y-auto selection:bg-purple-500 selection:text-white pointer-events-auto">
-        {/* Floating Top Control Bar */}
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] flex items-center gap-4 bg-[#09090b]/95 border border-purple-500/40 px-6 py-3 rounded-full backdrop-blur-2xl shadow-2xl pointer-events-auto">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-            <span className="text-xs font-semibold text-white font-sans">
-              Signed in as <span className="text-purple-300 capitalize font-bold">{selectedRole || "Member"}</span>
-            </span>
-          </div>
-          <button
-            onClick={handleGoToDashboard}
-            className="px-4 py-1.5 rounded-full bg-white text-black text-xs font-bold hover:bg-slate-200 transition-all flex items-center gap-1.5 shadow-md cursor-pointer font-sans"
-          >
-            <span>Continue to Dashboard</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
         {/* 3D Horizon Hero Section */}
-        <HorizonHeroSection />
+        <HorizonHeroSection onLogout={handleLogout} />
       </div>
     );
   }
@@ -1207,25 +1201,8 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   transition={{ duration: 0.5, ease: "easeOut" }}
                   className="fixed inset-0 z-50 bg-black overflow-y-auto"
                 >
-                  {/* Floating Action Header Bar */}
-                  <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-slate-900/90 border border-purple-500/40 px-6 py-3 rounded-full backdrop-blur-xl shadow-2xl">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-                      <span className="text-xs font-semibold text-white font-sans">
-                        Signed in as <span className="text-purple-300 capitalize">{selectedRole || "Member"}</span>
-                      </span>
-                    </div>
-                    <button
-                      onClick={handleGoToDashboard}
-                      className="px-4 py-1.5 rounded-full bg-white text-black text-xs font-bold hover:bg-slate-200 transition-all flex items-center gap-1.5 shadow-md cursor-pointer font-sans"
-                    >
-                      <span>Continue to Dashboard</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
                   {/* 3D Cosmic Horizon Hero Section */}
-                  <HorizonHeroSection />
+                  <HorizonHeroSection onLogout={handleLogout} />
                 </motion.div>
               )}
             </AnimatePresence>

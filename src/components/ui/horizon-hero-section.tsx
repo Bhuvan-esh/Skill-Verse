@@ -8,6 +8,8 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { motion, AnimatePresence } from "framer-motion";
+import { LogOut, Sparkles, X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -36,23 +38,55 @@ interface ThreeRefs {
 
 const sectionData = [
   {
-    title: "HORIZON",
-    line1: "Where vision meets reality,",
-    line2: "we shape the future of tomorrow",
+    id: "skill-barter",
+    title: "SKILL BARTER",
+    line1: "Peer-to-peer skill exchange & micro-mentorship,",
+    line2: "trade knowledge and level up together",
   },
   {
-    title: "COSMOS",
-    line1: "Beyond the boundaries of imagination,",
-    line2: "lies the universe of possibilities",
+    id: "coding-challenge",
+    title: "CODING CHALLENGE",
+    line1: "Algorithmic contests & real-time benchmarks,",
+    line2: "test your skills and climb the leaderboard",
   },
   {
-    title: "INFINITY",
-    line1: "In the space between thought and creation,",
-    line2: "we find the essence of true innovation",
+    id: "soft-skills",
+    title: "SOFT SKILLS",
+    line1: "Interactive workshops & communication challenges,",
+    line2: "master leadership, public speaking, and teamwork",
+  },
+  {
+    id: "idea-hub",
+    title: "IDEA HUB",
+    line1: "Student project incubator & founder collaboration,",
+    line2: "bring bold ideas to life with peer teams",
   },
 ];
 
-export const Component = () => {
+interface ComponentProps {
+  onLogout?: () => void;
+}
+
+export const Component = ({ onLogout }: ComponentProps = {}) => {
+  const { logout } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleConfirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      if (onLogout) {
+        onLogout();
+      } else {
+        await logout();
+        window.location.reload();
+      }
+    } catch (e) {
+      console.error(e);
+      window.location.href = "/";
+    }
+  };
+
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scrollProgressRef = useRef<HTMLDivElement>(null);
@@ -63,7 +97,7 @@ export const Component = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [currentSection, setCurrentSection] = useState(1);
   const [isReady, setIsReady] = useState(false);
-  const totalSections = 3;
+  const totalSections = 4;
 
   const threeRefs = useRef<ThreeRefs>({
     scene: null,
@@ -701,11 +735,20 @@ export const Component = () => {
       const currentSecIdx = Math.min(Math.floor(totalProgress), totalSections - 2);
       const sectionProgress = totalProgress - currentSecIdx;
 
-      // 1. Camera Positions for HORIZON -> COSMOS -> INFINITY
+      const scrollToSection = (index: number) => {
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const maxScroll = documentHeight - windowHeight;
+        const targetScroll = (index / (totalSections - 1)) * maxScroll;
+        window.scrollTo({ top: targetScroll, behavior: "smooth" });
+      };
+
+      // 1. Camera Positions for SKILL BARTER -> CODING CHALLENGE -> SOFT SKILLS -> IDEA HUB
       const cameraPositions = [
-        { x: 0, y: 30, z: 300 },   // Section 1 - HORIZON
-        { x: 0, y: 40, z: -50 },   // Section 2 - COSMOS
-        { x: 0, y: 50, z: -700 },  // Section 3 - INFINITY
+        { x: 0, y: 30, z: 300 },   // Section 1 - SKILL BARTER
+        { x: 0, y: 40, z: -50 },   // Section 2 - CODING CHALLENGE
+        { x: 0, y: 55, z: -450 },  // Section 3 - SOFT SKILLS
+        { x: 0, y: 70, z: -900 },  // Section 4 - IDEA HUB
       ];
 
       const currentPos = cameraPositions[currentSecIdx] || cameraPositions[0];
@@ -734,16 +777,19 @@ export const Component = () => {
         (refs.nebula.material as THREE.ShaderMaterial).uniforms.progress.value = progress;
       }
 
-      // 3. Dynamic Environment Fog & Background Shift (Horizon -> Cosmos -> Infinity)
-      const colorHorizon = new THREE.Color(0x060410);
-      const colorCosmos = new THREE.Color(0x040c24);
-      const colorInfinity = new THREE.Color(0x180224);
+      // 3. Dynamic Environment Fog & Background Shift across 4 sections
+      const color1 = new THREE.Color(0x060410); // SKILL BARTER
+      const color2 = new THREE.Color(0x040c24); // CODING CHALLENGE
+      const color3 = new THREE.Color(0x180224); // SOFT SKILLS
+      const color4 = new THREE.Color(0x22081a); // IDEA HUB
 
       const targetFog = new THREE.Color();
-      if (progress < 0.5) {
-        targetFog.lerpColors(colorHorizon, colorCosmos, progress * 2);
+      if (progress < 0.333) {
+        targetFog.lerpColors(color1, color2, progress * 3);
+      } else if (progress < 0.666) {
+        targetFog.lerpColors(color2, color3, (progress - 0.333) * 3);
       } else {
-        targetFog.lerpColors(colorCosmos, colorInfinity, (progress - 0.5) * 2);
+        targetFog.lerpColors(color3, color4, (progress - 0.666) * 3);
       }
 
       refs.targetFogColor = targetFog;
@@ -757,10 +803,10 @@ export const Component = () => {
         }
 
         mountain.userData.targetZ = targetZ;
-        if (progress > 0.6) {
+        if (progress > 0.85) {
           mountain.position.z = 600000;
         }
-        if (progress <= 0.6 && refs.locations && refs.locations[i] !== undefined) {
+        if (progress <= 0.85 && refs.locations && refs.locations[i] !== undefined) {
           mountain.position.z = refs.locations[i];
         }
       });
@@ -778,22 +824,38 @@ export const Component = () => {
 
   const splitTitle = (text: string) => {
     return text.split("").map((char, i) => (
-      <span key={i} className="title-char">
-        {char}
+      <span
+        key={i}
+        className={char === " " ? "inline-block w-4 sm:w-7 md:w-9" : "title-char"}
+      >
+        {char === " " ? "\u00A0" : char}
       </span>
     ));
   };
 
+  const scrollToSection = (index: number) => {
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    const maxScroll = documentHeight - windowHeight;
+    const targetScroll = (index / (totalSections - 1)) * maxScroll;
+    window.scrollTo({ top: targetScroll, behavior: "smooth" });
+  };
+
   const getDynamicBgStyle = () => {
-    if (scrollProgress < 0.5) {
-      const t = scrollProgress * 2;
+    if (scrollProgress < 0.333) {
+      const t = scrollProgress * 3;
       return {
         background: `radial-gradient(ellipse at 50% 30%, rgba(${Math.round(18 + t * 10)}, ${Math.round(10 + t * 14)}, ${Math.round(36 + t * 30)}, 0.95) 0%, rgba(${Math.round(6 + t * 6)}, ${Math.round(4 + t * 8)}, ${Math.round(14 + t * 20)}, 1) 70%, #000 100%)`,
       };
-    } else {
-      const t = (scrollProgress - 0.5) * 2;
+    } else if (scrollProgress < 0.666) {
+      const t = (scrollProgress - 0.333) * 3;
       return {
-        background: `radial-gradient(ellipse at 50% 30%, rgba(${Math.round(28 + t * 24)}, ${Math.round(24 - t * 14)}, ${Math.round(66 - t * 16)}, 0.95) 0%, rgba(${Math.round(12 + t * 12)}, ${Math.round(12 - t * 8)}, ${Math.round(34 - t * 10)}, 1) 70%, #000 100%)`,
+        background: `radial-gradient(ellipse at 50% 30%, rgba(${Math.round(28 + t * 10)}, ${Math.round(24 - t * 14)}, ${Math.round(66 - t * 16)}, 0.95) 0%, rgba(${Math.round(12 + t * 12)}, ${Math.round(12 - t * 8)}, ${Math.round(34 - t * 10)}, 1) 70%, #000 100%)`,
+      };
+    } else {
+      const t = (scrollProgress - 0.666) * 3;
+      return {
+        background: `radial-gradient(ellipse at 50% 30%, rgba(${Math.round(38 + t * 10)}, ${Math.round(10 + t * 10)}, ${Math.round(50 + t * 20)}, 0.95) 0%, rgba(${Math.round(24 + t * 8)}, ${Math.round(4 + t * 4)}, ${Math.round(24 + t * 10)}, 1) 70%, #000 100%)`,
       };
     }
   };
@@ -809,6 +871,95 @@ export const Component = () => {
     >
       <canvas ref={canvasRef} className="hero-canvas" />
 
+      {/* Interactive 4-Scroll Header Navigator with LOG OUT Button */}
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 bg-slate-950/85 border border-purple-500/40 p-1.5 rounded-full backdrop-blur-2xl shadow-2xl pointer-events-auto">
+        {sectionData.map((sec, idx) => {
+          const isActive = currentSection === idx + 1;
+          return (
+            <button
+              key={sec.id}
+              onClick={() => scrollToSection(idx)}
+              className={`px-4 py-1.5 rounded-full text-xs font-mono tracking-wider transition-all duration-300 cursor-pointer ${
+                isActive
+                  ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 text-white font-extrabold shadow-lg shadow-purple-500/40 scale-105"
+                  : "text-slate-300 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              {sec.title}
+            </button>
+          );
+        })}
+
+        <div className="h-4 w-px bg-white/20 mx-1" />
+
+        <button
+          onClick={() => setShowLogoutModal(true)}
+          className="px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider text-rose-300 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm"
+        >
+          <LogOut className="w-3.5 h-3.5 text-rose-400" />
+          <span>LOG OUT</span>
+        </button>
+      </div>
+
+      {/* Sleek Log Out Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-md bg-slate-950 border border-rose-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5"
+            >
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center">
+                <LogOut className="w-7 h-7 text-rose-400" />
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="text-xl font-extrabold text-white font-heading">
+                  Confirm Log Out
+                </h3>
+                <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                  Are you sure you want to end your Horizon session and log out of the digital ecosystem?
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all cursor-pointer font-sans"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLogout}
+                  disabled={isLoggingOut}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs shadow-lg shadow-rose-600/30 transition-all cursor-pointer font-sans flex items-center justify-center gap-1.5"
+                >
+                  {isLoggingOut ? (
+                    <span>Logging out...</span>
+                  ) : (
+                    <>
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Log Out</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Side menu */}
       <div ref={menuRef} className="side-menu" style={{ visibility: "hidden" }}>
         <div className="menu-icon">
@@ -821,7 +972,7 @@ export const Component = () => {
 
       {/* Scroll & Keyboard progress indicator */}
       <div ref={scrollProgressRef} className="scroll-progress" style={{ visibility: "hidden" }}>
-        <div className="scroll-text font-mono text-[10px] tracking-widest text-slate-400">
+        <div className="scroll-text font-mono text-[10px] tracking-widest text-slate-300">
           PRESS SPACE ␣ OR SCROLL
         </div>
         <div className="progress-track">
@@ -830,12 +981,12 @@ export const Component = () => {
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>
-        <div className="section-counter font-mono text-xs text-purple-300">
+        <div className="section-counter font-mono text-xs font-bold text-purple-300">
           {String(currentSection).padStart(2, "0")} / {String(totalSections).padStart(2, "0")}
         </div>
       </div>
 
-      {/* Synchronized Centered Wording Overlay (Shifts dynamically on Scroll & Spacebar) */}
+      {/* High-Contrast Synchronized Wording Overlay */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-center w-full max-w-5xl px-6 pointer-events-none">
         <AnimatePresence mode="wait">
           <motion.div
@@ -846,15 +997,17 @@ export const Component = () => {
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center justify-center"
           >
-            <h1 className="hero-title font-extrabold text-white tracking-tight leading-none">
+            {/* Title with Vibrant Gradient, High Contrast Text Glow, and Drop Shadow */}
+            <h1 className="hero-title font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-amber-200 tracking-tight leading-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.95)]">
               {splitTitle(activeData.title)}
             </h1>
 
-            <div className="hero-subtitle cosmos-subtitle mt-6 space-y-1.5 text-slate-200 font-sans max-w-3xl">
-              <p className="subtitle-line text-lg sm:text-2xl font-light tracking-wide drop-shadow-md">
+            {/* Subtitle Card Container with Backdrop Blur to prevent background foreshadowing */}
+            <div className="mt-8 space-y-2 text-white font-sans max-w-3xl bg-slate-950/70 border border-purple-500/30 backdrop-blur-xl px-8 py-5 rounded-3xl shadow-2xl">
+              <p className="text-lg sm:text-2xl font-medium tracking-wide text-purple-100 drop-shadow-md">
                 {activeData.line1}
               </p>
-              <p className="subtitle-line text-lg sm:text-2xl font-light tracking-wide drop-shadow-md">
+              <p className="text-base sm:text-xl font-normal tracking-wide text-amber-300 drop-shadow-md">
                 {activeData.line2}
               </p>
             </div>
@@ -862,8 +1015,9 @@ export const Component = () => {
         </AnimatePresence>
       </div>
 
-      {/* Invisible scroll track to enable natural wheel/trackpad scrolling across 3 sections */}
+      {/* Invisible scroll track to enable natural wheel/trackpad scrolling across 4 sections */}
       <div className="scroll-sections relative z-10 opacity-0 pointer-events-none">
+        <div className="h-screen" />
         <div className="h-screen" />
         <div className="h-screen" />
         <div className="h-screen" />
