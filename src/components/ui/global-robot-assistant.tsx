@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { RobotOnly } from "./robot-only";
-import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation } from "lucide-react";
+import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation, KeyRound } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatMessage {
@@ -55,8 +55,8 @@ const TOUR_STEPS: TourStep[] = [
   {
     step: 4,
     title: "4. Sign In / Sign Up Access 🔑",
-    tagline: "Authentication & Role Architecture",
-    description: "To unlock member privileges, trade skills, or pitch ideas, please sign in or register with your college email!",
+    tagline: "Authentication & Role Access",
+    description: "Please sign in or enter your credentials below. Once you complete sign in / up (or click Proceed below), I will guide you through all 4 sections of Horizon 3D!",
     robotPositionClass: "fixed top-1/4 left-6 sm:left-16 z-[100000]",
     action: () => dispatchTourEvent({ type: "open-signin" }),
   },
@@ -137,6 +137,20 @@ export function GlobalRobotAssistant() {
     }
   }, [isTourActive, currentStepIndex]);
 
+  // Listen for auth-success event to auto-advance from Step 4 (Sign In) to Step 5 (Horizon SKILL BARTER)
+  useEffect(() => {
+    const handleTourEvent = (e: any) => {
+      if (e.detail?.type === "auth-success" && isTourActive) {
+        const step5Index = TOUR_STEPS.findIndex((s) => s.step === 5);
+        if (step5Index !== -1) {
+          setCurrentStepIndex(step5Index);
+        }
+      }
+    };
+    window.addEventListener("anvaya-tour-event", handleTourEvent);
+    return () => window.removeEventListener("anvaya-tour-event", handleTourEvent);
+  }, [isTourActive]);
+
   const startTour = () => {
     setShowTourPrompt(false);
     setIsOpen(false);
@@ -149,7 +163,15 @@ export function GlobalRobotAssistant() {
   };
 
   const handleNextTourStep = () => {
-    if (currentStepIndex < TOUR_STEPS.length - 1) {
+    const currentStep = TOUR_STEPS[currentStepIndex];
+    if (currentStep.step === 4) {
+      // Step 4 is Sign In / Up -> Proceeding triggers auth success & Horizon transition
+      dispatchTourEvent({ type: "skip-to-horizon" });
+      const step5Index = TOUR_STEPS.findIndex((s) => s.step === 5);
+      if (step5Index !== -1) {
+        setCurrentStepIndex(step5Index);
+      }
+    } else if (currentStepIndex < TOUR_STEPS.length - 1) {
       setCurrentStepIndex((prev) => prev + 1);
     } else {
       endTour();
@@ -307,7 +329,13 @@ export function GlobalRobotAssistant() {
                   onClick={handleNextTourStep}
                   className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-extrabold font-mono-code shadow-lg shadow-purple-500/30 transition-all flex items-center space-x-1 cursor-pointer"
                 >
-                  <span>{currentStepIndex === TOUR_STEPS.length - 1 ? "Finish Tour 🎉" : "Next Step"}</span>
+                  <span>
+                    {currentTourStep.step === 4
+                      ? "Proceed to 3D Horizon →"
+                      : currentStepIndex === TOUR_STEPS.length - 1
+                      ? "Finish Tour 🎉"
+                      : "Next Step"}
+                  </span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>

@@ -648,7 +648,20 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
     setStep("code");
   };
 
+  useEffect(() => {
+    const handleTourEvent = (e: any) => {
+      if (e.detail?.type === "skip-to-horizon") {
+        triggerSuccessState();
+      }
+    };
+    window.addEventListener("anvaya-tour-event", handleTourEvent);
+    return () => window.removeEventListener("anvaya-tour-event", handleTourEvent);
+  }, []);
+
   const triggerSuccessState = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("anvaya-tour-event", { detail: { type: "auth-success" } }));
+    }
     setReverseCanvasVisible(true);
     setTimeout(() => {
       setInitialCanvasVisible(false);
