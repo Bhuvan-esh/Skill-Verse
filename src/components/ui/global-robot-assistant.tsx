@@ -240,59 +240,54 @@ export function GlobalRobotAssistant() {
   const currentTourStep = TOUR_STEPS[currentStepIndex];
 
   return (
-    <>
-      {/* ========================================================= */}
-      {/* 1. ACTIVE GUIDED TOUR OVERLAY MODE */}
-      {/* ========================================================= */}
-      <AnimatePresence>
-        {isTourActive && (
-          <div className="fixed inset-0 pointer-events-none z-[100000]">
-            {/* Moving Robot in Tour Mode */}
+    <motion.div
+      layout
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className={
+        isTourActive
+          ? currentTourStep.robotPositionClass
+          : "fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[100000]"
+      }
+    >
+      <div className="relative flex flex-col items-center pointer-events-auto font-sans">
+        <AnimatePresence mode="wait">
+          {/* ========================================================= */}
+          {/* 1. TRAVELING TOUR STEP NOTIFICATION CARD */}
+          {/* ========================================================= */}
+          {isTourActive && (
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              className={currentTourStep.robotPositionClass}
+              key={`tour-card-step-${currentStepIndex}`}
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -15 }}
+              transition={{ duration: 0.3 }}
+              className="mb-3 w-[88vw] sm:w-96 bg-slate-950/95 border border-purple-500/50 rounded-3xl p-4 shadow-2xl backdrop-blur-2xl text-white font-sans pointer-events-auto"
             >
-              <div className="flex flex-col items-center pointer-events-auto">
-                <div className="w-36 h-36 sm:w-44 sm:h-44 relative drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)]">
-                  <RobotOnly color="#ffffff" pantallaColor="#06b6d4" pantallaBrillo={1.8} metalness={0.5} className="w-full h-full" />
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Floating Guided Tour Card */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              transition={{ duration: 0.4 }}
-              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100001] w-[92vw] max-w-lg bg-slate-950/95 border border-purple-500/50 rounded-3xl p-5 shadow-2xl backdrop-blur-2xl pointer-events-auto text-white"
-            >
-              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
+              {/* Header & Step Counter */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-2.5">
                 <div className="flex items-center space-x-2">
-                  <div className="px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-mono-code font-bold flex items-center gap-1">
+                  <div className="px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[11px] font-mono-code font-bold flex items-center gap-1">
                     <Navigation className="w-3 h-3 text-cyan-400 animate-spin" />
                     <span>Step {currentTourStep.step} of {TOUR_STEPS.length}</span>
                   </div>
-                  <span className="text-xs text-slate-400 font-sans">{currentTourStep.tagline}</span>
+                  <span className="text-[11px] text-slate-400 font-sans">{currentTourStep.tagline}</span>
                 </div>
 
                 <button
                   onClick={endTour}
-                  className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded-full hover:bg-white/10 transition-all cursor-pointer font-mono-code flex items-center gap-1"
+                  className="text-[11px] text-slate-400 hover:text-white px-2 py-0.5 rounded-full hover:bg-white/10 transition-all cursor-pointer font-mono-code flex items-center gap-1"
                 >
                   <span>Exit Tour</span>
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <div className="space-y-2 mb-4 font-sans">
-                <h3 className="text-lg font-bold text-white tracking-wide font-heading flex items-center gap-2">
+              {/* Title & Description */}
+              <div className="space-y-1.5 mb-3 font-sans">
+                <h3 className="text-sm font-bold text-white tracking-wide font-heading flex items-center gap-2">
                   <span>{currentTourStep.title}</span>
                 </h3>
-                <p className="text-sm text-slate-300 font-light leading-relaxed">
+                <p className="text-xs text-slate-300 font-light leading-relaxed">
                   {currentTourStep.description}
                 </p>
               </div>
@@ -302,247 +297,251 @@ export function GlobalRobotAssistant() {
                 <button
                   onClick={handlePrevTourStep}
                   disabled={currentStepIndex === 0}
-                  className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 text-slate-200 text-xs font-semibold font-mono-code transition-all flex items-center space-x-1 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 text-slate-200 text-xs font-semibold font-mono-code transition-all flex items-center space-x-1 cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5" />
                   <span>Previous</span>
                 </button>
 
                 <button
                   onClick={handleNextTourStep}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-extrabold font-mono-code shadow-lg shadow-purple-500/30 transition-all flex items-center space-x-1.5 cursor-pointer"
+                  className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-extrabold font-mono-code shadow-lg shadow-purple-500/30 transition-all flex items-center space-x-1 cursor-pointer"
                 >
                   <span>{currentStepIndex === TOUR_STEPS.length - 1 ? "Finish Tour 🎉" : "Next Step"}</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+          )}
 
-      {/* ========================================================= */}
-      {/* 2. DEFAULT FLOATING ASSISTANT (When not in Tour Mode) */}
-      {/* ========================================================= */}
-      {!isTourActive && (
-        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[100000] flex flex-col items-end pointer-events-none">
-          <AnimatePresence>
-            {/* Proactive "Take a Tour?" Prompt Card */}
-            {showTourPrompt && !isOpen && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 15 }}
-                transition={{ duration: 0.3 }}
-                className="mb-3 mr-2 w-72 sm:w-80 bg-slate-950/95 border border-purple-500/50 rounded-2xl p-4 shadow-2xl backdrop-blur-2xl pointer-events-auto text-white font-sans"
-              >
-                <div className="flex items-start justify-between space-x-2">
-                  <div className="flex items-center space-x-2">
-                    <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse shrink-0" />
-                    <h4 className="text-xs font-bold text-white font-heading">AI Robot Assistant</h4>
-                  </div>
-                  <button
-                    onClick={cancelTourPrompt}
-                    className="text-slate-400 hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-all cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <p className="text-xs text-slate-200 mt-2 mb-3 leading-relaxed">
-                  Would you like to take a guided tour of the ANVAYA Student Club Ecosystem? 🤖
-                </p>
-
+          {/* ========================================================= */}
+          {/* 2. TRAVELING PROACTIVE TOUR PROMPT CARD */}
+          {/* ========================================================= */}
+          {showTourPrompt && !isOpen && !isTourActive && (
+            <motion.div
+              key="tour-prompt-bubble"
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 15 }}
+              transition={{ duration: 0.3 }}
+              className="mb-3 w-72 sm:w-80 bg-slate-950/95 border border-purple-500/50 rounded-2xl p-4 shadow-2xl backdrop-blur-2xl pointer-events-auto text-white font-sans"
+            >
+              <div className="flex items-start justify-between space-x-2">
                 <div className="flex items-center space-x-2">
-                  <button
-                    onClick={startTour}
-                    className="flex-1 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold font-mono-code shadow-md transition-all flex items-center justify-center space-x-1 cursor-pointer"
-                  >
-                    <span>Yes, take a tour! 🚀</span>
-                  </button>
-
-                  <button
-                    onClick={cancelTourPrompt}
-                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold font-mono-code transition-all cursor-pointer"
-                  >
-                    <span>No, thanks</span>
-                  </button>
+                  <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse shrink-0" />
+                  <h4 className="text-xs font-bold text-white font-heading">AI Robot Assistant</h4>
                 </div>
-              </motion.div>
-            )}
+                <button
+                  onClick={cancelTourPrompt}
+                  className="text-slate-400 hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-all cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
-            {/* Floating Chat Drawer Modal */}
-            {isOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="w-[90vw] sm:w-[380px] h-[510px] mb-4 bg-slate-950/95 border border-purple-500/40 rounded-3xl backdrop-blur-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto selection:bg-purple-500 selection:text-white"
-              >
-                {/* Modal Header */}
-                <div className="p-4 border-b border-purple-500/20 bg-slate-900/80 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-2xl bg-white/10 p-1 border border-purple-500/30 flex items-center justify-center relative">
-                      <Bot className="w-5 h-5 text-cyan-400" />
-                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-white font-heading tracking-wide flex items-center gap-1.5">
-                        <span>ANVAYA Assistant</span>
-                        <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-                      </h3>
-                      <p className="text-[11px] text-slate-400 font-sans">3D Interactive AI Companion</p>
-                    </div>
+              <p className="text-xs text-slate-200 mt-2 mb-3 leading-relaxed">
+                Would you like to take a guided tour of the ANVAYA Student Club Ecosystem? 🤖
+              </p>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={startTour}
+                  className="flex-1 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold font-mono-code shadow-md transition-all flex items-center justify-center space-x-1 cursor-pointer"
+                >
+                  <span>Yes, take a tour! 🚀</span>
+                </button>
+
+                <button
+                  onClick={cancelTourPrompt}
+                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold font-mono-code transition-all cursor-pointer"
+                >
+                  <span>No, thanks</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ========================================================= */}
+          {/* 3. TRAVELING CHAT DRAWER MODAL */}
+          {/* ========================================================= */}
+          {isOpen && !isTourActive && (
+            <motion.div
+              key="chat-drawer-modal"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="w-[90vw] sm:w-[380px] h-[510px] mb-4 bg-slate-950/95 border border-purple-500/40 rounded-3xl backdrop-blur-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto selection:bg-purple-500 selection:text-white"
+            >
+              {/* Modal Header */}
+              <div className="p-4 border-b border-purple-500/20 bg-slate-900/80 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-9 h-9 rounded-2xl bg-white/10 p-1 border border-purple-500/30 flex items-center justify-center relative">
+                    <Bot className="w-5 h-5 text-cyan-400" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
                   </div>
-
-                  <div className="flex items-center space-x-1">
-                    <button
-                      onClick={() =>
-                        setMessages([
-                          {
-                            id: Date.now().toString(),
-                            sender: "bot",
-                            text: "Chat cleared! How can I assist you now?",
-                            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                          },
-                        ])
-                      }
-                      title="Clear chat"
-                      className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setIsOpen(false)}
-                      className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                  <div>
+                    <h3 className="text-sm font-bold text-white font-heading tracking-wide flex items-center gap-1.5">
+                      <span>ANVAYA Assistant</span>
+                      <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                    </h3>
+                    <p className="text-[11px] text-slate-400 font-sans">3D Interactive AI Companion</p>
                   </div>
                 </div>
 
-                {/* Tour Banner Inside Chat */}
-                <div className="px-4 py-2 bg-gradient-to-r from-purple-900/40 via-indigo-900/40 to-slate-900 border-b border-purple-500/20 flex items-center justify-between font-sans">
-                  <span className="text-xs text-purple-200 flex items-center gap-1.5">
-                    <Navigation className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>Explore with a guided tour</span>
-                  </span>
+                <div className="flex items-center space-x-1">
                   <button
-                    onClick={startTour}
-                    className="px-3 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold font-mono-code transition-all shadow-md cursor-pointer"
+                    onClick={() =>
+                      setMessages([
+                        {
+                          id: Date.now().toString(),
+                          sender: "bot",
+                          text: "Chat cleared! How can I assist you now?",
+                          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                        },
+                      ])
+                    }
+                    title="Clear chat"
+                    className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
                   >
-                    Start Tour 🚀
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-all cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
+              </div>
 
-                {/* Chat Body Messages */}
-                <div className="flex-1 p-4 overflow-y-auto space-y-3.5 font-sans scrollbar-thin scrollbar-thumb-purple-500/20">
-                  {messages.map((msg) => (
+              {/* Tour Banner Inside Chat */}
+              <div className="px-4 py-2 bg-gradient-to-r from-purple-900/40 via-indigo-900/40 to-slate-900 border-b border-purple-500/20 flex items-center justify-between font-sans">
+                <span className="text-xs text-purple-200 flex items-center gap-1.5">
+                  <Navigation className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Explore with a guided tour</span>
+                </span>
+                <button
+                  onClick={startTour}
+                  className="px-3 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold font-mono-code transition-all shadow-md cursor-pointer"
+                >
+                  Start Tour 🚀
+                </button>
+              </div>
+
+              {/* Chat Body Messages */}
+              <div className="flex-1 p-4 overflow-y-auto space-y-3.5 font-sans scrollbar-thin scrollbar-thumb-purple-500/20">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex items-start space-x-2 ${
+                      msg.sender === "user" ? "flex-row-reverse space-x-reverse" : "flex-row"
+                    }`}
+                  >
                     <div
-                      key={msg.id}
-                      className={`flex items-start space-x-2 ${
-                        msg.sender === "user" ? "flex-row-reverse space-x-reverse" : "flex-row"
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs shrink-0 ${
+                        msg.sender === "user"
+                          ? "bg-purple-600 text-white"
+                          : "bg-slate-800 border border-purple-500/30 text-cyan-400"
                       }`}
                     >
-                      <div
-                        className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs shrink-0 ${
-                          msg.sender === "user"
-                            ? "bg-purple-600 text-white"
-                            : "bg-slate-800 border border-purple-500/30 text-cyan-400"
-                        }`}
-                      >
-                        {msg.sender === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                      </div>
-
-                      <div
-                        className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
-                          msg.sender === "user"
-                            ? "bg-purple-600 text-white rounded-tr-none shadow-md"
-                            : "bg-slate-900 border border-white/10 text-slate-200 rounded-tl-none shadow-md"
-                        }`}
-                      >
-                        <p>{msg.text}</p>
-                        <span
-                          className={`block text-[9px] mt-1 opacity-60 text-right ${
-                            msg.sender === "user" ? "text-purple-200" : "text-slate-400"
-                          }`}
-                        >
-                          {msg.timestamp}
-                        </span>
-                      </div>
+                      {msg.sender === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                     </div>
-                  ))}
 
-                  {isLoading && (
-                    <div className="flex items-center space-x-2 text-xs text-purple-300 animate-pulse">
-                      <Bot className="w-4 h-4 text-cyan-400 animate-spin" />
-                      <span>Thinking...</span>
-                    </div>
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-
-                {/* Quick Action Suggestion Pills */}
-                <div className="px-3 py-2 bg-slate-900/60 border-t border-white/5 flex gap-1.5 overflow-x-auto no-scrollbar">
-                  {quickPills.map((pill) => (
-                    <button
-                      key={pill.label}
-                      onClick={() => handleSendMessage(pill.query)}
-                      className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-purple-500/20 border border-white/10 text-purple-200 text-[10px] font-mono-code whitespace-nowrap transition-all cursor-pointer hover:border-purple-400/40"
+                    <div
+                      className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
+                        msg.sender === "user"
+                          ? "bg-purple-600 text-white rounded-tr-none shadow-md"
+                          : "bg-slate-900 border border-white/10 text-slate-200 rounded-tl-none shadow-md"
+                      }`}
                     >
-                      {pill.label}
-                    </button>
-                  ))}
-                </div>
+                      <p>{msg.text}</p>
+                      <span
+                        className={`block text-[9px] mt-1 opacity-60 text-right ${
+                          msg.sender === "user" ? "text-purple-200" : "text-slate-400"
+                        }`}
+                      >
+                        {msg.timestamp}
+                      </span>
+                    </div>
+                  </div>
+                ))}
 
-                {/* Message Input Box */}
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }}
-                  className="p-3 border-t border-purple-500/20 bg-slate-950 flex items-center gap-2"
-                >
-                  <input
-                    type="text"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Ask AI Assistant anything..."
-                    className="flex-1 bg-slate-900 border border-white/10 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-all font-sans"
-                  />
+                {isLoading && (
+                  <div className="flex items-center space-x-2 text-xs text-purple-300 animate-pulse">
+                    <Bot className="w-4 h-4 text-cyan-400 animate-spin" />
+                    <span>Thinking...</span>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Quick Action Suggestion Pills */}
+              <div className="px-3 py-2 bg-slate-900/60 border-t border-white/5 flex gap-1.5 overflow-x-auto no-scrollbar">
+                {quickPills.map((pill) => (
                   <button
-                    type="submit"
-                    disabled={!inputMessage.trim() || isLoading}
-                    className="p-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition-all cursor-pointer shrink-0"
+                    key={pill.label}
+                    onClick={() => handleSendMessage(pill.query)}
+                    className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-purple-500/20 border border-white/10 text-purple-200 text-[10px] font-mono-code whitespace-nowrap transition-all cursor-pointer hover:border-purple-400/40"
                   >
-                    <Send className="w-4 h-4" />
+                    {pill.label}
                   </button>
-                </form>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                ))}
+              </div>
 
-          {/* Robot Trigger Container */}
-          <div className="flex flex-col items-center pointer-events-auto group">
-            <button
-              onClick={() => setIsOpen((prev) => !prev)}
-              className="mb-1.5 opacity-90 group-hover:opacity-100 transition-all bg-slate-900/90 hover:bg-slate-800 border border-purple-500/40 text-white text-[10px] font-mono-code px-3 py-1 rounded-full backdrop-blur-md shadow-2xl flex items-center space-x-1.5 cursor-pointer hover:border-purple-400"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span>{isOpen ? "Close Assistant" : "AI Assistant"}</span>
-            </button>
+              {/* Message Input Box */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
+                }}
+                className="p-3 border-t border-purple-500/20 bg-slate-950 flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Ask AI Assistant anything..."
+                  className="flex-1 bg-slate-900 border border-white/10 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-all font-sans"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputMessage.trim() || isLoading}
+                  className="p-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white transition-all cursor-pointer shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            <div
-              onClick={() => setIsOpen((prev) => !prev)}
-              className="w-28 h-28 sm:w-36 sm:h-36 relative drop-shadow-[0_10px_25px_rgba(0,0,0,0.5)] cursor-pointer"
-            >
-              <RobotOnly color="#ffffff" pantallaColor="#06b6d4" pantallaBrillo={1.6} metalness={0.5} className="w-full h-full" />
-            </div>
-          </div>
+        {/* ------------------------------------------------------------- */}
+        {/* 4. AI ASSISTANT STATUS BADGE */}
+        {/* ------------------------------------------------------------- */}
+        <button
+          onClick={() => {
+            if (!isTourActive) setIsOpen((prev) => !prev);
+          }}
+          className="mb-1.5 opacity-90 hover:opacity-100 transition-all bg-slate-900/90 hover:bg-slate-800 border border-purple-500/40 text-white text-[10px] font-mono-code px-3 py-1 rounded-full backdrop-blur-md shadow-2xl flex items-center space-x-1.5 cursor-pointer hover:border-purple-400"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          <span>{isTourActive ? `Tour: Step ${currentTourStep.step}/8` : isOpen ? "Close Assistant" : "AI Assistant"}</span>
+        </button>
+
+        {/* ------------------------------------------------------------- */}
+        {/* 5. 3D ROBOT CANVAS COMPONENT */}
+        {/* ------------------------------------------------------------- */}
+        <div
+          onClick={() => {
+            if (!isTourActive) setIsOpen((prev) => !prev);
+          }}
+          className="w-28 h-28 sm:w-36 sm:h-36 relative drop-shadow-[0_10px_25px_rgba(0,0,0,0.5)] cursor-pointer"
+        >
+          <RobotOnly color="#ffffff" pantallaColor="#06b6d4" pantallaBrillo={1.8} metalness={0.5} className="w-full h-full" />
         </div>
-      )}
-    </>
+      </div>
+    </motion.div>
   );
 }
 
