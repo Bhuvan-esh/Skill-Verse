@@ -18,6 +18,7 @@ const APP_EMAIL = 'b.11.08.bandana@gmail.com';
 const APP_PHONE = '+91 8197613412';
 const APP_PHONE_2 = '+91 9110412394';
 const APP_PHONE_3 = '+91 9483379575';
+const APP_PHONE_4 = '+91 9148481986';
 
 export function ContactPage() {
   const socialLinks = [
@@ -121,6 +122,16 @@ export function ContactPage() {
                   {APP_PHONE_3} <span className="text-slate-400 font-sans text-xs">(Student)</span>
                 </a>
                 <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE_3} />
+              </div>
+
+              <div className="flex items-center justify-between gap-x-2">
+                <a
+                  href={`tel:${APP_PHONE_4}`}
+                  className="block font-mono-code text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                >
+                  {APP_PHONE_4} <span className="text-slate-400 font-sans text-xs">(Student)</span>
+                </a>
+                <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE_4} />
               </div>
 
             </div>
