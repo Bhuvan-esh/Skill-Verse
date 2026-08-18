@@ -180,7 +180,7 @@ export default function DashboardPage() {
 
         {/* Tab Views strictly scoped to user role */}
         {activeTab === 'ideas' && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (
-          <IdeaHubSection user={user} onRefresh={refreshUser} />
+          <BizLinkMentorshipTracker />
         )}
 
         {activeTab === 'competitions' && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (
@@ -196,7 +196,7 @@ export default function DashboardPage() {
         )}
 
         {(activeTab === 'mentorship' || activeTab === 'soft-skills' || activeTab === 'leaderboard') && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (
-          <BizLinkMentorshipTracker />
+          <IdeaHubSection user={user} onRefresh={refreshUser} />
         )}
 
         {activeTab === 'founder_panel' && user.role === 'FOUNDER' && (

@@ -105,8 +105,7 @@ export default function LeaderboardSection() {
                     {row.score} pts
                   </td>
                 </tr>
-              ))}
-              )}
+              )))}
             </tbody>
           </table>
         </div>
