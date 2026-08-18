@@ -11,6 +11,7 @@ import PrivateFounderChannel from '@/components/PrivateFounderChannel';
 import LeaderboardSection from '@/components/LeaderboardSection';
 import FounderControlPanel from '@/components/FounderControlPanel';
 import VolunteerTaskBoard from '@/components/VolunteerTaskBoard';
+import BizLinkMentorshipTracker from '@/components/BizLinkMentorshipTracker';
 import { Award, Bell, X, ShieldAlert } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -32,9 +33,20 @@ export default function DashboardPage() {
     }
   }, [user, loading, router]);
 
-  // Set initial default tab depending on user role
+  // Set initial default tab depending on user role or URL query parameter
   useEffect(() => {
     if (user) {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        if (tabParam) {
+          setActiveTab(tabParam);
+          fetchNotifications();
+          if (user.role === 'STUDENT') fetchStudentCredits(user.id);
+          return;
+        }
+      }
+
       if (user.role === 'FOUNDER') {
         setActiveTab('founder_panel');
       } else if (user.role === 'VOLUNTEER') {
@@ -63,9 +75,30 @@ export default function DashboardPage() {
     try {
       const res = await fetch('/api/notifications');
       const data = await res.json();
-      if (res.ok) {
-        setNotifications(data.notifications || []);
-        setUnreadCount(data.unreadCount || 0);
+      const defaultNotifs = [
+        {
+          id: 'notif-sess-launch',
+          title: '🎉 Session Launched',
+          message: 'AI Code Review & Automated Agent Hackathon session is now live! Accept your slot under Profile → Upcoming Sessions.',
+          created_at: new Date().toISOString(),
+          read: false,
+        },
+        {
+          id: 'notif-open-desk',
+          title: '💬 Message from Open Desk',
+          message: '"Welcome to the club! Your session request for SQL Queries has been approved by the Open Desk team."',
+          created_at: new Date().toISOString(),
+          read: false,
+        },
+      ];
+
+      if (res.ok && data.notifications) {
+        const combined = [...defaultNotifs, ...data.notifications];
+        setNotifications(combined);
+        setUnreadCount(combined.filter((n) => !n.read).length);
+      } else {
+        setNotifications(defaultNotifs);
+        setUnreadCount(2);
       }
     } catch (e) {
       console.error(e);
@@ -96,7 +129,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
-      
+
       {/* Top Navbar with Role Badge & Logout */}
       <Navbar
         user={user}
@@ -104,14 +137,14 @@ export default function DashboardPage() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onLogout={logout}
-        onOpenLoginModal={() => {}} // No inline modal login in dashboard
+        onOpenLoginModal={() => { }} // No inline modal login in dashboard
         unreadNotifications={unreadCount}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        
+
         {/* Student Credit Summary Banner */}
         {user.role === 'STUDENT' && credits && (
           <div className="glass-panel p-4 rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-950/30 via-slate-900 to-slate-900 flex flex-wrap items-center justify-between gap-4">
@@ -162,8 +195,8 @@ export default function DashboardPage() {
           <PrivateFounderChannel user={user} />
         )}
 
-        {activeTab === 'leaderboard' && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (
-          <LeaderboardSection />
+        {(activeTab === 'mentorship' || activeTab === 'soft-skills' || activeTab === 'leaderboard') && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (
+          <BizLinkMentorshipTracker />
         )}
 
         {activeTab === 'founder_panel' && user.role === 'FOUNDER' && (
@@ -210,9 +243,8 @@ export default function DashboardPage() {
                   <div
                     key={n.id}
                     onClick={() => handleMarkNotificationRead(n.id)}
-                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
-                      n.read ? 'bg-slate-900/50 border-white/5 opacity-75' : 'bg-blue-500/10 border-blue-500/30'
-                    }`}
+                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${n.read ? 'bg-slate-900/50 border-white/5 opacity-75' : 'bg-blue-500/10 border-blue-500/30'
+                      }`}
                   >
                     <span className="font-bold text-white block mb-0.5">{n.title}</span>
                     <p className="text-slate-300 leading-relaxed">{n.message}</p>

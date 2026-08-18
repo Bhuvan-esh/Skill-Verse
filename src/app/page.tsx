@@ -118,26 +118,26 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="max-w-4xl w-full mx-auto my-auto py-6 relative perspective-scene flex items-center justify-center min-h-[520px]">
-        <div className="max-w-3xl w-full text-center space-y-8 z-40 animate-fadeIn">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold font-mono-code">
+      <main className="max-w-4xl w-full mx-auto my-auto py-8 relative perspective-scene flex flex-col items-center justify-center min-h-[520px]">
+        <div className="max-w-3xl w-full text-center space-y-6 z-40 animate-fadeIn flex flex-col items-center justify-center">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold font-mono-code mb-2">
             <Sparkles className="w-4 h-4 text-purple-400" />
             <span>Student Club Ecosystem</span>
           </div>
 
-          {/* Cursor-Driven Moving Particle Typography ABOVE Tagline */}
-          <div className="w-full max-w-2xl mx-auto min-h-[160px] h-[160px] relative z-30 -my-2">
+          {/* Centered Club Name Particle Typography */}
+          <div className="w-full max-w-2xl mx-auto h-[120px] sm:h-[150px] relative z-30 flex items-center justify-center">
             <CursorDrivenParticleTypography
               text="ANVAYA"
               fontSize={100}
               particleDensity={5}
               dispersionStrength={20}
               color="#c084fc"
-              className="w-full h-full min-h-[160px]"
+              className="w-full h-full"
             />
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 pt-2">
             <h1 className="text-4xl sm:text-6xl font-normal tracking-tight font-playfair leading-[1.1]">
               <span className="italic font-normal bg-gradient-to-r from-purple-400 via-indigo-300 to-amber-300 bg-clip-text text-transparent">
                 The thread that connects it all

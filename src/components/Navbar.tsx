@@ -2,16 +2,18 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { 
-  Lightbulb, 
-  Trophy, 
-  Users, 
-  Award, 
-  Bell, 
-  LogOut, 
-  UserCheck, 
-  MessageSquare, 
-  Zap
+import { useRouter } from 'next/navigation';
+import {
+  Lightbulb,
+  Trophy,
+  Users,
+  Award,
+  Bell,
+  LogOut,
+  UserCheck,
+  MessageSquare,
+  Zap,
+  ArrowLeft
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -34,24 +36,37 @@ export default function Navbar({
   unreadNotifications,
   onOpenNotifications,
 }: NavbarProps) {
+  const router = useRouter();
+
   return (
     <header className="sticky top-0 z-50 glass-panel border-b border-white/10 px-4 lg:px-8 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
-        {/* Brand Logo & Title */}
-        <Link href="/" className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-amber-400 p-0.5 shadow-lg shadow-blue-500/20">
-            <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-              <Lightbulb className="w-5 h-5 text-amber-400" />
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+
+        {/* Brand Logo & Title with Back to Horizon Button */}
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => router.push('/horizon')}
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-bold font-mono transition-all cursor-pointer shadow-sm group"
+            title="Return to 3D Horizon view"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Back to Horizon</span>
+          </button>
+
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-amber-400 p-0.5 shadow-lg shadow-blue-500/20">
+              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
+                <Lightbulb className="w-5 h-5 text-amber-400" />
+              </div>
             </div>
-          </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-blue-400 bg-clip-text text-transparent font-heading">
-              Club Idea Hub
-            </h1>
-            <p className="text-xs text-slate-400 font-medium">Student Innovation & Credit Engine</p>
-          </div>
-        </Link>
+            <div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-blue-400 bg-clip-text text-transparent font-heading">
+                Home Page
+              </h1>
+              <p className="text-xs text-slate-400 font-medium">Student Innovation & Credit Engine</p>
+            </div>
+          </Link>
+        </div>
 
         {/* Navigation Tabs based on Active Role */}
         {user && (
@@ -60,47 +75,32 @@ export default function Navbar({
               <>
                 <button
                   onClick={() => setActiveTab('ideas')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    activeTab === 'ideas'
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'ideas'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <Lightbulb className="w-4 h-4" />
-                  <span>Idea Hub</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('competitions')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    activeTab === 'competitions'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                >
-                  <Trophy className="w-4 h-4" />
-                  <span>Competitions</span>
+                  <span>Profile</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('skillbarter')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    activeTab === 'skillbarter'
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'skillbarter'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <Users className="w-4 h-4" />
-                  <span>Skill-Barter</span>
+                  <span>Skillora</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('leaderboard')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    activeTab === 'leaderboard'
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'leaderboard'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <Award className="w-4 h-4 text-amber-400" />
                   <span>Leaderboard</span>
@@ -108,14 +108,13 @@ export default function Navbar({
 
                 <button
                   onClick={() => setActiveTab('privatechat')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    activeTab === 'privatechat'
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'privatechat'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span>Founder Channel</span>
+                  <span>Open Desk</span>
                 </button>
               </>
             )}
@@ -124,11 +123,10 @@ export default function Navbar({
               <>
                 <button
                   onClick={() => setActiveTab('founder_panel')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeTab === 'founder_panel'
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'founder_panel'
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <Zap className="w-3.5 h-3.5 text-amber-300" />
                   <span>Control Panel</span>
@@ -136,47 +134,32 @@ export default function Navbar({
 
                 <button
                   onClick={() => setActiveTab('ideas')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeTab === 'ideas'
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'ideas'
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <Lightbulb className="w-3.5 h-3.5" />
-                  <span>Ideas</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('competitions')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeTab === 'competitions'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                >
-                  <Trophy className="w-3.5 h-3.5" />
-                  <span>Competitions</span>
+                  <span>Profile</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('skillbarter')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeTab === 'skillbarter'
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'skillbarter'
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <Users className="w-3.5 h-3.5" />
-                  <span>Barter</span>
+                  <span>Skillora</span>
                 </button>
 
                 <button
                   onClick={() => setActiveTab('leaderboard')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeTab === 'leaderboard'
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'leaderboard'
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <Award className="w-3.5 h-3.5 text-amber-400" />
                   <span>Leaderboard</span>
@@ -184,11 +167,10 @@ export default function Navbar({
 
                 <button
                   onClick={() => setActiveTab('volunteer_tasks')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    activeTab === 'volunteer_tasks'
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'volunteer_tasks'
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
+                    }`}
                 >
                   <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Volunteer Tasks</span>
@@ -199,11 +181,10 @@ export default function Navbar({
             {activeRole === 'VOLUNTEER' && (
               <button
                 onClick={() => setActiveTab('volunteer_tasks')}
-                className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                  activeTab === 'volunteer_tasks'
+                className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'volunteer_tasks'
                     ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                }`}
+                  }`}
               >
                 <UserCheck className="w-4 h-4 text-emerald-400" />
                 <span>Gated Task Board</span>
@@ -214,7 +195,7 @@ export default function Navbar({
 
         {/* User Session & Role Badge & Logout */}
         <div className="flex items-center space-x-3">
-          
+
           {/* Notifications Button */}
           {user && (
             <button
@@ -237,13 +218,12 @@ export default function Navbar({
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm font-bold text-white">{user.name}</span>
                 <span
-                  className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                    user.role === 'FOUNDER'
+                  className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${user.role === 'FOUNDER'
                       ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                       : user.role === 'VOLUNTEER'
-                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                  }`}
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                    }`}
                 >
                   {user.role} ACCESS {user.usn ? `(${user.usn})` : ''}
                 </span>

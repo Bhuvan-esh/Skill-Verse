@@ -102,8 +102,8 @@ export function GlobalRobotAssistant() {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // Proactive Tour Prompt State
-  const [showTourPrompt, setShowTourPrompt] = useState(true);
+  // Proactive Tour Prompt State (Disabled/Cancelled)
+  const [showTourPrompt, setShowTourPrompt] = useState(false);
   
   // Active Tour Mode State
   const [isTourActive, setIsTourActive] = useState(false);
@@ -140,10 +140,19 @@ export function GlobalRobotAssistant() {
     }
   }, [isTourActive, currentStepIndex]);
 
-  // Global Tour Event Listener for strict user action gates
+  // Horizon Page State (Sign notification only pops up when user reaches Horizon page)
+  const [isOnHorizon, setIsOnHorizon] = useState(false);
+
+  // Global Tour & Horizon Event Listener
   useEffect(() => {
     const handleTourEvent = (e: any) => {
       const type = e.detail?.type;
+
+      if (type === "auth-success" || type === "reach-horizon") {
+        setIsOnHorizon(true);
+      } else if (type === "leave-horizon" || type === "back-to-landing") {
+        setIsOnHorizon(false);
+      }
 
       // Gate 1: User clicked "ENTER THE STUDENT CLUB" -> Auto advance from Step 1 to Step 2
       if (type === "user-clicked-enter" && isTourActive) {
@@ -219,11 +228,6 @@ export function GlobalRobotAssistant() {
     const textToSend = customText || inputMessage;
     if (!textToSend.trim() || isLoading) return;
 
-    if (textToSend.toLowerCase().includes("tour")) {
-      startTour();
-      return;
-    }
-
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       sender: "user",
@@ -268,7 +272,6 @@ export function GlobalRobotAssistant() {
   };
 
   const quickPills = [
-    { label: "🚀 Take Guided Tour", query: "Take a tour" },
     { label: "🤝 Skill Barter", query: "How does Skill Barter work?" },
     { label: "💡 Project Ideas", query: "How do I submit an idea in Idea Hub?" },
     { label: "🏆 Earn Credits", query: "How do credits and ranks work?" },
@@ -363,52 +366,7 @@ export function GlobalRobotAssistant() {
             </motion.div>
           )}
 
-          {/* ========================================================= */}
-          {/* 2. TRAVELING PROACTIVE TOUR PROMPT CARD */}
-          {/* ========================================================= */}
-          {showTourPrompt && !isOpen && !isTourActive && (
-            <motion.div
-              key="tour-prompt-bubble"
-              initial={{ opacity: 0, scale: 0.9, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 15 }}
-              transition={{ duration: 0.3 }}
-              className="mb-3 w-72 sm:w-80 bg-slate-950/95 border border-purple-500/50 rounded-2xl p-4 shadow-2xl backdrop-blur-2xl pointer-events-auto text-white font-sans"
-            >
-              <div className="flex items-start justify-between space-x-2">
-                <div className="flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse shrink-0" />
-                  <h4 className="text-xs font-bold text-white font-heading">AI Robot Assistant</h4>
-                </div>
-                <button
-                  onClick={cancelTourPrompt}
-                  className="text-slate-400 hover:text-white p-0.5 rounded-full hover:bg-white/10 transition-all cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
 
-              <p className="text-xs text-slate-200 mt-2 mb-3 leading-relaxed">
-                Would you like to take a guided tour of the ANVAYA Student Club Ecosystem? 🤖
-              </p>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={startTour}
-                  className="flex-1 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold font-mono-code shadow-md transition-all flex items-center justify-center space-x-1 cursor-pointer"
-                >
-                  <span>Yes, take a tour! 🚀</span>
-                </button>
-
-                <button
-                  onClick={cancelTourPrompt}
-                  className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-semibold font-mono-code transition-all cursor-pointer"
-                >
-                  <span>No, thanks</span>
-                </button>
-              </div>
-            </motion.div>
-          )}
 
           {/* ========================================================= */}
           {/* 3. TRAVELING CHAT DRAWER MODAL */}
@@ -464,19 +422,7 @@ export function GlobalRobotAssistant() {
                 </div>
               </div>
 
-              {/* Tour Banner Inside Chat */}
-              <div className="px-4 py-2 bg-gradient-to-r from-purple-900/40 via-indigo-900/40 to-slate-900 border-b border-purple-500/20 flex items-center justify-between font-sans">
-                <span className="text-xs text-purple-200 flex items-center gap-1.5">
-                  <Navigation className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Explore with a guided tour</span>
-                </span>
-                <button
-                  onClick={startTour}
-                  className="px-3 py-1 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold font-mono-code transition-all shadow-md cursor-pointer"
-                >
-                  Start Tour 🚀
-                </button>
-              </div>
+
 
               {/* Chat Body Messages */}
               <div className="flex-1 p-4 overflow-y-auto space-y-3.5 font-sans scrollbar-thin scrollbar-thumb-purple-500/20">
@@ -564,6 +510,21 @@ export function GlobalRobotAssistant() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Floating Double-Click Sign Notification for AI Robot Assistant (Pops up ONLY when reaching Horizon page) */}
+        {isOnHorizon && !isOpen && !isTourActive && (
+          <motion.div
+            key="horizon-doubleclick-sign"
+            initial={{ opacity: 0, y: 15, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 15, scale: 0.9 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="mb-2 px-3.5 py-1.5 rounded-2xl bg-slate-950/95 border border-cyan-400/60 shadow-2xl backdrop-blur-xl text-cyan-200 text-[11px] font-mono-code flex items-center gap-1.5 animate-pulse pointer-events-none select-none"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <span className="font-bold tracking-wide">Double-click on the section to enter</span>
+          </motion.div>
+        )}
 
         {/* ------------------------------------------------------------- */}
         {/* 4. AI ASSISTANT STATUS BADGE */}

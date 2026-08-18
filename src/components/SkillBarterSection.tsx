@@ -1,175 +1,85 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Users, Star, MessageSquare, CheckCircle2, Award, Plus, Send, XCircle, ShieldAlert, Sparkles, ThumbsUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Plus, XCircle, User, BookOpen, Layers, GraduationCap, CheckCircle2, ShieldAlert } from 'lucide-react';
 
-interface SkillBarterProps {
+interface SkilloraProps {
   user: any;
   onRefresh: () => void;
 }
 
-export default function SkillBarterSection({ user, onRefresh }: SkillBarterProps) {
-  const [requests, setRequests] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function SkillBarterSection({ user, onRefresh }: SkilloraProps) {
+  // Sample Post Session Requests
+  const [postSessionRequests, setPostSessionRequests] = useState([
+    {
+      id: 'req-1',
+      name: 'Rahul Sharma',
+      branch: 'Computer Science & Engineering (CSE)',
+      year: '4th Year',
+      domain: 'Database Systems & Backend',
+      topic: 'PostgreSQL Query Optimization & Indexing Walkthrough',
+      message: 'Need an interactive 1:1 session explaining indexing strategies and EXPLAIN ANALYZE on complex SQL joins.',
+    },
+    {
+      id: 'req-2',
+      name: 'Meera K',
+      branch: 'Artificial Intelligence & Data Science',
+      year: '3rd Year',
+      domain: 'Python & Web Frameworks',
+      topic: 'Django REST Framework & JWT Authentication Setup',
+      message: 'Looking for a mentor to guide through setting up nested serializers and CORS handling in Django.',
+    },
+    {
+      id: 'req-3',
+      name: 'Sanjay V',
+      branch: 'Information Science & Engineering (ISE)',
+      year: '3rd Year',
+      domain: 'DevOps & Containerization',
+      topic: 'Docker Compose & Multi-Container App Deployment',
+      message: 'Seeking hands-on assistance containerizing a React frontend and Node.js backend with PostgreSQL.',
+    },
+  ]);
+
+  // Selected Request Detail Modal State
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+
+  // New Post Session Request Modal State
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [name, setName] = useState(user?.name || '');
+  const [branch, setBranch] = useState('Computer Science & Engineering');
+  const [year, setYear] = useState('3rd Year');
+  const [domain, setDomain] = useState('Web Development');
+  const [topic, setTopic] = useState('');
+  const [message, setMessage] = useState('');
+
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
 
-  // Post Request Modal state
-  const [showPostModal, setShowPostModal] = useState(false);
-  const [skill, setSkill] = useState('');
-  const [message, setMessage] = useState('');
-
-  // Active 1:1 Chat Drawer state
-  const [activeChat, setActiveChat] = useState<any>(null);
-  const [chatMessages, setChatMessages] = useState<any[]>([]);
-  const [chatInput, setChatInput] = useState('');
-
-  // Feedback Modal state
-  const [feedbackChat, setFeedbackChat] = useState<any>(null);
-  const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
-
-  const fetchSkillRequests = async () => {
-    try {
-      const res = await fetch('/api/skill-barter/requests');
-      const data = await res.json();
-      if (res.ok) {
-        setRequests(data.requests || []);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSkillRequests();
-  }, []);
-
-  const handlePostRequest = async (e: React.FormEvent) => {
+  const handlePostRequest = (e: React.FormEvent) => {
     e.preventDefault();
     setMsg(''); setErr('');
-    try {
-      const res = await fetch('/api/skill-barter/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skill, message }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
 
-      setMsg('Skill help request posted to public hub!');
-      setSkill(''); setMessage('');
-      setShowPostModal(false);
-      fetchSkillRequests();
-      onRefresh();
-    } catch (error: any) {
-      setErr(error.message);
+    if (!topic || !message) {
+      setErr('Please fill in all required fields.');
+      return;
     }
-  };
 
-  const handleOfferHelp = async (requestId: string) => {
-    setMsg(''); setErr('');
-    try {
-      const res = await fetch(`/api/skill-barter/requests/${requestId}/respond`, {
-        method: 'POST',
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+    const newReq = {
+      id: `req-${Date.now()}`,
+      name: name || user?.name || 'Student Participant',
+      branch,
+      year,
+      domain,
+      topic,
+      message,
+    };
 
-      setMsg('Your offer to mentor has been posted with your public stats!');
-      fetchSkillRequests();
-    } catch (error: any) {
-      setErr(error.message);
-    }
-  };
-
-  const handleSelectMentor = async (requestId: string, mentorId: string) => {
-    setMsg(''); setErr('');
-    try {
-      const res = await fetch(`/api/skill-barter/requests/${requestId}/select-mentor`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mentor_id: mentorId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      setMsg('Mentor selected! Private 1:1 chat established.');
-      fetchSkillRequests();
-      openChat(data.chat_id);
-    } catch (error: any) {
-      setErr(error.message);
-    }
-  };
-
-  const openChat = async (chatId: string) => {
-    try {
-      const res = await fetch(`/api/skill-barter/chats/${chatId}/messages`);
-      const data = await res.json();
-      if (res.ok) {
-        setActiveChat(data.chat);
-        setChatMessages(data.messages || []);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleSendChatMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeChat || !chatInput.trim()) return;
-    try {
-      const res = await fetch(`/api/skill-barter/chats/${activeChat.id}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: chatInput }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setChatMessages((prev) => [...prev, data.message]);
-        setChatInput('');
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleCompleteSession = async (chatId: string) => {
-    try {
-      const res = await fetch(`/api/skill-barter/chats/${chatId}/complete`, { method: 'POST' });
-      const data = await res.json();
-      if (res.ok) {
-        setMsg('Session marked complete! Founders notified & topics taught auto-updated.');
-        setFeedbackChat(activeChat);
-        setActiveChat(null);
-        fetchSkillRequests();
-        onRefresh();
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const handleSubmitFeedback = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!feedbackChat) return;
-    try {
-      const res = await fetch(`/api/skill-barter/chats/${feedbackChat.id}/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, comment }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMsg('Mentee feedback & rating submitted successfully!');
-        setFeedbackChat(null);
-        fetchSkillRequests();
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    setPostSessionRequests([newReq, ...postSessionRequests]);
+    setMsg('Post Session Request published successfully!');
+    setTopic('');
+    setMessage('');
+    setShowPostModal(false);
+    onRefresh();
   };
 
   return (
@@ -180,10 +90,12 @@ export default function SkillBarterSection({ user, onRefresh }: SkillBarterProps
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-2">
             <Users className="w-3.5 h-3.5" />
-            <span>Peer Learning Marketplace</span>
+            <span>Peer Learning Hub</span>
           </div>
-          <h2 className="text-2xl font-bold text-white font-heading">Skill-Barter & Micro-Mentorship</h2>
-          <p className="text-sm text-slate-400">Post public learning requests, evaluate mentor stats, and connect via private 1:1 sessions.</p>
+          <h2 className="text-2xl font-bold text-white font-heading">Skillora — Mentorship & Session Requests</h2>
+          <p className="text-sm text-slate-400">
+            Browse post session requests, view student domain details, and offer mentoring assistance.
+          </p>
         </div>
 
         {user && user.role === 'STUDENT' && (
@@ -192,7 +104,7 @@ export default function SkillBarterSection({ user, onRefresh }: SkillBarterProps
             className="flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>Post Help Request</span>
+            <span>+ Post Session Request</span>
           </button>
         )}
       </div>
@@ -200,247 +112,215 @@ export default function SkillBarterSection({ user, onRefresh }: SkillBarterProps
       {msg && <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center space-x-2"><CheckCircle2 className="w-4 h-4" /><span>{msg}</span></div>}
       {err && <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2"><ShieldAlert className="w-4 h-4" /><span>{err}</span></div>}
 
-      {/* Requests Feed */}
-      {loading ? (
-        <div className="text-center py-8 text-slate-400 text-sm">Loading skill requests...</div>
-      ) : requests.length === 0 ? (
-        <div className="text-center py-8 text-slate-400 text-sm glass-card rounded-2xl">No skill requests posted yet.</div>
-      ) : (
-        <div className="space-y-6">
-          {requests.map((req) => {
-            const isRequester = user && req.requester_id === user.id;
-            const hasResponded = user && req.responses?.some((r: any) => r.responder.id === user.id);
-            const activeChatSession = req.chats?.find((c: any) => c.status === 'ACTIVE');
+      {/* Post Session Requests List Feed */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-white font-heading flex items-center space-x-2">
+          <BookOpen className="w-5 h-5 text-indigo-400" />
+          <span>Post Session Requests</span>
+        </h3>
 
-            return (
-              <div key={req.id} className="glass-card p-6 rounded-2xl border border-white/10 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                      Wants to learn: {req.skill}
-                    </span>
-                    <h3 className="text-lg font-bold text-white mt-2">{req.message}</h3>
-                    <p className="text-xs text-slate-400">Posted by <strong>{req.requester?.name}</strong> ({req.requester?.usn})</p>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase ${
-                      req.status === 'MATCHED' ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    }`}>
-                      {req.status}
-                    </span>
-                    {activeChatSession && (isRequester || activeChatSession.mentor_id === user?.id) && (
-                      <button
-                        onClick={() => openChat(activeChatSession.id)}
-                        className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/25 flex items-center space-x-1"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Open 1:1 Chat</span>
-                      </button>
-                    )}
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {postSessionRequests.map((req) => (
+            <div
+              key={req.id}
+              onClick={() => setSelectedRequest(req)}
+              className="glass-card p-5 rounded-2xl border border-white/10 hover:border-indigo-500/50 cursor-pointer transition-all flex flex-col justify-between space-y-3 shadow-md group"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    {req.domain}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">{req.year}</span>
                 </div>
 
-                {/* Responders Comparison Feed */}
-                <div className="pt-4 border-t border-white/10 space-y-3">
-                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                    Offers to Mentor ({req.responses?.length || 0})
-                  </h4>
+                <h4 className="text-base font-bold text-white group-hover:text-indigo-300 transition-colors">
+                  {req.topic}
+                </h4>
 
-                  {req.responses?.length === 0 ? (
-                    <p className="text-xs text-slate-400 italic">No mentors have offered help yet.</p>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {req.responses.map((resp: any) => {
-                        const rStudent = resp.responder;
-                        return (
-                          <div key={resp.id} className="glass-panel p-4 rounded-xl border border-white/5 space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-bold text-white">{rStudent.name}</span>
-                              <div className="flex items-center space-x-1 text-amber-400 text-xs font-bold">
-                                <Star className="w-3.5 h-3.5 fill-amber-400" />
-                                <span>{rStudent.average_rating} ({rStudent.feedback_count})</span>
-                              </div>
-                            </div>
+                <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+                  {req.message}
+                </p>
+              </div>
 
-                            <div className="text-xs text-slate-300 space-y-1">
-                              <p>Total Credits: <strong className="text-blue-400">{rStudent.credits ? rStudent.credits.domain_1 + rStudent.credits.domain_2 + rStudent.credits.domain_3 + rStudent.credits.domain_4 : 0}</strong></p>
-                              <p>Topics Taught: <span className="text-purple-300">{rStudent.topics_taught?.join(', ') || 'None yet'}</span></p>
-                            </div>
+              <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+                <div className="flex items-center space-x-1.5">
+                  <User className="w-3.5 h-3.5 text-indigo-400" />
+                  <strong className="text-slate-200">{req.name}</strong>
+                </div>
+                <span className="text-[11px] text-indigo-300 font-semibold underline">View Details →</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-                            {/* Requester Select Mentor Action */}
-                            {isRequester && req.status === 'OPEN' && (
-                              <button
-                                onClick={() => handleSelectMentor(req.id, rStudent.id)}
-                                className="w-full mt-2 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-bold text-xs shadow-md"
-                              >
-                                Accept & Start 1:1 Chat
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+      {/* Selected Request Detail Modal */}
+      {selectedRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div className="w-full max-w-lg glass-panel p-6 rounded-2xl border border-white/10 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-lg font-bold text-white font-heading flex items-center space-x-2">
+                <BookOpen className="w-5 h-5 text-indigo-400" />
+                <span>Post Session Request Details</span>
+              </h3>
+              <button onClick={() => setSelectedRequest(null)} className="text-slate-400 hover:text-white">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
 
-                  {!isRequester && !hasResponded && req.status === 'OPEN' && (
-                    <button
-                      onClick={() => handleOfferHelp(req.id)}
-                      className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md"
-                    >
-                      Offer to Mentor this Student
-                    </button>
-                  )}
+            <div className="space-y-3.5 text-sm">
+              <div className="flex items-start space-x-3 p-3 rounded-xl bg-slate-900 border border-white/5">
+                <User className="w-4 h-4 text-indigo-400 mt-0.5" />
+                <div>
+                  <span className="text-xs font-semibold text-slate-400 block">Name</span>
+                  <span className="font-bold text-white text-base">{selectedRequest.name}</span>
                 </div>
               </div>
-            );
-          })}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-start space-x-3 p-3 rounded-xl bg-slate-900 border border-white/5">
+                  <GraduationCap className="w-4 h-4 text-purple-400 mt-0.5" />
+                  <div>
+                    <span className="text-xs font-semibold text-slate-400 block">Branch</span>
+                    <span className="font-bold text-slate-200 text-xs">{selectedRequest.branch}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 p-3 rounded-xl bg-slate-900 border border-white/5">
+                  <Layers className="w-4 h-4 text-amber-400 mt-0.5" />
+                  <div>
+                    <span className="text-xs font-semibold text-slate-400 block">Year</span>
+                    <span className="font-bold text-slate-200 text-xs">{selectedRequest.year}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 p-3 rounded-xl bg-slate-900 border border-white/5">
+                <BookOpen className="w-4 h-4 text-emerald-400 mt-0.5" />
+                <div>
+                  <span className="text-xs font-semibold text-slate-400 block">Domain</span>
+                  <span className="font-bold text-emerald-300 text-xs">{selectedRequest.domain}</span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 space-y-1">
+                <span className="text-xs font-bold text-indigo-300 block uppercase">Topic</span>
+                <span className="font-bold text-white text-sm block">{selectedRequest.topic}</span>
+                <p className="text-xs text-slate-300 pt-1 leading-relaxed">{selectedRequest.message}</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                setMsg(`Offered to mentor ${selectedRequest.name} for topic "${selectedRequest.topic}"!`);
+                setSelectedRequest(null);
+              }}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/25"
+            >
+              Offer Mentoring Assistance
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Post Skill Request Modal */}
+      {/* New Post Session Request Modal Form */}
       {showPostModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="w-full max-w-md glass-panel p-6 rounded-2xl border border-white/10 space-y-4">
+          <div className="w-full max-w-lg glass-panel p-6 rounded-2xl border border-white/10 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-lg font-bold text-white font-heading">Post Skill Help Request</h3>
-              <button onClick={() => setShowPostModal(false)} className="text-slate-400 hover:text-white"><XCircle className="w-5 h-5" /></button>
+              <h3 className="text-lg font-bold text-white font-heading">Post New Session Request</h3>
+              <button onClick={() => setShowPostModal(false)} className="text-slate-400 hover:text-white">
+                <XCircle className="w-5 h-5" />
+              </button>
             </div>
 
-            <form onSubmit={handlePostRequest} className="space-y-4">
+            <form onSubmit={handlePostRequest} className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your Name"
+                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Year</label>
+                  <select
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm bg-slate-900"
+                  >
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Branch</label>
+                  <input
+                    type="text"
+                    required
+                    value={branch}
+                    onChange={(e) => setBranch(e.target.value)}
+                    placeholder="e.g. CSE / ISE / AI & DS"
+                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-semibold mb-1">Domain</label>
+                  <select
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm bg-slate-900"
+                  >
+                    <option value="Web Development">Web Development</option>
+                    <option value="Artificial Intelligence & ML">Artificial Intelligence & ML</option>
+                    <option value="Cloud DevOps">Cloud DevOps</option>
+                    <option value="Database Systems">Database Systems</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Topic / Skill Needed</label>
+                <label className="block text-slate-300 font-semibold mb-1">Topic</label>
                 <input
                   type="text"
                   required
-                  value={skill}
-                  onChange={(e) => setSkill(e.target.value)}
-                  placeholder="e.g. Python AsyncIO / React Hooks"
-                  className="w-full px-4 py-2.5 rounded-xl glass-input text-sm"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="e.g. React Hooks & State Management"
+                  className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Detailed Request Message</label>
+                <label className="block text-slate-300 font-semibold mb-1">Detailed Message</label>
                 <textarea
                   required
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Explain what specific concept you want to learn..."
-                  className="w-full px-4 py-2.5 rounded-xl glass-input text-sm"
+                  placeholder="Describe what help or session you need..."
+                  className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm"
                 />
               </div>
 
-              <button type="submit" className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg">
-                Post Request to Marketplace
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Active 1:1 Chat Drawer Modal */}
-      {activeChat && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="w-full max-w-2xl glass-panel rounded-2xl border border-white/10 flex flex-col h-[550px] shadow-2xl overflow-hidden">
-            <div className="p-4 bg-slate-900/90 border-b border-white/10 flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-white font-heading">Private 1:1 Mentor Chat</h3>
-                <p className="text-xs text-slate-400">
-                  Requester: <strong>{activeChat.requester?.name}</strong> | Mentor: <strong>{activeChat.mentor?.name}</strong>
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => handleCompleteSession(activeChat.id)}
-                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow"
-                >
-                  Mark Session Complete
-                </button>
-                <button onClick={() => setActiveChat(null)} className="text-slate-400 hover:text-white p-1">
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Chat Messages */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3">
-              {chatMessages.map((m) => {
-                const isMe = user && m.sender_id === user.id;
-                return (
-                  <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                    <span className="text-[10px] text-slate-400 mb-0.5">{m.sender?.name}</span>
-                    <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-xs ${
-                      isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 border border-white/10 rounded-tl-none'
-                    }`}>
-                      {m.text}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Chat Input */}
-            <form onSubmit={handleSendChatMessage} className="p-3 bg-slate-900 border-t border-white/10 flex items-center space-x-2">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Type message..."
-                className="flex-1 px-4 py-2 rounded-xl glass-input text-xs"
-              />
-              <button type="submit" className="p-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500">
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Mentee Feedback Modal */}
-      {feedbackChat && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="w-full max-w-md glass-panel p-6 rounded-2xl border border-white/10 space-y-4">
-            <div className="text-center">
-              <Sparkles className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-              <h3 className="text-lg font-bold text-white font-heading">Rate Your Mentor</h3>
-              <p className="text-xs text-slate-400">Leave feedback for your mentorship session</p>
-            </div>
-
-            <form onSubmit={handleSubmitFeedback} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Star Rating (1 - 5 Stars)</label>
-                <div className="flex justify-center space-x-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setRating(star)}
-                      className={`p-2 rounded-xl transition-all ${
-                        rating >= star ? 'text-amber-400 bg-amber-500/20' : 'text-slate-600 bg-slate-900'
-                      }`}
-                    >
-                      <Star className="w-6 h-6 fill-current" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Comment (Optional)</label>
-                <textarea
-                  rows={3}
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Share feedback on your mentor's explanation & guidance..."
-                  className="w-full px-4 py-2.5 rounded-xl glass-input text-sm"
-                />
-              </div>
-
-              <button type="submit" className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg">
-                Submit Mentor Feedback
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg shadow-indigo-500/25"
+              >
+                Publish Session Request
               </button>
             </form>
           </div>

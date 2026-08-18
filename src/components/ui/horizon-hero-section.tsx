@@ -10,6 +10,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, Sparkles, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -69,8 +70,21 @@ interface ComponentProps {
 
 export const Component = ({ onLogout }: ComponentProps = {}) => {
   const { logout } = useAuth();
+  const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const sectionTabMap: Record<string, string> = {
+    "skill-barter": "skillbarter",
+    "coding-challenge": "competitions",
+    "soft-skills": "leaderboard",
+    "idea-hub": "ideas",
+  };
+
+  const handleNavigateSection = (sectionId: string) => {
+    const targetTab = sectionTabMap[sectionId] || "ideas";
+    router.push(`/dashboard?tab=${targetTab}`);
+  };
 
   const handleConfirmLogout = async () => {
     setIsLoggingOut(true);
@@ -79,11 +93,11 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         onLogout();
       } else {
         await logout();
-        window.location.reload();
+        router.push("/join");
       }
     } catch (e) {
       console.error(e);
-      window.location.href = "/";
+      router.push("/join");
     }
   };
 
@@ -98,6 +112,18 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
   const [currentSection, setCurrentSection] = useState(1);
   const [isReady, setIsReady] = useState(false);
   const totalSections = 4;
+
+  // Dispatch reach-horizon event so AI Assistant knows user is on Horizon page
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("anvaya-tour-event", { detail: { type: "reach-horizon" } }));
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("anvaya-tour-event", { detail: { type: "leave-horizon" } }));
+      }
+    };
+  }, []);
 
   const threeRefs = useRef<ThreeRefs>({
     scene: null,
@@ -1001,8 +1027,11 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         </div>
       </div>
 
-      {/* High-Contrast Synchronized Wording Overlay */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-center w-full max-w-5xl px-6 pointer-events-none">
+      {/* High-Contrast Synchronized Wording Overlay with Double-Click Entry */}
+      <div 
+        onDoubleClick={() => handleNavigateSection(activeData.id)}
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-center w-full max-w-5xl px-6 pointer-events-auto cursor-pointer select-none"
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeData.title}
@@ -1010,21 +1039,32 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
             animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -40, scale: 1.05, filter: "blur(12px)" }}
             transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col items-center justify-center"
+            className="flex flex-col items-center justify-center pointer-events-auto"
           >
             {/* Title with Vibrant Gradient, High Contrast Text Glow, and Drop Shadow */}
-            <h1 className="hero-title font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-amber-200 tracking-tight leading-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.95)]">
+            <h1 
+              onDoubleClick={() => handleNavigateSection(activeData.id)}
+              className="hero-title font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-amber-200 tracking-tight leading-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.95)] select-none hover:scale-[1.02] transition-transform"
+            >
               {splitTitle(activeData.title)}
             </h1>
 
-            {/* Subtitle Card Container with Backdrop Blur to prevent background foreshadowing */}
-            <div className="mt-8 space-y-2 text-white font-sans max-w-3xl bg-slate-950/70 border border-purple-500/30 backdrop-blur-xl px-8 py-5 rounded-3xl shadow-2xl">
+            {/* Subtitle Card Container with Backdrop Blur and Double Click Indicator */}
+            <div 
+              onDoubleClick={() => handleNavigateSection(activeData.id)}
+              className="mt-8 space-y-2 text-white font-sans max-w-3xl bg-slate-950/80 border border-purple-500/40 backdrop-blur-xl px-8 py-6 rounded-3xl shadow-2xl cursor-pointer hover:border-purple-400/80 hover:bg-slate-950/90 transition-all group pointer-events-auto select-none"
+            >
               <p className="text-lg sm:text-2xl font-medium tracking-wide text-purple-100 drop-shadow-md">
                 {activeData.line1}
               </p>
               <p className="text-base sm:text-xl font-normal tracking-wide text-amber-300 drop-shadow-md">
                 {activeData.line2}
               </p>
+              <div className="pt-3 flex items-center justify-center gap-2 text-xs font-mono text-purple-300 group-hover:text-amber-300 transition-colors">
+                <span className="px-3.5 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center gap-1.5 animate-pulse shadow-md">
+                  <span>🖱️ Double-click window to enter section</span>
+                </span>
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>

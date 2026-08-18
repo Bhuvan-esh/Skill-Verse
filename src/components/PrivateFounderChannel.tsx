@@ -71,10 +71,10 @@ export default function PrivateFounderChannel({ user }: PrivateChannelProps) {
         <div>
           <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold mb-2">
             <Lock className="w-3.5 h-3.5" />
-            <span>Private Student ↔ Founders Hotline</span>
+            <span>Open Desk Hotline</span>
           </div>
-          <h2 className="text-2xl font-bold text-white font-heading">Direct Founder Idea Channel</h2>
-          <p className="text-sm text-slate-400">Direct private line to all 7 club founders. Share confidential idea proposals or follow up on reviews.</p>
+          <h2 className="text-2xl font-bold text-white font-heading">Open Desk Channel</h2>
+          <p className="text-sm text-slate-400">Direct open desk line to club founders and session leads. Ask questions, request session launches, or discuss topics.</p>
         </div>
       </div>
 
