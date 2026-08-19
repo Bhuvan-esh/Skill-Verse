@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
-import { GlobalRobotAssistant } from '@/components/ui/global-robot-assistant';
+import dynamic from 'next/dynamic';
+
+const GlobalRobotAssistant = dynamic(
+  () => import('@/components/ui/global-robot-assistant'),
+  { ssr: false }
+);
 
 export const metadata: Metadata = {
   title: 'Club Idea Hub — Student Innovation & Credit Engine',

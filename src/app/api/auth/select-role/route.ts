@@ -48,6 +48,14 @@ export async function POST(req: Request) {
           usn: targetRole === 'STUDENT' ? '1RV23CS001' : null,
         },
       });
+    } else {
+      user = await db.user.update({
+        where: { id: user.id },
+        data: {
+          name: defaultName,
+          role: targetRole,
+        },
+      });
     }
 
     const token = signToken({

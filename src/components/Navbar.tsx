@@ -178,17 +178,55 @@ export default function Navbar({
               </>
             )}
 
+            {activeRole === 'MENTOR' && (
+              <>
+                <button
+                  onClick={() => setActiveTab('skillbarter')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'skillbarter'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Skillora</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('leaderboard')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'leaderboard'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                >
+                  <Award className="w-4 h-4 text-amber-400" />
+                  <span>Leaderboard</span>
+                </button>
+              </>
+            )}
+
             {activeRole === 'VOLUNTEER' && (
-              <button
-                onClick={() => setActiveTab('volunteer_tasks')}
-                className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'volunteer_tasks'
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-              >
-                <UserCheck className="w-4 h-4 text-emerald-400" />
-                <span>Gated Task Board</span>
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('volunteer_tasks')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'volunteer_tasks'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                >
+                  <UserCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Gated Task Board</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('skillbarter')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'skillbarter'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                >
+                  <Users className="w-4 h-4 text-emerald-400" />
+                  <span>Skillora</span>
+                </button>
+              </>
             )}
           </nav>
         )}
@@ -220,9 +258,11 @@ export default function Navbar({
                 <span
                   className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${user.role === 'FOUNDER'
                       ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                      : user.role === 'VOLUNTEER'
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                      : user.role === 'MENTOR'
+                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                        : user.role === 'VOLUNTEER'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                     }`}
                 >
                   {user.role} ACCESS {user.usn ? `(${user.usn})` : ''}

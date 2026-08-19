@@ -90,6 +90,9 @@ model Idea {
   updated_at              DateTime       @updatedAt
   approvals               IdeaApproval[]
   originated_competitions Competition[]
+
+  @@index([student_id])
+  @@index([status])
 }
 
 model IdeaChannel {
@@ -108,6 +111,9 @@ model IdeaMessage {
   sender     User        @relation(fields: [sender_id], references: [id], onDelete: Cascade)
   text       String
   sent_at    DateTime    @default(now())
+
+  @@index([channel_id])
+  @@index([sender_id])
 }
 
 model IdeaApproval {
@@ -119,6 +125,9 @@ model IdeaApproval {
   decision   String   // APPROVE, REJECT
   reason     String?
   decided_at DateTime @default(now())
+
+  @@index([idea_id])
+  @@index([founder_id])
 }
 
 model Competition {
@@ -140,6 +149,9 @@ model Competition {
   cancellations        CancellationRequest[]
   tasks                Task[]
   pending_reports      PendingReport[]
+
+  @@index([status])
+  @@index([domain])
 }
 
 model Registration {
@@ -151,6 +163,8 @@ model Registration {
   registered_at  DateTime    @default(now())
 
   @@unique([student_id, competition_id])
+  @@index([student_id])
+  @@index([competition_id])
 }
 
 model CancellationRequest {
@@ -164,6 +178,10 @@ model CancellationRequest {
   credit_penalty Boolean     @default(false)
   created_at     DateTime    @default(now())
   decided_at     DateTime?
+
+  @@index([student_id])
+  @@index([competition_id])
+  @@index([status])
 }
 
 model StudentCredit {
@@ -190,6 +208,9 @@ model PendingReport {
   reviewed_by    String?
   created_at     DateTime     @default(now())
   reviewed_at    DateTime?
+
+  @@index([status])
+  @@index([type])
 }
 
 model Task {
@@ -201,6 +222,10 @@ model Task {
   claimed_by     String?
   claimer        User?       @relation("TaskClaimer", fields: [claimed_by], references: [id], onDelete: SetNull)
   claimed_at     DateTime?
+
+  @@index([competition_id])
+  @@index([status])
+  @@index([claimed_by])
 }
 
 model SkillRequest {
@@ -213,6 +238,9 @@ model SkillRequest {
   created_at   DateTime        @default(now())
   responses    SkillResponse[]
   chats        SkillChat[]
+
+  @@index([requester_id])
+  @@index([status])
 }
 
 model SkillResponse {
@@ -223,6 +251,9 @@ model SkillResponse {
   responder    User         @relation(fields: [responder_id], references: [id], onDelete: Cascade)
   status       String       @default("PENDING") // PENDING, ACCEPTED, DECLINED
   created_at   DateTime     @default(now())
+
+  @@index([request_id])
+  @@index([responder_id])
 }
 
 model SkillChat {
@@ -238,6 +269,11 @@ model SkillChat {
   messages        ChatMessage[]
   feedback        MentorFeedback[]
   pending_reports PendingReport[]
+
+  @@index([request_id])
+  @@index([requester_id])
+  @@index([mentor_id])
+  @@index([status])
 }
 
 model ChatMessage {
@@ -248,6 +284,9 @@ model ChatMessage {
   sender    User      @relation(fields: [sender_id], references: [id], onDelete: Cascade)
   text      String
   sent_at   DateTime  @default(now())
+
+  @@index([chat_id])
+  @@index([sender_id])
 }
 
 model MentorProfile {
@@ -269,6 +308,10 @@ model MentorFeedback {
   rating       Int
   comment      String?
   submitted_at DateTime  @default(now())
+
+  @@index([chat_id])
+  @@index([mentor_id])
+  @@index([mentee_id])
 }
 
 model Notification {
@@ -280,6 +323,9 @@ model Notification {
   message    String
   read       Boolean  @default(false)
   created_at DateTime @default(now())
+
+  @@index([user_id])
+  @@index([read])
 }
 
 model AuditLog {
@@ -289,4 +335,6 @@ model AuditLog {
   target    String
   details   String?  // JSON string
   timestamp DateTime @default(now())
+
+  @@index([actor_id])
 }

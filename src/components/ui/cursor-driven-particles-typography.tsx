@@ -51,21 +51,25 @@ class Particle {
   }
 
   update(mouseX: number, mouseY: number) {
-    const dx = mouseX - this.x;
-    const dy = mouseY - this.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    const interactionRadius = 120;
+    if (mouseX >= 0 && mouseY >= 0) {
+      const dx = mouseX - this.x;
+      const dy = mouseY - this.y;
+      const distSq = dx * dx + dy * dy;
+      const interactionRadius = 120;
+      const radSq = interactionRadius * interactionRadius;
 
-    if (distance < interactionRadius && mouseX !== -1000 && mouseY !== -1000) {
-      const forceDirectionX = dx / distance;
-      const forceDirectionY = dy / distance;
-      const force = (interactionRadius - distance) / interactionRadius;
+      if (distSq < radSq) {
+        const distance = Math.sqrt(distSq) || 0.001;
+        const forceDirectionX = dx / distance;
+        const forceDirectionY = dy / distance;
+        const force = (interactionRadius - distance) / interactionRadius;
 
-      const repulsionX = forceDirectionX * force * this.dispersion;
-      const repulsionY = forceDirectionY * force * this.dispersion;
+        const repulsionX = forceDirectionX * force * this.dispersion;
+        const repulsionY = forceDirectionY * force * this.dispersion;
 
-      this.vx -= repulsionX;
-      this.vy -= repulsionY;
+        this.vx -= repulsionX;
+        this.vy -= repulsionY;
+      }
     }
 
     this.vx += (this.originX - this.x) * this.returnSpd;
@@ -74,25 +78,15 @@ class Particle {
     this.vx *= 0.85;
     this.vy *= 0.85;
 
-    const distToOrigin = Math.sqrt(
-      Math.pow(this.x - this.originX, 2) +
-        Math.pow(this.y - this.originY, 2)
-    );
-
-    if (distToOrigin < 1 && Math.random() > 0.95) {
+    const dxOrigin = this.x - this.originX;
+    const dyOrigin = this.y - this.originY;
+    if (dxOrigin * dxOrigin + dyOrigin * dyOrigin < 1 && Math.random() > 0.95) {
       this.vx += (Math.random() - 0.5) * 0.2;
       this.vy += (Math.random() - 0.5) * 0.2;
     }
 
     this.x += this.vx;
     this.y += this.vy;
-  }
-
-  draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fill();
   }
 }
 
@@ -119,6 +113,7 @@ export function CursorDrivenParticleTypography({
 
     let animationFrameId: number;
     let particles: Particle[] = [];
+    let isVisible = true;
 
     let mouseX = -1000;
     let mouseY = -1000;
@@ -132,8 +127,9 @@ export function CursorDrivenParticleTypography({
 
       containerWidth = container.clientWidth;
       containerHeight = container.clientHeight;
+      if (containerWidth === 0 || containerHeight === 0) return;
 
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
       canvas.width = containerWidth * dpr;
       canvas.height = containerHeight * dpr;
       canvas.style.width = `${containerWidth}px`;
@@ -164,7 +160,7 @@ export function CursorDrivenParticleTypography({
 
       particles = [];
 
-      const step = Math.max(1, Math.floor(particleDensity * dpr));
+      const step = Math.max(3, Math.floor(particleDensity * dpr));
 
       for (let y = 0; y < textCoordinates.height; y += step) {
         for (let x = 0; x < textCoordinates.width; x += step) {
@@ -187,13 +183,63 @@ export function CursorDrivenParticleTypography({
       }
     };
 
+    let isAnimating = false;
+
+    const startAnimation = () => {
+      if (!isAnimating && isVisible) {
+        isAnimating = true;
+        animate();
+      }
+    };
+
+    const stopAnimation = () => {
+      isAnimating = false;
+      cancelAnimationFrame(animationFrameId);
+    };
+
     const animate = () => {
+      if (!isVisible) {
+        isAnimating = false;
+        return;
+      }
       ctx.clearRect(0, 0, containerWidth, containerHeight);
 
-      particles.forEach((particle) => {
-        particle.update(mouseX, mouseY);
-        particle.draw(ctx);
-      });
+      const count = particles.length;
+      let activeMovement = false;
+
+      for (let i = 0; i < count; i++) {
+        const p = particles[i];
+        p.update(mouseX, mouseY);
+
+        if (!activeMovement) {
+          if (
+            Math.abs(p.vx) > 0.01 ||
+            Math.abs(p.vy) > 0.01 ||
+            Math.abs(p.x - p.originX) > 0.1 ||
+            Math.abs(p.y - p.originY) > 0.1
+          ) {
+            activeMovement = true;
+          }
+        }
+      }
+
+      // Single batched draw call for all particles
+      if (count > 0) {
+        ctx.fillStyle = particles[0].color;
+        ctx.beginPath();
+        for (let i = 0; i < count; i++) {
+          const p = particles[i];
+          ctx.moveTo(p.x + p.size, p.y);
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        }
+        ctx.fill();
+      }
+
+      // If mouse is away and all particles are resting, pause RAF loop
+      if (mouseX < 0 && !activeMovement) {
+        isAnimating = false;
+        return;
+      }
 
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -202,20 +248,23 @@ export function CursorDrivenParticleTypography({
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
       mouseY = e.clientY - rect.top;
+      startAnimation();
     };
 
     const handleMouseLeave = () => {
       mouseX = -1000;
       mouseY = -1000;
+      startAnimation();
     };
 
     const handleResize = () => {
       init();
+      startAnimation();
     };
 
     const timeoutId = setTimeout(() => {
       init();
-      animate();
+      startAnimation();
     }, 100);
 
     const resizeObserver = new ResizeObserver(handleResize);
@@ -223,15 +272,34 @@ export function CursorDrivenParticleTypography({
       resizeObserver.observe(containerRef.current);
     }
 
-    canvas.addEventListener("mousemove", handleMouseMove);
-    canvas.addEventListener("mouseleave", handleMouseLeave);
+    const intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting;
+          if (isVisible) {
+            startAnimation();
+          } else {
+            stopAnimation();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      intersectionObserver.observe(containerRef.current);
+    }
+
+    canvas.addEventListener("mousemove", handleMouseMove, { passive: true });
+    canvas.addEventListener("mouseleave", handleMouseLeave, { passive: true });
 
     return () => {
       clearTimeout(timeoutId);
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
-      cancelAnimationFrame(animationFrameId);
+      stopAnimation();
     };
   }, [
     text,

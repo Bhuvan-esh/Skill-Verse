@@ -473,13 +473,17 @@ export default function ScrollHero({
       camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
       camera.position.set(0, 0, 5);
 
+      let isVisible = true;
+      let isAnimating = false;
+
       renderer = new THREE.WebGLRenderer({
         canvas: canvasRef.current!,
         antialias: true,
-        alpha: true
+        alpha: true,
+        powerPreference: 'high-performance'
       });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.0));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.0;
 
@@ -487,7 +491,7 @@ export default function ScrollHero({
         (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace || 'srgb';
       }
 
-      const geometry = new THREE.IcosahedronGeometry(1.85, 5);
+      const geometry = new THREE.IcosahedronGeometry(1.85, 3);
 
       const material = new THREE.ShaderMaterial({
         uniforms: {
@@ -516,9 +520,9 @@ export default function ScrollHero({
       composer.addPass(new RenderPass(scene, camera));
 
       const bloom = new UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
-        0.7,
-        0.35,
+        new THREE.Vector2(256, 256),
+        0.4,
+        0.3,
         0.92
       );
       composer.addPass(bloom);
@@ -530,8 +534,24 @@ export default function ScrollHero({
       composerRef.current = composer;
       setIsLoaded(true);
 
+      const startAnimation = () => {
+        if (!isAnimating) {
+          isAnimating = true;
+          animate();
+        }
+      };
+
+      const stopAnimation = () => {
+        isAnimating = false;
+        if (frameId) cancelAnimationFrame(frameId);
+      };
+
       const animate = () => {
-        frameId = requestAnimationFrame(animate);
+        if (!isVisible || (typeof document !== 'undefined' && document.hidden)) {
+          isAnimating = false;
+          return;
+        }
+
         const t = clock.getElapsedTime();
 
         if (mesh && mesh.material) {
@@ -559,9 +579,10 @@ export default function ScrollHero({
         if (lastPass?.uniforms?.uTime) lastPass.uniforms.uTime.value = t;
 
         composer.render();
+        frameId = requestAnimationFrame(animate);
       };
 
-      animate();
+      startAnimation();
 
       const onResize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -575,9 +596,38 @@ export default function ScrollHero({
       };
       window.addEventListener('resize', onResize);
 
+      const handleVisibility = () => {
+        if (document.hidden) {
+          stopAnimation();
+        } else if (isVisible) {
+          startAnimation();
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibility);
+
+      const intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            isVisible = entry.isIntersecting;
+            if (isVisible && !document.hidden) {
+              startAnimation();
+            } else {
+              stopAnimation();
+            }
+          });
+        },
+        { threshold: 0.05 }
+      );
+
+      if (canvasRef.current) {
+        intersectionObserver.observe(canvasRef.current);
+      }
+
       return () => {
         window.removeEventListener('resize', onResize);
-        if (frameId) cancelAnimationFrame(frameId);
+        document.removeEventListener('visibilitychange', handleVisibility);
+        intersectionObserver.disconnect();
+        stopAnimation();
         geometry.dispose();
         material.dispose();
         renderer.dispose();
@@ -691,7 +741,7 @@ export default function ScrollHero({
       mouseRef.current.x = e.clientX / window.innerWidth;
       mouseRef.current.y = 1 - (e.clientY / window.innerHeight);
     };
-    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mousemove', onMove, { passive: true });
     return () => window.removeEventListener('mousemove', onMove);
   }, []);
 

@@ -20,17 +20,17 @@ function useSpeckledTexture(baseColorHex: string = "#ffffff") {
   return useMemo(() => {
     if (typeof window === "undefined") return null;
     const canvas = document.createElement("canvas");
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 128;
+    canvas.height = 128;
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
     // Base pure white background
     ctx.fillStyle = baseColorHex;
-    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillRect(0, 0, 128, 128);
 
     // Subtle white pearl noise
-    const imgData = ctx.getImageData(0, 0, 512, 512);
+    const imgData = ctx.getImageData(0, 0, 128, 128);
     const data = imgData.data;
     for (let i = 0; i < data.length; i += 4) {
       const noise = (Math.random() - 0.5) * 12;
@@ -42,9 +42,9 @@ function useSpeckledTexture(baseColorHex: string = "#ffffff") {
 
     // Fine metallic pearl dots
     ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-    for (let i = 0; i < 500; i++) {
-      const x = Math.random() * 512;
-      const y = Math.random() * 512;
+    for (let i = 0; i < 100; i++) {
+      const x = Math.random() * 128;
+      const y = Math.random() * 128;
       const r = Math.random() * 1.5 + 0.4;
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -253,7 +253,7 @@ function RobotMesh({
       mouseTargetRef.current = { x, y };
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [containerRef]);
 
@@ -457,10 +457,25 @@ export function RobotOnly({
 }: RobotOnlyProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setIsVisible(entry.isIntersecting);
+        });
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, [mounted]);
 
   if (!mounted) {
     return <div ref={containerRef} className={className} />;
@@ -469,7 +484,9 @@ export function RobotOnly({
   return (
     <div ref={containerRef} className={`relative cursor-pointer ${className}`}>
       <Canvas
-        gl={{ alpha: true, antialias: true }}
+        frameloop={isVisible ? "always" : "never"}
+        dpr={[1, 1.0]}
+        gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
         camera={{ position: [0, 0.2, 6], fov: 40 }}
         className="w-full h-full"
       >

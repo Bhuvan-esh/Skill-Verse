@@ -669,8 +669,15 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
 
     setTimeout(() => {
       setStep("success");
+      router.push("/horizon");
     }, 1800);
   };
+
+  useEffect(() => {
+    if (step === "success") {
+      router.push("/horizon");
+    }
+  }, [step, router]);
 
   useEffect(() => {
     if (step === "code") {
@@ -709,6 +716,13 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
       });
       const data = await res.json();
       if (res.ok) {
+        if (selectedRole && selectedRole !== 'participant') {
+          await fetch("/api/auth/select-role", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ role: selectedRole }),
+          });
+        }
         await refreshUser();
       }
     } catch (e) {

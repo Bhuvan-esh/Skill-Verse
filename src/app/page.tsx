@@ -1,9 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ScrollHero from '@/components/ui/ethereal';
+import dynamic from 'next/dynamic';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
-import { CursorDrivenParticleTypography } from '@/components/ui/cursor-driven-particles-typography';
+
+const ScrollHero = dynamic(() => import('@/components/ui/ethereal'), {
+  ssr: false,
+  loading: () => <div className="min-h-screen bg-[#0a0a0a]" />
+});
+
+const CursorDrivenParticleTypography = dynamic(
+  () => import('@/components/ui/cursor-driven-particles-typography').then(m => m.CursorDrivenParticleTypography),
+  { ssr: false, loading: () => <div className="text-5xl sm:text-7xl font-extrabold text-purple-400 font-heading">ANVAYA</div> }
+);
 
 export default function LandingPage() {
   const [entered, setEntered] = useState(false);

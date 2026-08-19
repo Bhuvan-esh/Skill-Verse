@@ -187,7 +187,7 @@ export default function DashboardPage() {
           <CompetitionsSection user={user} onRefresh={refreshUser} />
         )}
 
-        {activeTab === 'skillbarter' && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (
+        {activeTab === 'skillbarter' && (
           <SkillBarterSection user={user} onRefresh={refreshUser} />
         )}
 

@@ -354,6 +354,11 @@ const cinematicPostShader = {
 export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0 } }: Hero3DCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const meshRef = useRef<THREE.Mesh | null>(null);
+  const mouseRef = useRef(mousePos);
+
+  useEffect(() => {
+    mouseRef.current = mousePos;
+  }, [mousePos]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -365,6 +370,8 @@ export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0
     let mesh: THREE.Mesh;
     let clock = new THREE.Clock();
     let frameId: number;
+    let isVisible = true;
+    let isAnimating = false;
 
     const init = () => {
       scene = new THREE.Scene();
@@ -375,10 +382,11 @@ export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0
       renderer = new THREE.WebGLRenderer({
         canvas: canvasRef.current!,
         antialias: true,
-        alpha: true
+        alpha: true,
+        powerPreference: 'high-performance'
       });
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.0));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.0;
 
@@ -386,7 +394,7 @@ export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0
         (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace || 'srgb';
       }
 
-      const geometry = new THREE.IcosahedronGeometry(1.85, 5);
+      const geometry = new THREE.IcosahedronGeometry(1.85, 3);
 
       const material = new THREE.ShaderMaterial({
         uniforms: {
@@ -415,9 +423,9 @@ export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0
       composer.addPass(new RenderPass(scene, camera));
 
       const bloom = new UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
-        0.7,
-        0.35,
+        new THREE.Vector2(256, 256),
+        0.4,
+        0.3,
         0.92
       );
       composer.addPass(bloom);
@@ -426,8 +434,24 @@ export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0
       cinePass.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
       composer.addPass(cinePass);
 
+      const startAnimation = () => {
+        if (!isAnimating) {
+          isAnimating = true;
+          animate();
+        }
+      };
+
+      const stopAnimation = () => {
+        isAnimating = false;
+        if (frameId) cancelAnimationFrame(frameId);
+      };
+
       const animate = () => {
-        frameId = requestAnimationFrame(animate);
+        if (!isVisible || (typeof document !== 'undefined' && document.hidden)) {
+          isAnimating = false;
+          return;
+        }
+
         const t = clock.getElapsedTime();
 
         if (mesh && mesh.material) {
@@ -436,8 +460,8 @@ export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0
           mat.uniforms.uSectionIndex.value = activeWindow;
 
           // Rotation & gentle float response to mouse
-          mesh.rotation.x = t * 0.15 + (mousePos.y * 0.03);
-          mesh.rotation.y = t * 0.22 + (mousePos.x * 0.03);
+          mesh.rotation.x = t * 0.15 + (mouseRef.current.y * 0.03);
+          mesh.rotation.y = t * 0.22 + (mouseRef.current.x * 0.03);
           mesh.position.y = Math.sin(t * 0.6) * 0.08;
         }
 
@@ -445,9 +469,10 @@ export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0
         if (lastPass?.uniforms?.uTime) lastPass.uniforms.uTime.value = t;
 
         composer.render();
+        frameId = requestAnimationFrame(animate);
       };
 
-      animate();
+      startAnimation();
 
       const onResize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -461,9 +486,38 @@ export default function Hero3DCanvas({ activeWindow = 0, mousePos = { x: 0, y: 0
       };
       window.addEventListener('resize', onResize);
 
+      const handleVisibility = () => {
+        if (document.hidden) {
+          stopAnimation();
+        } else if (isVisible) {
+          startAnimation();
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibility);
+
+      const intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            isVisible = entry.isIntersecting;
+            if (isVisible && !document.hidden) {
+              startAnimation();
+            } else {
+              stopAnimation();
+            }
+          });
+        },
+        { threshold: 0.05 }
+      );
+
+      if (canvasRef.current) {
+        intersectionObserver.observe(canvasRef.current);
+      }
+
       return () => {
         window.removeEventListener('resize', onResize);
-        if (frameId) cancelAnimationFrame(frameId);
+        document.removeEventListener('visibilitychange', handleVisibility);
+        intersectionObserver.disconnect();
+        stopAnimation();
         geometry.dispose();
         material.dispose();
         renderer.dispose();

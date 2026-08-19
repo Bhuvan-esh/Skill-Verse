@@ -8,7 +8,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Sparkles, X } from "lucide-react";
+import { LogOut, Sparkles, X, ArrowRight } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -1027,7 +1027,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         </div>
       </div>
 
-      {/* High-Contrast Synchronized Wording Overlay with Double-Click Entry */}
+      {/* High-Contrast Synchronized Wording Overlay with Double-Click & Button Entry */}
       <div 
         onDoubleClick={() => handleNavigateSection(activeData.id)}
         className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 text-center w-full max-w-5xl px-6 pointer-events-auto cursor-pointer select-none"
@@ -1035,10 +1035,10 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeData.title}
-            initial={{ opacity: 0, y: 40, scale: 0.95, filter: "blur(12px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -40, scale: 1.05, filter: "blur(12px)" }}
-            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, y: 30, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -30, scale: 1.04 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center justify-center pointer-events-auto"
           >
             {/* Title with Vibrant Gradient, High Contrast Text Glow, and Drop Shadow */}
@@ -1049,21 +1049,38 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
               {splitTitle(activeData.title)}
             </h1>
 
-            {/* Subtitle Card Container with Backdrop Blur and Double Click Indicator */}
+            {/* Subtitle Card Container with Backdrop Blur, Direct CTA Button and Double Click Indicator */}
             <div 
               onDoubleClick={() => handleNavigateSection(activeData.id)}
-              className="mt-8 space-y-2 text-white font-sans max-w-3xl bg-slate-950/80 border border-purple-500/40 backdrop-blur-xl px-8 py-6 rounded-3xl shadow-2xl cursor-pointer hover:border-purple-400/80 hover:bg-slate-950/90 transition-all group pointer-events-auto select-none"
+              className="mt-6 space-y-4 text-white font-sans max-w-3xl bg-slate-950/85 border border-purple-500/40 backdrop-blur-2xl px-8 py-6 rounded-3xl shadow-2xl cursor-pointer hover:border-purple-400/80 hover:bg-slate-950/90 transition-all group pointer-events-auto select-none"
             >
-              <p className="text-lg sm:text-2xl font-medium tracking-wide text-purple-100 drop-shadow-md">
-                {activeData.line1}
-              </p>
-              <p className="text-base sm:text-xl font-normal tracking-wide text-amber-300 drop-shadow-md">
-                {activeData.line2}
-              </p>
-              <div className="pt-3 flex items-center justify-center gap-2 text-xs font-mono text-purple-300 group-hover:text-amber-300 transition-colors">
-                <span className="px-3.5 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center gap-1.5 animate-pulse shadow-md">
-                  <span>🖱️ Double-click window to enter section</span>
-                </span>
+              <div className="space-y-1">
+                <p className="text-lg sm:text-2xl font-medium tracking-wide text-purple-100 drop-shadow-md">
+                  {activeData.line1}
+                </p>
+                <p className="text-base sm:text-xl font-normal tracking-wide text-amber-300 drop-shadow-md">
+                  {activeData.line2}
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNavigateSection(activeData.id);
+                  }}
+                  className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-purple-500/30 flex items-center justify-center gap-2 transition-all transform hover:scale-105 cursor-pointer font-mono"
+                >
+                  <span>Enter Dashboard ({activeData.title})</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-center gap-1.5 text-xs font-mono text-purple-300">
+                  <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center gap-1.5 shadow-sm">
+                    <span>🖱️ Or double-click anywhere</span>
+                  </span>
+                </div>
               </div>
             </div>
           </motion.div>
