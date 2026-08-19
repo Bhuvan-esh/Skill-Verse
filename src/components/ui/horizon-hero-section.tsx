@@ -8,7 +8,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Sparkles, X, ArrowRight } from "lucide-react";
+import { LogOut, Sparkles, X, ArrowRight, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -43,24 +43,28 @@ const sectionData = [
     title: "SKILL BARTER",
     line1: "Peer-to-peer skill exchange & micro-mentorship,",
     line2: "trade knowledge and level up together",
+    active: true,
   },
   {
     id: "coding-challenge",
     title: "CODING CHALLENGE",
     line1: "Algorithmic contests & real-time benchmarks,",
     line2: "test your skills and climb the leaderboard",
+    active: false,
   },
   {
     id: "soft-skills",
     title: "SOFT SKILLS",
     line1: "Interactive workshops & communication challenges,",
     line2: "master leadership, public speaking, and teamwork",
+    active: false,
   },
   {
     id: "idea-hub",
     title: "IDEA HUB",
     line1: "Student project incubator & founder collaboration,",
     line2: "bring bold ideas to life with peer teams",
+    active: false,
   },
 ];
 
@@ -72,6 +76,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
   const { logout } = useAuth();
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [lockedModalSection, setLockedModalSection] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const sectionTabMap: Record<string, string> = {
@@ -82,7 +87,12 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
   };
 
   const handleNavigateSection = (sectionId: string) => {
-    const targetTab = sectionTabMap[sectionId] || "ideas";
+    const secObj = sectionData.find((s) => s.id === sectionId);
+    if (secObj && !secObj.active) {
+      setLockedModalSection(secObj.title);
+      return;
+    }
+    const targetTab = sectionTabMap[sectionId] || "skillbarter";
     router.push(`/dashboard?tab=${targetTab}`);
   };
 
@@ -1027,6 +1037,57 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         </div>
       </div>
 
+      {/* Sleek Coming Soon / Event Locked Modal */}
+      <AnimatePresence>
+        {lockedModalSection && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 pointer-events-auto">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-md bg-slate-950 border border-amber-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5"
+            >
+              <button
+                type="button"
+                onClick={() => setLockedModalSection(null)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-amber-400" />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="inline-block px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-mono text-amber-300 font-bold uppercase tracking-wider mb-1">
+                  🔒 Coming Soon • Event Locked
+                </div>
+                <h3 className="text-xl font-extrabold text-white font-heading">
+                  {lockedModalSection}
+                </h3>
+                <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                  This section is locked & coming soon for participants. Please enter the active Skill Barter event to start trading skills!
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLockedModalSection(null);
+                    scrollToSection(0);
+                  }}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer font-mono flex items-center justify-center gap-1.5"
+                >
+                  <span>Go to Skill Barter Event →</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* High-Contrast Synchronized Wording Overlay with Double-Click & Button Entry */}
       <div 
         onDoubleClick={() => handleNavigateSection(activeData.id)}
@@ -1064,21 +1125,39 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
               </div>
 
               <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNavigateSection(activeData.id);
-                  }}
-                  className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-purple-500/30 flex items-center justify-center gap-2 transition-all transform hover:scale-105 cursor-pointer font-mono"
-                >
-                  <span>Enter Dashboard ({activeData.title})</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                {activeData.active ? (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigateSection(activeData.id);
+                    }}
+                    className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-purple-500/30 flex items-center justify-center gap-2 transition-all transform hover:scale-105 cursor-pointer font-mono"
+                  >
+                    <span>Enter Event (Skill Barter)</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigateSection(activeData.id);
+                    }}
+                    className="px-7 py-3.5 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-300 hover:text-white hover:border-amber-400 font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer font-mono"
+                  >
+                    <Lock className="w-4 h-4 text-amber-400" />
+                    <span>Coming Soon (Event Locked)</span>
+                  </button>
+                )}
 
                 <div className="flex items-center gap-1.5 text-xs font-mono text-purple-300">
                   <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center gap-1.5 shadow-sm">
-                    <span>🖱️ Or double-click anywhere</span>
+                    {activeData.active ? (
+                      <span>⚡ Event Active</span>
+                    ) : (
+                      <span>🔒 Locked</span>
+                    )}
                   </span>
                 </div>
               </div>
