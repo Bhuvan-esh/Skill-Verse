@@ -113,7 +113,7 @@ const vertexShader = `
   float fbm(vec3 p){
     float v = 0.0;
     float a = 0.5;
-    for(int i=0;i<5;i++){
+    for(int i=0;i<3;i++){
       v += a * snoise(p);
       p *= 2.0;
       a *= 0.5;
@@ -491,7 +491,7 @@ export default function ScrollHero({
         (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace || 'srgb';
       }
 
-      const geometry = new THREE.IcosahedronGeometry(1.85, 3);
+      const geometry = new THREE.IcosahedronGeometry(1.85, 2);
 
       const material = new THREE.ShaderMaterial({
         uniforms: {

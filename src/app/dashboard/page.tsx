@@ -20,6 +20,7 @@ export default function DashboardPage() {
 
   const [credits, setCredits] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>('ideas');
+  const [codingSubTab, setCodingSubTab] = useState<string>('events');
 
   // Notifications state
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -140,13 +141,15 @@ export default function DashboardPage() {
         onOpenLoginModal={() => { }} // No inline modal login in dashboard
         unreadNotifications={unreadCount}
         onOpenNotifications={() => setIsNotificationsOpen(true)}
+        codingSubTab={codingSubTab}
+        setCodingSubTab={setCodingSubTab}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-        {/* Student Credit Summary Banner */}
-        {user.role === 'STUDENT' && credits && (
+        {/* Student Credit Summary Banner (Hidden in Coding Challenge section) */}
+        {user.role === 'STUDENT' && credits && activeTab !== 'competitions' && (
           <div className="glass-panel p-4 rounded-2xl border border-blue-500/20 bg-gradient-to-r from-blue-950/30 via-slate-900 to-slate-900 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
@@ -184,7 +187,7 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'competitions' && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (
-          <CompetitionsSection user={user} onRefresh={refreshUser} />
+          <CompetitionsSection user={user} onRefresh={refreshUser} subTab={codingSubTab} setSubTab={setCodingSubTab} />
         )}
 
         {activeTab === 'skillbarter' && (

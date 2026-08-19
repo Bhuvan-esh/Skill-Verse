@@ -138,9 +138,9 @@ export default function LandingPage() {
           <div className="w-full max-w-2xl mx-auto h-[120px] sm:h-[150px] relative z-30 flex items-center justify-center">
             <CursorDrivenParticleTypography
               text="ANVAYA"
-              fontSize={100}
-              particleDensity={5}
-              dispersionStrength={20}
+              fontSize={90}
+              particleDensity={3}
+              dispersionStrength={15}
               color="#c084fc"
               className="w-full h-full"
             />

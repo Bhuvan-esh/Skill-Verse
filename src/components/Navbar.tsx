@@ -13,7 +13,9 @@ import {
   UserCheck,
   MessageSquare,
   Zap,
-  ArrowLeft
+  ArrowLeft,
+  Code,
+  History
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -25,6 +27,8 @@ interface NavbarProps {
   onOpenLoginModal?: () => void;
   unreadNotifications: number;
   onOpenNotifications: () => void;
+  codingSubTab?: string;
+  setCodingSubTab?: (subTab: string) => void;
 }
 
 export default function Navbar({
@@ -35,6 +39,8 @@ export default function Navbar({
   onLogout,
   unreadNotifications,
   onOpenNotifications,
+  codingSubTab = 'events',
+  setCodingSubTab,
 }: NavbarProps) {
   const router = useRouter();
 
@@ -44,14 +50,16 @@ export default function Navbar({
 
         {/* Brand Logo & Title with Back to Horizon Button */}
         <div className="flex items-center space-x-4">
-          <button
-            onClick={() => router.push('/horizon')}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-bold font-mono transition-all cursor-pointer shadow-sm group"
-            title="Return to 3D Horizon view"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Horizon</span>
-          </button>
+          {user && (
+            <button
+              onClick={() => router.push('/horizon')}
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-bold font-mono transition-all cursor-pointer shadow-sm group"
+              title="Return to 3D Horizon view"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Back to Horizon</span>
+            </button>
+          )}
 
           <Link href="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-amber-400 p-0.5 shadow-lg shadow-blue-500/20">
@@ -60,63 +68,133 @@ export default function Navbar({
               </div>
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-blue-400 bg-clip-text text-transparent font-heading">
-                Home Page
+              <h1 className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-purple-400 bg-clip-text text-transparent font-heading">
+                {activeTab === 'competitions' ? 'Coding Arena' : 'Home Page'}
               </h1>
               <p className="text-xs text-slate-400 font-medium">Student Innovation & Credit Engine</p>
             </div>
           </Link>
         </div>
 
-        {/* Navigation Tabs based on Active Role */}
+        {/* Navigation Tabs based on Active Context */}
         {user && (
           <nav className="hidden md:flex items-center space-x-1 bg-slate-900/80 p-1.5 rounded-xl border border-white/5">
-            {activeRole === 'STUDENT' && (
+            {activeTab === 'competitions' ? (
+              /* Coding Challenge Arena Sub-Tabs */
               <>
                 <button
-                  onClick={() => setActiveTab('ideas')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'ideas'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  onClick={() => setCodingSubTab && setCodingSubTab('events')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                    codingSubTab === 'events'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
+                  }`}
                 >
-                  <Lightbulb className="w-4 h-4" />
-                  <span>Profile</span>
+                  <Trophy className="w-4 h-4 text-amber-400" />
+                  <span>Competitions</span>
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('skillbarter')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'skillbarter'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  onClick={() => setCodingSubTab && setCodingSubTab('workspace')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                    codingSubTab === 'workspace'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
+                  }`}
                 >
-                  <Users className="w-4 h-4" />
-                  <span>Skillora</span>
+                  <Code className="w-4 h-4 text-blue-400" />
+                  <span>Code Workspace</span>
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('leaderboard')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'leaderboard'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  onClick={() => setCodingSubTab && setCodingSubTab('team')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                    codingSubTab === 'team'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
+                  }`}
+                >
+                  <Users className="w-4 h-4 text-indigo-400" />
+                  <span>My Team (1)</span>
+                </button>
+
+                <button
+                  onClick={() => setCodingSubTab && setCodingSubTab('leaderboard')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                    codingSubTab === 'leaderboard'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  }`}
                 >
                   <Award className="w-4 h-4 text-amber-400" />
                   <span>Leaderboard</span>
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('privatechat')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'privatechat'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  onClick={() => setCodingSubTab && setCodingSubTab('history')}
+                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                    codingSubTab === 'history'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
+                  }`}
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Open Desk</span>
+                  <History className="w-4 h-4 text-emerald-400" />
+                  <span>My History</span>
                 </button>
               </>
+            ) : (
+              /* Standard Platform Sub-Tabs for Student */
+              activeRole === 'STUDENT' && (
+                <>
+                  <button
+                    onClick={() => setActiveTab('ideas')}
+                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                      activeTab === 'ideas'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                  >
+                    <Lightbulb className="w-4 h-4" />
+                    <span>Profile</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('skillbarter')}
+                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                      activeTab === 'skillbarter'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Skillora</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('leaderboard')}
+                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                      activeTab === 'leaderboard'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                  >
+                    <Award className="w-4 h-4 text-amber-400" />
+                    <span>Leaderboard</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('privatechat')}
+                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                      activeTab === 'privatechat'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Open Desk</span>
+                  </button>
+                </>
+              )
             )}
 
             {activeRole === 'FOUNDER' && (

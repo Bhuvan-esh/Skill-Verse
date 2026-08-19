@@ -8,7 +8,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Sparkles, X, ArrowRight, Lock } from "lucide-react";
+import { LogOut, Sparkles, X, ArrowRight, Lock, Zap } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -50,7 +50,7 @@ const sectionData = [
     title: "CODING CHALLENGE",
     line1: "Algorithmic contests & real-time benchmarks,",
     line2: "test your skills and climb the leaderboard",
-    active: false,
+    active: true,
   },
   {
     id: "soft-skills",
@@ -73,11 +73,14 @@ interface ComponentProps {
 }
 
 export const Component = ({ onLogout }: ComponentProps = {}) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [lockedModalSection, setLockedModalSection] = useState<string | null>(null);
+  const [roleLockedModal, setRoleLockedModal] = useState<{ roleTitle: string; userRole: string } | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const isParticipant = user ? (user.role === 'STUDENT' || (user as any).role === 'PARTICIPANT') : true;
 
   const sectionTabMap: Record<string, string> = {
     "skill-barter": "skillbarter",
@@ -87,6 +90,16 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
   };
 
   const handleNavigateSection = (sectionId: string) => {
+    // If logged in as non-participant (Visual Architect, Mentor, Ambassador, Volunteer)
+    if (user && (user as any).role !== 'STUDENT' && (user as any).role !== 'PARTICIPANT') {
+      const roleTitle = (user as any).role === 'FOUNDER' ? 'Visual Architect' : (user as any).role === 'MENTOR' ? 'Mentor' : 'Community Ambassador';
+      setRoleLockedModal({
+        roleTitle,
+        userRole: (user as any).role,
+      });
+      return;
+    }
+
     const secObj = sectionData.find((s) => s.id === sectionId);
     if (secObj && !secObj.active) {
       setLockedModalSection(secObj.title);
@@ -943,6 +956,16 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
 
         <div className="h-4 w-px bg-white/20 mx-1" />
 
+        {!isParticipant && (
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider text-purple-300 hover:text-white hover:bg-purple-500/20 border border-purple-500/40 transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <Zap className="w-3.5 h-3.5 text-amber-300" />
+            <span>DASHBOARD</span>
+          </button>
+        )}
+
         <button
           onClick={() => setShowLogoutModal(true)}
           className="px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider text-rose-300 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm"
@@ -951,6 +974,57 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
           <span>LOG OUT</span>
         </button>
       </div>
+
+      {/* Sleek Role-Restricted Access Modal for Non-Participants */}
+      <AnimatePresence>
+        {roleLockedModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 pointer-events-auto">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-md bg-slate-950 border border-purple-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5"
+            >
+              <button
+                type="button"
+                onClick={() => setRoleLockedModal(null)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
+                <Lock className="w-7 h-7 text-purple-400" />
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="inline-block px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-[10px] font-mono text-purple-300 font-bold uppercase tracking-wider mb-1">
+                  🔒 {roleLockedModal.roleTitle} Session
+                </div>
+                <h3 className="text-xl font-extrabold text-white font-heading">
+                  Participant Showcase Reserved
+                </h3>
+                <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                  You are viewing the 3D event showcase as a <strong>{roleLockedModal.roleTitle}</strong>. Interactive event entry is reserved for Student Participants. Please proceed to your specialized Control Panel Dashboard.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRoleLockedModal(null);
+                    router.push('/dashboard');
+                  }}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer font-mono flex items-center justify-center gap-2"
+                >
+                  <span>Open {roleLockedModal.roleTitle} Dashboard →</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Sleek Log Out Confirmation Modal */}
       <AnimatePresence>
@@ -1067,7 +1141,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
                   {lockedModalSection}
                 </h3>
                 <p className="text-xs text-slate-300 font-sans leading-relaxed">
-                  This section is locked & coming soon for participants. Please enter the active Skill Barter event to start trading skills!
+                  This section is currently locked & coming soon for participants. Please enter active events to participate!
                 </p>
               </div>
 
@@ -1080,7 +1154,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
                   }}
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer font-mono flex items-center justify-center gap-1.5"
                 >
-                  <span>Go to Skill Barter Event →</span>
+                  <span>Go to Active Event →</span>
                 </button>
               </div>
             </motion.div>
@@ -1134,7 +1208,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
                     }}
                     className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-purple-500/30 flex items-center justify-center gap-2 transition-all transform hover:scale-105 cursor-pointer font-mono"
                   >
-                    <span>Enter Event (Skill Barter)</span>
+                    <span>Enter Event ({activeData.title})</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 ) : (

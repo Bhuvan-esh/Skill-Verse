@@ -520,7 +520,7 @@ const roleOptions = [
 
 export const SignInPage = ({ className, onClose }: SignInPageProps) => {
   const router = useRouter();
-  const { refreshUser, logout } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");

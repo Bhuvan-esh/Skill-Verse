@@ -37,6 +37,16 @@ model User {
   notifications              Notification[]
   emergency_access_granted   EmergencyAccessLog[]  @relation("EmergencyGrantor")
   emergency_access_received  EmergencyAccessLog[]  @relation("EmergencyStudent")
+  coding_registrations        CodingEventRegistration[]
+  coding_team_memberships     CodingTeamMember[]
+  coding_submissions          CodingSubmission[]
+  coding_wins                 CodingWinner[]
+  coding_leaderboard          CodingLeaderboard?
+  coding_credit_transactions  CodingCreditTransaction[]
+  pillar_registrations        PillarRegistration[]
+  pillar_team_memberships     PillarTeamMember[]
+  pillar_submissions          PillarSubmission[]
+  pillar_awards               PillarAward[]
 }
 
 model PreloadedUSN {
@@ -337,4 +347,298 @@ model AuditLog {
   timestamp DateTime @default(now())
 
   @@index([actor_id])
+}
+
+model CodingEvent {
+  id                    String                    @id @default(uuid())
+  title                 String
+  description           String
+  category              String                    @default("ALGORITHMS")
+  difficulty            String                    @default("MEDIUM") // EASY, MEDIUM, HARD, EXPERT
+  is_team               Boolean                   @default(false)
+  team_size             Int                       @default(1)
+  max_participants      Int                       @default(100)
+  status                String                    @default("REGISTRATION_OPEN") // DRAFT, REGISTRATION_OPEN, REGISTRATION_CLOSED, READY, LIVE, COMPLETED
+  event_date            DateTime                  @default(now())
+  registration_deadline DateTime
+  cancellation_deadline DateTime
+  credits_reward        Int                       @default(50)
+  rules                 String                    @default("Standard coding guidelines apply. No plagiarism.")
+  eligibility           String                    @default("Open to all registered student club participants.")
+  winner_count          Int                       @default(3)
+  support_contact       String                    @default("coding-support@club.edu")
+  created_at            DateTime                  @default(now())
+  updated_at            DateTime                  @updatedAt
+
+  registrations         CodingEventRegistration[]
+  teams                 CodingTeam[]
+  challenges            CodingChallenge[]
+  submissions           CodingSubmission[]
+  winners               CodingWinner[]
+
+  @@index([status])
+}
+
+model CodingEventRegistration {
+  id            String      @id @default(uuid())
+  event_id      String
+  event         CodingEvent @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  student_id    String
+  student       User        @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  status        String      @default("REGISTERED") // REGISTERED, CANCELLED, REMOVED, COMPLETED, DISQUALIFIED
+  team_id       String?
+  team          CodingTeam? @relation(fields: [team_id], references: [id], onDelete: SetNull)
+  registered_at DateTime    @default(now())
+  cancelled_at  DateTime?
+
+  @@unique([student_id, event_id])
+  @@index([event_id])
+  @@index([student_id])
+}
+
+model CodingTeam {
+  id         String                    @id @default(uuid())
+  event_id   String
+  event      CodingEvent               @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  team_name  String
+  team_number Int                      @default(1)
+  created_at DateTime                  @default(now())
+
+  members       CodingTeamMember[]
+  registrations CodingEventRegistration[]
+  winners       CodingWinner[]
+
+  @@index([event_id])
+}
+
+model CodingTeamMember {
+  id         String     @id @default(uuid())
+  team_id    String
+  team       CodingTeam @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  student_id String
+  student    User       @relation(fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@unique([team_id, student_id])
+}
+
+model CodingChallenge {
+  id                String             @id @default(uuid())
+  event_id          String
+  event             CodingEvent        @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  title             String
+  description       String
+  problem_statement String
+  difficulty        String             @default("MEDIUM")
+  points            Int                @default(100)
+  time_limit        Int                @default(60) // minutes
+  input_info        String             @default("Standard input stream")
+  output_info       String             @default("Standard output stream")
+  constraints       String             @default("1 <= N <= 10^5")
+  status            String             @default("RELEASED") // DRAFT, RELEASED
+  created_at        DateTime           @default(now())
+
+  submissions       CodingSubmission[]
+
+  @@index([event_id])
+}
+
+model CodingSubmission {
+  id           String          @id @default(uuid())
+  event_id     String
+  event        CodingEvent     @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  challenge_id String
+  challenge    CodingChallenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  student_id   String
+  student      User            @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  code_content String
+  language     String          @default("PYTHON")
+  score        Int             @default(0)
+  status       String          @default("PASSED") // PASSED, FAILED, EVALUATING
+  submitted_at DateTime        @default(now())
+
+  @@index([event_id])
+  @@index([challenge_id])
+  @@index([student_id])
+}
+
+model CodingWinner {
+  id              String      @id @default(uuid())
+  event_id        String
+  event           CodingEvent @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  student_id      String?
+  student         User?       @relation(fields: [student_id], references: [id], onDelete: SetNull)
+  team_id         String?
+  team            CodingTeam? @relation(fields: [team_id], references: [id], onDelete: SetNull)
+  rank            Int
+  score           Int
+  credits_awarded Int
+  created_at      DateTime    @default(now())
+
+  @@index([event_id])
+}
+
+model CodingLeaderboard {
+  id                 String   @id @default(uuid())
+  student_id         String   @unique
+  student            User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  points             Int      @default(0)
+  rank               Int      @default(1)
+  prev_rank          Int      @default(1)
+  wins               Int      @default(0)
+  competitions_count Int      @default(0)
+  credits            Int      @default(0)
+  updated_at         DateTime @updatedAt
+
+  @@index([rank])
+}
+
+model CodingCreditTransaction {
+  id         String   @id @default(uuid())
+  student_id String
+  student    User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  event_id   String?
+  amount     Int
+  type       String   @default("CREDIT_EARNED") // CREDIT_EARNED, CREDIT_PENALTY, CREDIT_ADJUSTMENT
+  reason     String
+  timestamp  DateTime @default(now())
+
+  @@index([student_id])
+}
+
+// -------------------------------------------------------------
+// 7-PILLAR CODING CHALLENGE MODULE (STUDENT PARTICIPANTS)
+// -------------------------------------------------------------
+
+model PillarChallenge {
+  id                    String                 @id @default(uuid())
+  title                 String
+  description           String
+  difficulty            String                 @default("MEDIUM") // EASY, MEDIUM, HARD, EXPERT
+  is_team               Boolean                @default(false)
+  team_size             Int                    @default(1)
+  max_participants      Int                    @default(100)
+  status                String                 @default("LIVE") // DRAFT, UPCOMING, LIVE, BUILD_DEMO, COMPLETED
+  event_date            DateTime               @default(now())
+  registration_deadline DateTime
+  cancellation_deadline DateTime
+  credits_reward        Int                    @default(100)
+  rules                 String                 @default("Follow clean code standards and respect active challenge twists.")
+  support_contact       String                 @default("coding-pillars@studentclub.edu")
+  created_at            DateTime               @default(now())
+  updated_at            DateTime               @updatedAt
+
+  tags                  PillarTagAssignment[]
+  twists                ChallengeTwist[]
+  teams                 PillarTeam[]
+  submissions           PillarSubmission[]
+  awards                PillarAward[]
+  demo_trackers         BuildDemoTracker[]
+  registrations         PillarRegistration[]
+
+  @@index([status])
+}
+
+model PillarTagAssignment {
+  id           String          @id @default(uuid())
+  challenge_id String
+  challenge    PillarChallenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  pillar_name  String          // REAL_WORLD_PROBLEMS, UNEXPECTED_TWISTS, DEBUGGING_BATTLES, AI_VS_HUMAN, TEAM_BASED, FUN_RECOGNITION, BUILD_AND_DEMO
+
+  @@unique([challenge_id, pillar_name])
+}
+
+model ChallengeTwist {
+  id             String          @id @default(uuid())
+  challenge_id   String
+  challenge      PillarChallenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  status         String          @default("ACTIVE")
+  released_at    DateTime        @default(now())
+}
+
+model PillarTeam {
+  id             String             @id @default(uuid())
+  challenge_id   String
+  challenge      PillarChallenge    @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  team_name      String
+  strategy_notes String?
+  created_at     DateTime           @default(now())
+
+  members      PillarTeamMember[]
+  submissions  PillarSubmission[]
+  demo_tracker BuildDemoTracker?
+  awards       PillarAward[]
+
+  @@index([challenge_id])
+}
+
+model PillarTeamMember {
+  id         String     @id @default(uuid())
+  team_id    String
+  team       PillarTeam @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  student_id String
+  student    User       @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  role_title String     @default("Full-Stack Builder")
+
+  @@unique([team_id, student_id])
+}
+
+model PillarRegistration {
+  id            String          @id @default(uuid())
+  challenge_id  String
+  challenge     PillarChallenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  student_id    String
+  student       User            @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  status        String          @default("REGISTERED")
+  registered_at DateTime        @default(now())
+
+  @@unique([challenge_id, student_id])
+}
+
+model PillarSubmission {
+  id           String          @id @default(uuid())
+  challenge_id String
+  challenge    PillarChallenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  student_id   String
+  student      User            @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  team_id      String?
+  team         PillarTeam?     @relation(fields: [team_id], references: [id], onDelete: SetNull)
+  code_content String
+  language     String          @default("PYTHON")
+  score        Int             @default(0)
+  status       String          @default("PASSED")
+  submitted_at DateTime        @default(now())
+
+  @@index([challenge_id])
+  @@index([student_id])
+}
+
+model PillarAward {
+  id           String          @id @default(uuid())
+  challenge_id String
+  challenge    PillarChallenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  category     String
+  student_id   String?
+  student      User?           @relation(fields: [student_id], references: [id], onDelete: SetNull)
+  team_id      String?
+  team         PillarTeam?     @relation(fields: [team_id], references: [id], onDelete: SetNull)
+  badge_title  String
+  reason       String
+  awarded_at   DateTime        @default(now())
+
+  @@index([challenge_id])
+}
+
+model BuildDemoTracker {
+  id           String          @id @default(uuid())
+  challenge_id String
+  challenge    PillarChallenge @relation(fields: [challenge_id], references: [id], onDelete: Cascade)
+  team_id      String          @unique
+  team         PillarTeam      @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  demo_slot    String
+  status       String          @default("READY_FOR_DEMO")
+  repo_link    String?
+  demo_notes   String?
+  updated_at   DateTime        @updatedAt
 }
