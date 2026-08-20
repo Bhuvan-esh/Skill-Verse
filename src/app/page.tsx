@@ -15,8 +15,8 @@ const CursorDrivenParticleTypography = dynamic(
 );
 
 export default function LandingPage() {
-  const [entered, setEntered] = useState(false);
-  const [openingPlaying, setOpeningPlaying] = useState(true);
+  const [entered, setEntered] = useState(true);
+  const [openingPlaying, setOpeningPlaying] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {

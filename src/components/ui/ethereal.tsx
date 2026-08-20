@@ -746,8 +746,10 @@ export default function ScrollHero({
   }, []);
 
   return (
-    <div ref={containerRef} className="scroll-hero bg-[#0a0a0a] min-h-screen relative overflow-hidden">
-      <canvas ref={canvasRef} className="hero-canvas fixed inset-0 w-full h-full pointer-events-none z-0" />
+    <div ref={containerRef} className="scroll-hero bg-[#0a0a0a] min-h-screen relative w-full">
+      <div className="sticky top-0 left-0 w-full h-screen pointer-events-none z-0 overflow-hidden">
+        <canvas ref={canvasRef} className="w-full h-full" />
+      </div>
 
       <div className="scroll-progress fixed top-0 right-4 w-1 h-full z-30 pointer-events-none">
         <div ref={progressRef} className="scroll-progress-bar w-full h-full bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500 origin-top transform scale-y-0" />
@@ -824,40 +826,44 @@ export default function ScrollHero({
         </div>
       </nav>
 
-      {sections.map((section, index) => (
-        <section
-          key={section.id}
-          id={section.id}
-          ref={el => { sectionsRef.current[index] = el; }}
-          className="hero-section min-h-screen flex items-center justify-center relative z-10 px-6 py-24"
-          data-section={index}
-        >
-          <div className="section-content max-w-4xl mx-auto text-center space-y-6">
-            <h1 className="section-headline text-5xl sm:text-7xl lg:text-8xl font-extrabold text-white font-heading tracking-tight bg-gradient-to-r from-white via-slate-100 to-purple-300 bg-clip-text text-transparent">
-              {section.headline}
-            </h1>
-            <h2 className="section-subheadline text-xl sm:text-2xl lg:text-3xl font-semibold text-purple-400 font-mono-code tracking-wide">
-              {section.subheadline}
-            </h2>
-            <p className="section-body text-slate-300 text-sm sm:text-base lg:text-lg max-w-xl mx-auto font-sans leading-relaxed">
-              {section.body}
-            </p>
-          </div>
-        </section>
-      ))}
+      <div className="relative z-10 -mt-[100vh]">
+        {sections.map((section, index) => (
+          <section
+            key={section.id}
+            id={section.id}
+            ref={el => { sectionsRef.current[index] = el; }}
+            className={`hero-section min-h-screen flex items-center justify-center sticky top-0 px-6 py-24 transition-all duration-1000 ${
+              activeSection === index ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            data-section={index}
+          >
+            <div className="section-content max-w-4xl mx-auto text-center space-y-6">
+              <h1 className="section-headline text-5xl sm:text-7xl lg:text-8xl font-extrabold text-white font-heading tracking-tight bg-gradient-to-r from-white via-slate-100 to-purple-300 bg-clip-text text-transparent">
+                {section.headline}
+              </h1>
+              <h2 className="section-subheadline text-xl sm:text-2xl lg:text-3xl font-semibold text-purple-400 font-mono-code tracking-wide">
+                {section.subheadline}
+              </h2>
+              <p className="section-body text-slate-300 text-sm sm:text-base lg:text-lg max-w-xl mx-auto font-sans leading-relaxed">
+                {section.body}
+              </p>
+            </div>
+          </section>
+        ))}
+      </div>
 
       {/* Separate About Us Modal Window */}
       {isAboutOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xl p-4 sm:p-8 flex items-center justify-center animate-in fade-in duration-300">
-          <div className="relative w-full max-w-6xl bg-[#0a0a0a]/95 border border-purple-500/30 rounded-3xl p-4 sm:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0a0a0a] animate-in fade-in duration-300">
+          <div className="relative w-full min-h-screen">
             <button
               onClick={() => setIsAboutOpen(false)}
-              className="sticky top-0 float-right z-50 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110"
+              className="fixed top-6 right-6 z-[100] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110 shadow-2xl backdrop-blur-md"
               aria-label="Close About Window"
             >
               ✕
             </button>
-            <div className="clear-both pt-2">
+            <div className="clear-both px-4 pb-12 w-full max-w-7xl mx-auto">
               <AboutUsSection />
             </div>
           </div>
@@ -866,16 +872,16 @@ export default function ScrollHero({
 
       {/* Contact Us Modal Window */}
       {isHelpOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-xl p-4 sm:p-8 flex items-center justify-center animate-in fade-in duration-300">
-          <div className="relative w-full max-w-6xl bg-[#0a0a0a]/95 border border-purple-500/30 rounded-3xl p-4 sm:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0a0a0a] animate-in fade-in duration-300">
+          <div className="relative w-full min-h-screen flex flex-col justify-center">
             <button
               onClick={() => setIsHelpOpen(false)}
-              className="sticky top-0 float-right z-50 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110"
+              className="fixed top-6 right-6 z-[100] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110 shadow-2xl backdrop-blur-md"
               aria-label="Close Help Window"
             >
               ✕
             </button>
-            <div className="clear-both pt-2">
+            <div className="w-full max-w-7xl mx-auto px-4 py-12">
               <ContactPage />
             </div>
           </div>

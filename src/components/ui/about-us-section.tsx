@@ -150,10 +150,10 @@ export default function AboutUsSection() {
       />
 
       <motion.div
-        className="container mx-auto max-w-6xl relative z-10"
-        initial="hidden"
-        animate={isInView ? "visible" : "hidden"}
         variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-6xl mx-auto z-10 relative"
       >
         <motion.div className="flex flex-col items-center mb-6" variants={itemVariants}>
           <motion.span
