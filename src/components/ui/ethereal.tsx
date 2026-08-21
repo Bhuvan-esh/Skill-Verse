@@ -430,7 +430,10 @@ export default function ScrollHero({
   const scrollRef = useRef({
     progress: 0,
     velocity: 0,
-    rotation: { x: 0, y: 0 }
+    targetRotationX: 0,
+    targetRotationY: 0,
+    currentRotationX: 0,
+    currentRotationY: 0
   });
   const mouseRef = useRef({ x: 0.5, y: 0.5, sx: 0.5, sy: 0.5 });
 
@@ -547,11 +550,6 @@ export default function ScrollHero({
       };
 
       const animate = () => {
-        if (!isVisible || (typeof document !== 'undefined' && document.hidden)) {
-          isAnimating = false;
-          return;
-        }
-
         const t = clock.getElapsedTime();
 
         if (mesh && mesh.material) {
@@ -565,14 +563,13 @@ export default function ScrollHero({
           mat.uniforms.uScrollProgress.value = scrollRef.current.progress;
           mat.uniforms.uScrollVelocity.value = scrollRef.current.velocity;
 
-          mesh.rotation.x = scrollRef.current.rotation.x;
-          mesh.rotation.y = scrollRef.current.rotation.y;
+          // Buttery smooth lerp calculation (0 GC overhead)
+          scrollRef.current.currentRotationX += (scrollRef.current.targetRotationX - scrollRef.current.currentRotationX) * 0.12;
+          scrollRef.current.currentRotationY += (scrollRef.current.targetRotationY - scrollRef.current.currentRotationY) * 0.12;
 
-          if (Math.abs(scrollRef.current.velocity) < 0.01) {
-            mesh.position.y = Math.sin(t * 0.45) * 0.06;
-          } else {
-            mesh.position.y *= 0.9;
-          }
+          mesh.rotation.x = scrollRef.current.currentRotationX;
+          mesh.rotation.y = scrollRef.current.currentRotationY;
+          mesh.position.y = Math.sin(t * 0.45) * 0.05;
         }
 
         const lastPass = composer.passes[composer.passes.length - 1] as any;
@@ -658,20 +655,16 @@ export default function ScrollHero({
         lastY = y;
         scrollRef.current.velocity = THREE.MathUtils.clamp(vel, -1, 1);
 
-        gsap.to(scrollRef.current.rotation, {
-          x: self.progress * Math.PI * 3.0,
-          y: self.progress * Math.PI * 4.5,
-          duration: 0.3,
-          ease: 'power2.out'
-        });
+        scrollRef.current.targetRotationX = self.progress * Math.PI * 3.0;
+        scrollRef.current.targetRotationY = self.progress * Math.PI * 4.5;
 
         clearTimeout(velTimeout);
         velTimeout = setTimeout(() => {
-          gsap.to(scrollRef.current, { velocity: 0, duration: 0.5, ease: 'power2.out' });
+          scrollRef.current.velocity = 0;
         }, 120);
 
         if (progressRef.current) {
-          gsap.to(progressRef.current, { scaleY: self.progress, duration: 0.12 });
+          progressRef.current.style.transform = `scaleY(${self.progress})`;
         }
       }
     });
@@ -680,50 +673,13 @@ export default function ScrollHero({
       const el = sectionsRef.current[idx];
       if (!el) return;
 
-      gsap.fromTo(
-        el.querySelectorAll('.section-headline, .section-subheadline, .section-body'),
-        { opacity: 0, y: 80, rotationX: -10 },
-        {
-          opacity: 1, y: 0, rotationX: 0, duration: 1,
-          stagger: 0.15,
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 80%',
-            end: 'top 20%',
-            scrub: 1
-          }
-        }
-      );
-
       ScrollTrigger.create({
         trigger: el,
-        start: 'top 50%',
-        end: 'bottom 50%',
-        onEnter: () => {
-          setActiveSection(idx);
-          if (meshRef.current && meshRef.current.material) {
-            const mat = meshRef.current.material as THREE.ShaderMaterial;
-            gsap.to(mat.uniforms.uSectionIndex, {
-              value: idx,
-              duration: 1.2,
-              ease: 'power2.inOut'
-            });
-            gsap.fromTo(
-              mat.uniforms.uSectionT,
-              { value: 0 },
-              { value: 1, duration: 0.5, ease: 'power2.in', yoyo: true, repeat: 1 }
-            );
-          }
-        },
-        onEnterBack: () => {
-          setActiveSection(idx);
-          if (meshRef.current && meshRef.current.material) {
-            const mat = meshRef.current.material as THREE.ShaderMaterial;
-            gsap.to(mat.uniforms.uSectionIndex, {
-              value: idx,
-              duration: 1.2,
-              ease: 'power2.inOut'
-            });
+        start: 'top center',
+        end: 'bottom center',
+        onToggle: (self) => {
+          if (self.isActive) {
+            setActiveSection(idx);
           }
         }
       });
@@ -826,29 +782,37 @@ export default function ScrollHero({
         </div>
       </nav>
 
-      <div className="relative z-10 -mt-[100vh]">
+      {/* Sticky centered text overlay - pinned in viewport center over 3D model */}
+      <div className="sticky top-0 left-0 w-full h-screen pointer-events-none z-10 flex items-center justify-center px-6 -mt-[100vh]">
         {sections.map((section, index) => (
-          <section
+          <div
+            key={section.id}
+            className={`absolute max-w-4xl mx-auto text-center space-y-6 transition-all duration-700 ${
+              activeSection === index ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
+            }`}
+          >
+            <h1 className="section-headline text-5xl sm:text-7xl lg:text-8xl font-extrabold text-white font-heading tracking-tight bg-gradient-to-r from-white via-slate-100 to-purple-300 bg-clip-text text-transparent">
+              {section.headline}
+            </h1>
+            <h2 className="section-subheadline text-xl sm:text-2xl lg:text-3xl font-semibold text-purple-400 font-mono-code tracking-wide">
+              {section.subheadline}
+            </h2>
+            <p className="section-body text-slate-300 text-sm sm:text-base lg:text-lg max-w-xl mx-auto font-sans leading-relaxed">
+              {section.body}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* Invisible scroll triggers maintaining page height for scroll interactions */}
+      <div className="relative z-0 pointer-events-none -mt-[100vh]">
+        {sections.map((section, index) => (
+          <div
             key={section.id}
             id={section.id}
             ref={el => { sectionsRef.current[index] = el; }}
-            className={`hero-section min-h-screen flex items-center justify-center sticky top-0 px-6 py-24 transition-all duration-1000 ${
-              activeSection === index ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            }`}
-            data-section={index}
-          >
-            <div className="section-content max-w-4xl mx-auto text-center space-y-6">
-              <h1 className="section-headline text-5xl sm:text-7xl lg:text-8xl font-extrabold text-white font-heading tracking-tight bg-gradient-to-r from-white via-slate-100 to-purple-300 bg-clip-text text-transparent">
-                {section.headline}
-              </h1>
-              <h2 className="section-subheadline text-xl sm:text-2xl lg:text-3xl font-semibold text-purple-400 font-mono-code tracking-wide">
-                {section.subheadline}
-              </h2>
-              <p className="section-body text-slate-300 text-sm sm:text-base lg:text-lg max-w-xl mx-auto font-sans leading-relaxed">
-                {section.body}
-              </p>
-            </div>
-          </section>
+            className="h-screen w-full"
+          />
         ))}
       </div>
 
