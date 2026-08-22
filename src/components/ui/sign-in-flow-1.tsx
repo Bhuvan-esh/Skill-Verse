@@ -1199,27 +1199,23 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                       />
                       <span>
                         By creating an account, you agree to our{" "}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setDocModalTab("terms");
-                          }}
+                        <a
+                          href="/terms"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="underline text-white font-medium hover:text-purple-300 transition-colors cursor-pointer"
                         >
                           Terms and Services
-                        </button>{" "}
+                        </a>{" "}
                         and{" "}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setDocModalTab("privacy");
-                          }}
+                        <a
+                          href="/privacy"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="underline text-white font-medium hover:text-purple-300 transition-colors cursor-pointer"
                         >
                           Privacy Policy
-                        </button>
+                        </a>
                       </span>
                     </label>
 
@@ -1363,27 +1359,23 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                     />
                     <span>
                       By creating an account, you agree to our{" "}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setDocModalTab("terms");
-                        }}
+                      <a
+                        href="/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="underline text-white font-medium hover:text-purple-300 transition-colors cursor-pointer"
                       >
                         Terms and Services
-                      </button>{" "}
+                      </a>{" "}
                       and{" "}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setDocModalTab("privacy");
-                        }}
+                      <a
+                        href="/privacy"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="underline text-white font-medium hover:text-purple-300 transition-colors cursor-pointer"
                       >
                         Privacy Policy
-                      </button>
+                      </a>
                     </span>
                   </label>
 
