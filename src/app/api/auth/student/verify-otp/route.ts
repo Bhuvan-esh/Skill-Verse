@@ -54,8 +54,10 @@ export async function POST(req: Request) {
       });
 
       // Initialize Student Credit record & Mentor Profile
-      await db.studentCredit.create({
-        data: { student_id: user.id },
+      await db.studentCredit.upsert({
+        where: { student_id: user.id },
+        create: { student_id: user.id },
+        update: {},
       });
 
       await db.mentorProfile.create({
@@ -74,6 +76,20 @@ export async function POST(req: Request) {
       });
     }
 
+    // Check blocked status
+    if (user.approval_status === 'BLOCKED') {
+      return NextResponse.json(
+        { error: 'Your account has been blocked by the administrator.' },
+        { status: 403 }
+      );
+    }
+
+    // Record login timestamp
+    await db.user.update({
+      where: { id: user.id },
+      data: { last_login_at: new Date() },
+    });
+
     // 3. Issue Session JWT Token & Cookie
     const token = signToken({
       id: user.id,
@@ -83,9 +99,26 @@ export async function POST(req: Request) {
       college_email: user.college_email,
     });
 
+    // Send login security email for approved students
+    if (user.approval_status === 'APPROVED' && user.college_email) {
+      const { sendLoginSecurityEmail } = await import('@/lib/email-service');
+      sendLoginSecurityEmail({
+        recipientEmail: user.college_email,
+        studentName: user.name,
+      }).catch((e) => console.error('[Login Security Email Error]:', e));
+    }
+
     const response = NextResponse.json({
       message: 'Student login successful.',
-      user: { id: user.id, name: user.name, role: 'STUDENT', usn: user.usn },
+      approval_status: user.approval_status,
+      user: {
+        id: user.id,
+        name: user.name,
+        role: 'STUDENT',
+        usn: user.usn,
+        college_email: user.college_email,
+        approval_status: user.approval_status,
+      },
     });
 
     response.cookies.set('hub_session', token, {

@@ -12,15 +12,19 @@ const termsText = (
   <>
     By creating an account, you agree to our{" "}
     <a
-      href="#"
-      className="font-medium text-black/45 underline underline-offset-2 dark:text-white/45"
+      href="/terms"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-medium text-black/45 underline underline-offset-2 dark:text-white/45 hover:text-purple-300 transition-colors"
     >
       Terms and Services
     </a>{" "}
     and{" "}
     <a
-      href="#"
-      className="font-medium text-black/45 underline underline-offset-2 dark:text-white/45"
+      href="/privacy"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-medium text-black/45 underline underline-offset-2 dark:text-white/45 hover:text-purple-300 transition-colors"
     >
       Privacy Policy
     </a>
@@ -88,7 +92,7 @@ export default function AuthSectionOne() {
 
               <div className="space-y-3 pt-2 text-xs leading-5 text-slate-400">
                 <CheckboxLine>
-                  I don't want to receive emails about solaceui feature updates
+                  I don&apos;t want to receive emails about solaceui feature updates
                 </CheckboxLine>
                 <CheckboxLine>{termsText}</CheckboxLine>
               </div>

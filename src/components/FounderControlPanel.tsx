@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { auth } from '@/lib/firebase';
+import { listenToPendingApprovals, approveUser, UserDoc } from '@/lib/authService';
 import { 
   Zap, 
   UserCheck, 
@@ -95,6 +97,28 @@ export default function FounderControlPanel({ user, onRefresh }: FounderPanelPro
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Firebase: real-time listener for new-signup pending approvals
+  const [pendingFirebaseUsers, setPendingFirebaseUsers] = useState<UserDoc[]>([]);
+  const [firebaseApproveMsg, setFirebaseApproveMsg] = useState('');
+
+  useEffect(() => {
+    const unsub = listenToPendingApprovals((pending) => {
+      setPendingFirebaseUsers(pending);
+    });
+    return unsub;
+  }, []);
+
+  const handleApproveFirebaseUser = async (targetUid: string) => {
+    try {
+      const approverUid = auth.currentUser?.uid || user?.id || 'founder';
+      await approveUser(targetUid, approverUid);
+      setFirebaseApproveMsg('User approved successfully!');
+      setTimeout(() => setFirebaseApproveMsg(''), 3000);
+    } catch (e: any) {
+      setFirebaseApproveMsg(e?.message || 'Failed to approve user.');
+    }
+  };
 
   // Volunteer Login Approval
   const handleDecideVolunteerLogin = async (requestId: string, decision: 'APPROVED' | 'DENIED') => {
@@ -373,7 +397,45 @@ export default function FounderControlPanel({ user, onRefresh }: FounderPanelPro
       {/* TAB 1: PENDING APPROVALS */}
       {activeTab === 'APPROVALS' && (
         <div className="space-y-6">
-          
+
+          {/* Firebase New-User Pending Approvals */}
+          <div className="glass-panel p-6 rounded-2xl border border-white/10 space-y-4">
+            <h3 className="text-base font-bold text-white font-heading flex items-center space-x-2">
+              <UserCheck className="w-5 h-5 text-purple-400" />
+              <span>Pending Member Approvals (SkillVerse Sign-ups)</span>
+              {pendingFirebaseUsers.length > 0 && (
+                <span className="ml-auto text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full">
+                  {pendingFirebaseUsers.length} pending
+                </span>
+              )}
+            </h3>
+
+            {firebaseApproveMsg && (
+              <p className="text-xs text-emerald-400 font-mono">{firebaseApproveMsg}</p>
+            )}
+
+            {pendingFirebaseUsers.length === 0 ? (
+              <p className="text-xs text-slate-400">No pending member approvals from SkillVerse sign-ups.</p>
+            ) : (
+              <div className="space-y-3">
+                {pendingFirebaseUsers.map((u) => (
+                  <div key={u.uid} className="glass-card p-4 rounded-xl flex items-center justify-between border border-white/5">
+                    <div>
+                      <span className="text-sm font-bold text-white">{u.firstName} {u.lastName}</span>
+                      <p className="text-xs text-slate-400">{u.email} · Role: {u.role?.replace('_', ' ')}</p>
+                    </div>
+                    <button
+                      onClick={() => handleApproveFirebaseUser(u.uid)}
+                      className="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Volunteer Login Requests */}
           <div className="glass-panel p-6 rounded-2xl border border-white/10 space-y-4">
             <h3 className="text-base font-bold text-white font-heading flex items-center space-x-2">
@@ -428,7 +490,7 @@ export default function FounderControlPanel({ user, onRefresh }: FounderPanelPro
                     <div>
                       <span className="text-sm font-bold text-white">{c.student?.name} ({c.student?.usn})</span>
                       <p className="text-xs text-slate-300">Competition: <strong>{c.competition?.name}</strong></p>
-                      <p className="text-xs text-amber-300 mt-0.5">Reason: "{c.reason}"</p>
+                      <p className="text-xs text-amber-300 mt-0.5">Reason: &ldquo;{c.reason}&rdquo;</p>
                     </div>
 
                     <div className="flex space-x-2">

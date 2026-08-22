@@ -343,7 +343,13 @@ export default function Navbar({
                           : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                     }`}
                 >
-                  {user.role} ACCESS {user.usn ? `(${user.usn})` : ''}
+                  {user.role === 'FOUNDER'
+                    ? 'VISUAL ARCHITECT 🔒'
+                    : user.role === 'MENTOR'
+                    ? 'MENTOR 🔒'
+                    : user.role === 'VOLUNTEER'
+                    ? 'COMMUNITY AMBASSADOR 🔒'
+                    : 'PARTICIPANT 🔒'} {user.usn ? `(${user.usn})` : ''}
                 </span>
               </div>
 

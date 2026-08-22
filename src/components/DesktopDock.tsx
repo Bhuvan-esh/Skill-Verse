@@ -13,6 +13,8 @@ import {
   Plus
 } from 'lucide-react';
 
+import { useAuth } from '@/context/AuthContext';
+
 export interface DockItem {
   id: string;
   title: string;
@@ -28,6 +30,8 @@ interface DesktopDockProps {
 }
 
 export default function DesktopDock({ items, onToggleWindow, onOpenNewWindow }: DesktopDockProps) {
+  const { user } = useAuth();
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'LOGIN':
@@ -69,16 +73,25 @@ export default function DesktopDock({ items, onToggleWindow, onOpenNewWindow }: 
         </span>
       </button>
 
-      <button
-        onClick={() => onOpenNewWindow('ROLE_SELECT')}
-        className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/10 hover:border-purple-500/40 transition-all group relative"
-        title="Open Role Selection"
-      >
-        <UserCheck className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-        <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-slate-900 text-[10px] font-mono-code text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-          Select Role
-        </span>
-      </button>
+      {!user ? (
+        <button
+          onClick={() => onOpenNewWindow('ROLE_SELECT')}
+          className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/10 hover:border-purple-500/40 transition-all group relative"
+          title="Open Role Selection"
+        >
+          <UserCheck className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+          <span className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-slate-900 text-[10px] font-mono-code text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            Select Role
+          </span>
+        </button>
+      ) : (
+        <div
+          className="px-3 py-2 rounded-xl bg-purple-950/40 border border-purple-500/30 text-purple-300 text-[10px] font-mono font-bold flex items-center gap-1 select-none"
+          title={`Session bound to ${user.role} role.`}
+        >
+          <span>🔒 {user.role} LOCKED</span>
+        </div>
+      )}
 
       <div className="w-px h-6 bg-white/10 my-auto mx-1" />
 

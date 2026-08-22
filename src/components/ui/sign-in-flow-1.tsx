@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAuth } from "@/context/AuthContext";
-import { X, ArrowRight, Check, ShieldAlert, Crown, Palette, GraduationCap, Users, ArrowLeft, Sparkles } from "lucide-react";
+import { X, ArrowRight, Check, ShieldAlert, ShieldCheck, Crown, Palette, GraduationCap, Users, ArrowLeft, Sparkles } from "lucide-react";
 import { Component as HorizonHeroSection } from "@/components/ui/horizon-hero-section";
 
 type Uniforms = {
@@ -527,125 +527,309 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [noMarketing, setNoMarketing] = useState(false);
-  const [termsAgreed, setTermsAgreed] = useState(true);
+  const [termsAgreed, setTermsAgreed] = useState(false);
   const [usnInput, setUsnInput] = useState("");
   const [socialProvider, setSocialProvider] = useState<"Google" | "Apple" | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("participant");
-  const [step, setStep] = useState<"email" | "role" | "code" | "success">("email");
+  const [step, setStep] = useState<"email" | "google-confirm" | "role" | "code" | "success">("email");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [firebaseUid, setFirebaseUid] = useState<string | null>(null);
+  const [oauthStatus, setOauthStatus] = useState<string | null>(null);
+  const [oauthRole, setOauthRole] = useState<string | null>(null);
+  const [docModalTab, setDocModalTab] = useState<"terms" | "privacy" | null>(null);
+  const [showInlineTerms, setShowInlineTerms] = useState<"terms" | "privacy" | null>(null);
 
-  const handleSocialSignUp = (provider: "Google" | "Apple") => {
+  const handleSocialSignUp = async (provider: "Google" | "Apple") => {
     setSocialProvider(provider);
     setError("");
-    setStep("role");
+    setLoading(true);
+
+    try {
+      const { signInWithGoogle, signInWithApple } = await import("@/lib/authService");
+
+      let result: any;
+      if (provider === "Google") {
+        result = await signInWithGoogle();
+      } else {
+        result = await signInWithApple();
+      }
+
+      if (result.email) setEmail(result.email);
+      if (result.firstName) setFirstName(result.firstName);
+      if (result.lastName) setLastName(result.lastName);
+      setFirebaseUid(result.uid);
+      setOauthStatus(result.status || "pending_role");
+      setOauthRole(result.role || null);
+
+      // Always show Google Account Confirmation with Terms agreement
+      setStep("google-confirm");
+    } catch (err: any) {
+      console.error(`${provider} Auth Error:`, err);
+      if (err?.code === "auth/popup-closed-by-user") {
+        setError(`${provider} Sign-In popup was closed.`);
+      } else if (err?.code === "auth/unauthorized-domain") {
+        setError("This domain is not authorized. Add 'localhost' to Firebase Console → Authentication → Settings → Authorized domains.");
+      } else {
+        setError(err?.message || `Failed to authenticate with ${provider}. Please try again.`);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleGoogleConfirmContinue = async () => {
+    if (!termsAgreed) {
+      setError("Please agree to the Terms and Services to continue.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+
+    try {
+      const isDefaultArchitect = ["anushabhat2762@gmail.com", "bhuvanj06@gmail.com"].includes((email || "").toLowerCase());
+      const isApproved = oauthStatus === "approved" || isDefaultArchitect;
+
+      if (isApproved) {
+        try {
+          await fetch("/api/auth/select-role", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              role: oauthRole || (isDefaultArchitect ? "founder" : "participant"),
+              email: email,
+              name: `${firstName || ''} ${lastName || ''}`.trim() || email?.split('@')[0],
+              firebase_uid: firebaseUid,
+            }),
+          });
+        } catch (_) {}
+        await refreshUser();
+        triggerSuccessState();
+      } else if (oauthStatus === "pending_approval") {
+        router.push(
+          `/pending-approval?role=participant&name=${encodeURIComponent(firstName || 'Student')}&email=${encodeURIComponent(email || '')}`
+        );
+      } else {
+        // Proceed to role selection
+        setStep("role");
+      }
+    } catch (err: any) {
+      console.error("Google confirmation error:", err);
+      setError(err?.message || "Failed to proceed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleRoleSelect = async (roleId: string) => {
     setSelectedRole(roleId);
     setLoading(true);
     setError("");
 
+    const mappedRole =
+      roleId === "founder" || roleId === "architect"
+        ? "visual_architect"
+        : roleId === "ambassador" || roleId === "volunteer"
+        ? "community_ambassador"
+        : roleId === "mentor"
+        ? "mentor"
+        : "participant";
+
+    const displayName = firstName ? `${firstName} ${lastName}`.trim() : usnInput || "Student";
+    const userEmail = email || "";
+
+    // Firebase OAuth path (Google / Apple)
+    if (firebaseUid) {
+      try {
+        const { chooseRole } = await import("@/lib/authService");
+        const status = await chooseRole(
+          firebaseUid,
+          mappedRole as "visual_architect" | "community_ambassador" | "mentor" | "participant"
+        );
+
+        const res = await fetch("/api/auth/select-role", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            role: roleId,
+            email: userEmail,
+            name: displayName,
+            firebase_uid: firebaseUid,
+          }),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          await refreshUser();
+          if (status === "approved" || data.approval_status === "APPROVED" || mappedRole === "visual_architect") {
+            triggerSuccessState();
+          } else {
+            const displayRole =
+              mappedRole === "community_ambassador" ? "ambassador"
+              : mappedRole === "visual_architect" ? "ambassador"
+              : mappedRole;
+            router.push(
+              `/pending-approval?role=${displayRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(userEmail)}`
+            );
+          }
+        } else {
+          setError(data.error || "Authentication failed");
+        }
+      } catch (e: any) {
+        console.error(e);
+        setError(e?.message || "Connection error. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Legacy path — non-Firebase users (USN/OTP flow)
     try {
       const res = await fetch("/api/auth/select-role", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: roleId }),
+        body: JSON.stringify({
+          role: roleId,
+          email: userEmail || (roleId === "founder" ? "architect@club.edu" : "participant@club.edu"),
+          name: displayName,
+          usn: usnInput || undefined,
+          firebase_uid: undefined,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
         await refreshUser();
-        triggerSuccessState();
-        return;
+        if (roleId === "founder" || data.approval_status === "APPROVED") {
+          triggerSuccessState();
+          return;
+        }
+        const displayRole =
+          roleId === "architect" || roleId === "ambassador" || roleId === "volunteer"
+            ? "ambassador"
+            : roleId === "mentor"
+            ? "mentor"
+            : "participant";
+        router.push(
+          `/pending-approval?role=${displayRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(userEmail)}`
+        );
+      } else {
+        setError(data.error || "Authentication failed");
       }
     } catch (e) {
       console.error(e);
+      setError("Connection error. Please try again.");
     } finally {
       setLoading(false);
     }
-
-    await refreshUser();
-    triggerSuccessState();
   };
+
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email) {
+      setError("Please enter your email address");
+      return;
+    }
+    if (!termsAgreed) {
+      setError("Please agree to the Terms and Services to continue.");
+      return;
+    }
     setError("");
     setLoading(true);
 
-    const inputVal = email.trim();
-    let targetUsn = inputVal;
-
-    // Check if user entered email or USN directly
-    if (inputVal.includes("@")) {
-      targetUsn = "1MS21CS001"; // Fallback demo USN mapping
-    }
-
-    setUsnInput(targetUsn);
-
     try {
-      const res = await fetch("/api/auth/student/request-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usn: targetUsn }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to send code");
+      const { signUpWithEmail, signInWithEmail } = await import("@/lib/authService");
+      const firestoreRole =
+        selectedRole === "founder" || selectedRole === "architect"
+          ? "visual_architect"
+          : selectedRole === "ambassador" || selectedRole === "volunteer"
+          ? "community_ambassador"
+          : selectedRole === "mentor"
+          ? "mentor"
+          : "participant";
 
-      if (data.dev_otp) {
-        const digits = data.dev_otp.split("");
-        setCode(digits);
-      } else {
-        setCode(["1", "2", "3", "4", "5", "6"]);
+      let result: { uid: string; status: any };
+      try {
+        result = await signUpWithEmail({
+          firstName: firstName || email.split("@")[0],
+          lastName: lastName || "",
+          email,
+          password: password || "SkillVerse2025!",
+          role: firestoreRole as "visual_architect" | "community_ambassador" | "mentor" | "participant",
+          emailOptOut: noMarketing,
+        });
+      } catch (signErr: any) {
+        if (signErr?.code === "auth/email-already-in-use") {
+          // Returning user: automatically sign in with provided credentials
+          result = await signInWithEmail(email, password || "SkillVerse2025!");
+        } else {
+          throw signErr;
+        }
       }
-      setStep("code");
+
+      setFirebaseUid(result.uid);
+
+      // Establish backend session cookie
+      try {
+        await fetch("/api/auth/select-role", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            role: selectedRole,
+            email,
+            name: firstName ? `${firstName} ${lastName}`.trim() : email.split("@")[0],
+            firebase_uid: result.uid,
+          }),
+        });
+      } catch (_) {}
+
+      await refreshUser();
+
+      if (result.status === "approved" || firestoreRole === "visual_architect") {
+        triggerSuccessState();
+      } else {
+        const displayName = firstName
+          ? `${firstName} ${lastName}`.trim()
+          : email.split("@")[0];
+        const displayRole =
+          firestoreRole === "community_ambassador" ? "ambassador"
+          : firestoreRole === "visual_architect" ? "ambassador"
+          : firestoreRole;
+        router.push(
+          `/pending-approval?role=${displayRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(email)}`
+        );
+      }
     } catch (err: any) {
-      // Demo fallback so component preview always works smoothly
-      setCode(["1", "2", "3", "4", "5", "6"]);
-      setStep("code");
+      console.error("Auth error:", err);
+      if (err?.code === "auth/operation-not-allowed") {
+        setError("Email/Password provider is disabled in Firebase. Enable it in Firebase Console > Authentication > Sign-in method.");
+      } else if (err?.code === "auth/wrong-password" || err?.code === "auth/invalid-credential") {
+        setError("Incorrect password for this email. Please re-enter your password.");
+      } else if (err?.code === "auth/weak-password") {
+        setError("Password is too weak. Please use at least 6 characters.");
+      } else if (err?.message?.includes("offline") || err?.code === "unavailable") {
+        setError("Firestore Database is not enabled yet. Visit Firebase Console > Firestore Database > Click 'Create database'.");
+      } else {
+        setError(err?.message || "Authentication failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleQuickPreset = async (presetUsn: string, emailPreset: string) => {
+
+
+  const handleQuickPreset = (presetUsn: string, emailPreset: string) => {
     setEmail(emailPreset);
     setUsnInput(presetUsn);
     setError("");
-    setLoading(true);
-
-    try {
-      const reqRes = await fetch("/api/auth/student/request-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usn: presetUsn }),
-      });
-      const reqData = await reqRes.json();
-      const devOtp = reqData.dev_otp || "123456";
-
-      const verifyRes = await fetch("/api/auth/student/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usn: presetUsn, code: devOtp }),
-      });
-      const verifyData = await verifyRes.json();
-      if (verifyRes.ok) {
-        await refreshUser();
-        triggerSuccessState();
-        return;
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-
-    setStep("code");
+    setStep("role");
   };
 
   useEffect(() => {
@@ -716,20 +900,45 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
       });
       const data = await res.json();
       if (res.ok) {
+        let roleApproval = data.approval_status;
+
         if (selectedRole && selectedRole !== 'participant') {
-          await fetch("/api/auth/select-role", {
+          const roleRes = await fetch("/api/auth/select-role", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role: selectedRole }),
+            body: JSON.stringify({ role: selectedRole, usn: usnInput, name: firstName ? `${firstName} ${lastName}`.trim() : undefined }),
           });
+          const roleData = await roleRes.json();
+          if (roleData.approval_status) {
+            roleApproval = roleData.approval_status;
+          }
         }
         await refreshUser();
+
+        // If approved (or founder), enter immediately:
+        if (roleApproval === "APPROVED" || selectedRole === "founder") {
+          triggerSuccessState();
+          return;
+        }
+
+        // If first-time pending registration:
+        const mappedRole =
+          selectedRole === "architect" || selectedRole === "ambassador" || selectedRole === "volunteer"
+            ? "ambassador"
+            : selectedRole === "mentor"
+            ? "mentor"
+            : "participant";
+        const displayName = firstName ? `${firstName} ${lastName}`.trim() : usnInput || "Student";
+        router.push(`/pending-approval?role=${mappedRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(email || '')}`);
+        return;
+      } else {
+        setError(data.error || "Verification failed");
       }
     } catch (e) {
       console.error(e);
+      setError("Connection error. Please try again.");
     } finally {
       setLoading(false);
-      triggerSuccessState();
     }
   };
 
@@ -977,7 +1186,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                         onChange={(e) => setNoMarketing(e.target.checked)}
                         className="mt-0.5 w-4 h-4 rounded bg-[#0f0f12] border border-white/20 text-purple-500 focus:ring-0 cursor-pointer"
                       />
-                      <span>I don't want to receive emails about solaceui feature updates</span>
+                      <span>I don&apos;t want to receive emails about solaceui feature updates</span>
                     </label>
 
                     <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-400 leading-snug">
@@ -990,22 +1199,75 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                       />
                       <span>
                         By creating an account, you agree to our{" "}
-                        <Link href="#" className="underline text-white font-medium">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDocModalTab("terms");
+                          }}
+                          className="underline text-white font-medium hover:text-purple-300 transition-colors cursor-pointer"
+                        >
                           Terms and Services
-                        </Link>{" "}
+                        </button>{" "}
                         and{" "}
-                        <Link href="#" className="underline text-white font-medium">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setDocModalTab("privacy");
+                          }}
+                          className="underline text-white font-medium hover:text-purple-300 transition-colors cursor-pointer"
+                        >
                           Privacy Policy
-                        </Link>
+                        </button>
                       </span>
                     </label>
+
+                    {/* Embedded Inline Terms Preview Trigger & Accordion Box */}
+                    <div className="pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowInlineTerms(showInlineTerms ? null : "terms")}
+                        className="text-[11px] text-purple-300 hover:text-white font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>{showInlineTerms ? "Hide Embedded Terms ▲" : "Read Embedded Club Terms & Policy ▼"}</span>
+                      </button>
+
+                      {showInlineTerms && (
+                        <div className="mt-2 p-3 bg-[#07060c] border border-purple-500/30 rounded-2xl max-h-44 overflow-y-auto space-y-2 text-[11px] text-slate-300 font-sans leading-relaxed animate-in fade-in duration-200">
+                          <div className="flex items-center justify-between border-b border-white/10 pb-1.5 font-mono text-[10px] uppercase text-purple-300">
+                            <span>📜 Student Club Governance</span>
+                            <div className="space-x-2">
+                              <button type="button" onClick={() => setShowInlineTerms("terms")} className={showInlineTerms === "terms" ? "text-white font-bold underline" : "text-slate-400"}>Terms</button>
+                              <span>·</span>
+                              <button type="button" onClick={() => setShowInlineTerms("privacy")} className={showInlineTerms === "privacy" ? "text-white font-bold underline" : "text-slate-400"}>Privacy</button>
+                            </div>
+                          </div>
+                          {showInlineTerms === "terms" ? (
+                            <div className="space-y-1.5 text-slate-300">
+                              <p><strong>1. Code of Conduct:</strong> Respectful behavior required across Idea Hub, Coding Arena, Skill Barter, and Soft Skills. Plagiarism or harassment results in restriction.</p>
+                              <p><strong>2. Idea Hub Grants:</strong> Students retain 100% IP rights to project submissions. Credits issued by Visual Architects are non-monetary academic incubator points.</p>
+                              <p><strong>3. Coding Integrity:</strong> Algorithmic contests require original logic. Scraping or multi-account exploitation is banned.</p>
+                              <p><strong>4. Role Locking:</strong> User roles (Participant, Ambassador, Mentor, Visual Architect) are session-locked upon approval.</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5 text-slate-300">
+                              <p><strong>1. Data Collected:</strong> Name, USN, College Email, and Google OAuth UID for identity verification and leaderboard credits.</p>
+                              <p><strong>2. Usage:</strong> Data is strictly used for authentication, contest verification, and automated security alerts.</p>
+                              <p><strong>3. Confidentiality:</strong> Your personal data is never sold or shared with external third-party advertisers.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans"
+                    disabled={loading || !termsAgreed}
+                    className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <span>Creating account...</span>
@@ -1039,6 +1301,162 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   </div>
                 </div>
               </motion.div>
+            ) : step === "google-confirm" ? (
+              <motion.div
+                key="google-confirm-step"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="space-y-5 text-left"
+              >
+                {/* Header */}
+                <div className="space-y-1">
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-sans">
+                    Continue with Google
+                  </h1>
+                  <p className="text-sm text-slate-400 font-light font-sans">
+                    You&apos;re signing in as:
+                  </p>
+                </div>
+
+                {/* Google account info card */}
+                <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/15 rounded-2xl">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                    {(firstName || email || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    {firstName && (
+                      <p className="text-white font-semibold text-sm truncate font-sans">{firstName} {lastName}</p>
+                    )}
+                    <p className="text-slate-300 text-xs truncate font-mono">{email}</p>
+                  </div>
+                  <GoogleIcon />
+                </div>
+
+                {error && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
+                    <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* Checkboxes for Google Auth */}
+                <div className="space-y-2.5 pt-1">
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-400 leading-snug">
+                    <input
+                      type="checkbox"
+                      checked={noMarketing}
+                      onChange={(e) => setNoMarketing(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded bg-[#0f0f12] border border-white/20 text-purple-500 focus:ring-0 cursor-pointer"
+                    />
+                    <span>I don&apos;t want to receive emails about solaceui feature updates</span>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-400 leading-snug">
+                    <input
+                      type="checkbox"
+                      checked={termsAgreed}
+                      onChange={(e) => setTermsAgreed(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded bg-[#0f0f12] border border-white/20 text-purple-500 focus:ring-0 cursor-pointer"
+                      required
+                    />
+                    <span>
+                      By creating an account, you agree to our{" "}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setDocModalTab("terms");
+                        }}
+                        className="underline text-white font-medium hover:text-purple-300 transition-colors cursor-pointer"
+                      >
+                        Terms and Services
+                      </button>{" "}
+                      and{" "}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setDocModalTab("privacy");
+                        }}
+                        className="underline text-white font-medium hover:text-purple-300 transition-colors cursor-pointer"
+                      >
+                        Privacy Policy
+                      </button>
+                    </span>
+                  </label>
+
+                  {/* Embedded Inline Terms Preview Trigger & Accordion Box */}
+                  <div className="pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowInlineTerms(showInlineTerms ? null : "terms")}
+                      className="text-[11px] text-purple-300 hover:text-white font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{showInlineTerms ? "Hide Embedded Terms ▲" : "Read Embedded Club Terms & Policy ▼"}</span>
+                    </button>
+
+                    {showInlineTerms && (
+                      <div className="mt-2 p-3 bg-[#07060c] border border-purple-500/30 rounded-2xl max-h-44 overflow-y-auto space-y-2 text-[11px] text-slate-300 font-sans leading-relaxed animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-1.5 font-mono text-[10px] uppercase text-purple-300">
+                          <span>📜 Student Club Governance</span>
+                          <div className="space-x-2">
+                            <button type="button" onClick={() => setShowInlineTerms("terms")} className={showInlineTerms === "terms" ? "text-white font-bold underline" : "text-slate-400"}>Terms</button>
+                            <span>·</span>
+                            <button type="button" onClick={() => setShowInlineTerms("privacy")} className={showInlineTerms === "privacy" ? "text-white font-bold underline" : "text-slate-400"}>Privacy</button>
+                          </div>
+                        </div>
+                        {showInlineTerms === "terms" ? (
+                          <div className="space-y-1.5 text-slate-300">
+                            <p><strong>1. Code of Conduct:</strong> Respectful behavior required across Idea Hub, Coding Arena, Skill Barter, and Soft Skills. Plagiarism or harassment results in restriction.</p>
+                            <p><strong>2. Idea Hub Grants:</strong> Students retain 100% IP rights to project submissions. Credits issued by Visual Architects are non-monetary academic incubator points.</p>
+                            <p><strong>3. Coding Integrity:</strong> Algorithmic contests require original logic. Scraping or multi-account exploitation is banned.</p>
+                            <p><strong>4. Role Locking:</strong> User roles (Participant, Ambassador, Mentor, Visual Architect) are session-locked upon approval.</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5 text-slate-300">
+                            <p><strong>1. Data Collected:</strong> Name, USN, College Email, and Google OAuth UID for identity verification and leaderboard credits.</p>
+                            <p><strong>2. Usage:</strong> Data is strictly used for authentication, contest verification, and automated security alerts.</p>
+                            <p><strong>3. Confidentiality:</strong> Your personal data is never sold or shared with external third-party advertisers.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Continue button */}
+                <button
+                  type="button"
+                  disabled={loading || !termsAgreed}
+                  onClick={handleGoogleConfirmContinue}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span>{loading ? "Authenticating..." : `Continue as ${firstName || email?.split("@")[0] || "User"}`}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                {/* Not you? */}
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("email");
+                      setEmail("");
+                      setFirstName("");
+                      setLastName("");
+                      setFirebaseUid(null);
+                      setSocialProvider(null);
+                      setError("");
+                    }}
+                    className="text-xs text-slate-400 hover:text-white transition-colors font-sans underline cursor-pointer"
+                  >
+                    Not you? Use a different account
+                  </button>
+                </div>
+              </motion.div>
             ) : step === "role" ? (
               <motion.div
                 key="role-step"
@@ -1060,7 +1478,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setStep("email")}
+                    onClick={() => setStep(socialProvider ? "google-confirm" : "email")}
                     className="text-xs text-slate-300 hover:text-white flex items-center gap-1 font-sans bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10 transition-all cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
@@ -1235,6 +1653,134 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* Student Club Legal Terms & Privacy Policy Modal Overlay */}
+        {docModalTab && (
+          <div className="fixed inset-0 z-[10000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="relative w-full max-w-2xl max-h-[85vh] bg-[#0c0a14] border border-purple-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-y-auto flex flex-col justify-between">
+              <div>
+                {/* Header with Close button */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <ShieldCheck className="w-5 h-5 text-purple-400" />
+                    <h2 className="text-xl font-bold text-white font-heading">
+                      Student Club Legal & Governance
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDocModalTab(null)}
+                    className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Tab Switcher */}
+                <div className="flex items-center space-x-2 bg-slate-900/80 p-1 rounded-xl border border-white/10 mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setDocModalTab('terms')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
+                      docModalTab === 'terms'
+                        ? 'bg-purple-600 text-white shadow-md font-bold'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    📜 Terms of Service
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDocModalTab('privacy')}
+                    className={`flex-1 py-2 rounded-lg text-xs font-mono font-semibold transition-all cursor-pointer ${
+                      docModalTab === 'privacy'
+                        ? 'bg-purple-600 text-white shadow-md font-bold'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    🔒 Privacy Policy
+                  </button>
+                </div>
+
+                {/* Content Body */}
+                {docModalTab === 'terms' ? (
+                  <div className="space-y-4 text-xs text-slate-300 leading-relaxed font-sans pr-2">
+                    <h3 className="text-sm font-bold text-white font-heading">Student Club Platform Terms of Service</h3>
+                    <p>Welcome to the Student Club Platform (Idea Hub / SkillVerse / Anvaya). By creating an account or signing in, you agree to comply with the following club regulations:</p>
+
+                    <div className="space-y-3 pt-1">
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">1. Academic & Community Conduct</h4>
+                        <p className="mt-0.5 text-slate-400">All student builders, mentors, and ambassadors must maintain respectful behavior. Malicious code submissions, plagiarism, or harassment across any of the 4 club pillars (Idea Hub, Coding Arena, Skill Barter, Soft Skills) will result in immediate account restriction.</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">2. Project Incubation & Grant Credits (Idea Hub)</h4>
+                        <p className="mt-0.5 text-slate-400">Students retain full intellectual property of their original project submissions in the Idea Hub. Milestone grants and credit allocations issued by Visual Architects are non-transferable academic incentive points designated for project development.</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">3. Algorithmic Integrity & Coding Arena</h4>
+                        <p className="mt-0.5 text-slate-400">Participants in coding challenges agree to submit original algorithmic solutions. Automated scraping, solution sharing, or multi-account manipulation is strictly prohibited.</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">4. Peer Skill Barter & Micro-Mentorship</h4>
+                        <p className="mt-0.5 text-slate-400">Skill Barter sessions are non-monetary exchanges intended for peer learning and mentorship. Credits earned directly reflect collegiate leaderboard standing.</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">5. Membership Roles & Access Control</h4>
+                        <p className="mt-0.5 text-slate-400">User roles (Participant, Community Ambassador, Mentor, Visual Architect) are assigned based on club leadership review. Access is bound to your authenticated session role.</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4 text-xs text-slate-300 leading-relaxed font-sans pr-2">
+                    <h3 className="text-sm font-bold text-white font-heading">Student Club Privacy Policy</h3>
+                    <p>Your privacy and data protection are fundamental to our Student Club platform. This policy outlines how your information is safeguarded:</p>
+
+                    <div className="space-y-3 pt-1">
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">1. Information We Collect</h4>
+                        <p className="mt-0.5 text-slate-400">We collect your Name, College Email Address, USN (Student ID), and Google OAuth Profile UID to verify student membership and track your leaderboard credits.</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">2. How We Use Your Data</h4>
+                        <p className="mt-0.5 text-slate-400">Your data is strictly used to authenticate your session, verify contest submissions, send security alerts, and display collegiate achievements.</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">3. Data Protection & Confidentiality</h4>
+                        <p className="mt-0.5 text-slate-400">We store your credentials securely using encrypted authentication tokens. We do NOT sell, rent, or trade student data with third-party advertisers.</p>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-purple-300 font-mono text-xs">4. Third-Party Authentication</h4>
+                        <p className="mt-0.5 text-slate-400">We integrate with Firebase Authentication for secure Google OAuth single sign-on. Authentication is managed directly via Google&apos;s secure servers.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-white/10 mt-6 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400 font-mono">Student Club Governance Board</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTermsAgreed(true);
+                    setDocModalTab(null);
+                  }}
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs font-mono transition-all shadow-lg cursor-pointer"
+                >
+                  Accept & Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

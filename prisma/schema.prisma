@@ -11,10 +11,20 @@ model User {
   id                         String                @id @default(uuid())
   name                       String
   role                       String                @default("STUDENT") // STUDENT, VOLUNTEER, FOUNDER
+  approval_status            String                @default("APPROVED") // PENDING, APPROVED, BLOCKED, REJECTED
+  firebase_uid               String?               @unique
   usn                        String?               @unique
   college_email              String                @unique
   password_hash              String?
   is_preloaded               Boolean               @default(false)
+  approval_requested_at      DateTime?
+  approved_at                DateTime?
+  approved_by                String?
+  blocked_at                 DateTime?
+  blocked_by                 String?
+  last_login_at              DateTime?
+  last_login_device          String?
+  last_login_ip              String?
   created_at                 DateTime              @default(now())
   updated_at                 DateTime              @updatedAt
   student_credits            StudentCredit?
@@ -47,6 +57,11 @@ model User {
   pillar_team_memberships     PillarTeamMember[]
   pillar_submissions          PillarSubmission[]
   pillar_awards               PillarAward[]
+  club_credit_transactions    ClubCreditTransaction[]
+  email_logs                  EmailLog[]
+  admin_audit_logs            AdminAuditLog[]       @relation("AdminAuditor")
+  event_volunteers            EventVolunteer[]
+  club_registrations          ClubEventRegistration[]
 }
 
 model PreloadedUSN {
@@ -195,14 +210,15 @@ model CancellationRequest {
 }
 
 model StudentCredit {
-  id         String   @id @default(uuid())
-  student_id String   @unique
-  student    User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  domain_1   Int      @default(0)
-  domain_2   Int      @default(0)
-  domain_3   Int      @default(0)
-  domain_4   Int      @default(0)
-  updated_at DateTime @updatedAt
+  id            String   @id @default(uuid())
+  student_id    String   @unique
+  student       User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  domain_1      Int      @default(0) // Idea Hub
+  domain_2      Int      @default(0) // Coding
+  domain_3      Int      @default(0) // Soft Skills
+  domain_4      Int      @default(0) // Skill Barter
+  total_credits Int      @default(0)
+  updated_at    DateTime @updatedAt
 }
 
 model PendingReport {
@@ -641,4 +657,453 @@ model BuildDemoTracker {
   repo_link    String?
   demo_notes   String?
   updated_at   DateTime        @updatedAt
+}
+
+// -------------------------------------------------------------
+// SOFT SKILLS CHALLENGE SYSTEM ("SKILL LEAGUE") MODULE
+// -------------------------------------------------------------
+
+model SkillLeagueEvent {
+  id                      String                    @id @default(uuid())
+  public_event_name       String
+  internal_challenge_type String                    // SPEAK_IT, DEBATE_BATTLE, THINK_FAST, CEO_CHALLENGE, ROLEPLAY_CHALLENGE, NEWSROOM_CHALLENGE
+  description             String
+  registration_open_time  DateTime
+  registration_close_time DateTime
+  event_date              DateTime
+  event_location          String                    @default("Main Auditorium / Digital Arena")
+  participant_limit       Int                       @default(100)
+  team_based              Boolean                   @default(true)
+  team_size               Int                       @default(4)
+  credits_reward          Int                       @default(50)
+  status                  String                    @default("DRAFT") // DRAFT, REGISTRATION_OPEN, REGISTRATION_CLOSED, TEAM_FORMATION, TEAM_APPROVAL_PENDING, TEAMS_APPROVED, CHALLENGE_REVEALED, IN_PROGRESS, JUDGING, RESULT_SUBMITTED, FOUNDER_REVIEW, WINNER_CONFIRMED, RECOGNITION_PROCESSING, COMPLETED
+  created_by              String
+  challenge_revealed_at   DateTime?
+  created_at              DateTime                  @default(now())
+  updated_at              DateTime                  @updatedAt
+
+  registrations           SkillLeagueRegistration[]
+  teams                   SkillLeagueTeam[]
+  rounds                  SkillLeagueRound[]
+  event_twists            SkillLeagueEventTwist[]
+  scores                  SkillLeagueScore[]
+  results                 SkillLeagueResult[]
+  reports                 SkillLeagueReport[]
+  email_logs              SkillLeagueEmailLog[]
+
+  @@index([status])
+  @@index([internal_challenge_type])
+}
+
+model SkillLeagueTwist {
+  id           String                  @id @default(uuid())
+  title        String
+  description  String
+  category     String                  @default("GENERAL") // FORBIDDEN_WORD, CHANGE_POSITION, TIME_REDUCTION, EMERGENCY_SITUATION, ROLE_CHANGE, OPPONENT_CHANGE, BUDGET_REDUCTION, UNEXPECTED_QUESTION, REVERSE_ARGUMENT
+  is_active    Boolean                 @default(true)
+  created_at   DateTime                @default(now())
+
+  event_twists SkillLeagueEventTwist[]
+}
+
+model SkillLeagueEventTwist {
+  id           String            @id @default(uuid())
+  event_id     String
+  event        SkillLeagueEvent  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  twist_id     String
+  twist        SkillLeagueTwist  @relation(fields: [twist_id], references: [id], onDelete: Cascade)
+  round_number Int               @default(1)
+  is_revealed  Boolean           @default(false)
+  revealed_at  DateTime?
+
+  @@index([event_id])
+  @@index([twist_id])
+}
+
+model SkillLeagueRegistration {
+  id             String                 @id @default(uuid())
+  event_id       String
+  event          SkillLeagueEvent       @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  student_id     String
+  student_name   String
+  usn            String
+  email          String
+  year           Int                    // 1, 2, 3, 4
+  branch         String                 @default("Computer Science")
+  section        String?
+  status         String                 @default("REGISTERED") // REGISTERED, CANCELLED, DISQUALIFIED, ATTENDED, ABSENT, COMPLETED
+  registered_at  DateTime               @default(now())
+  cancelled_at   DateTime?
+
+  team_memberships SkillLeagueTeamMember[]
+
+  @@unique([event_id, student_id])
+  @@unique([event_id, usn])
+  @@index([event_id])
+  @@index([year])
+  @@index([status])
+}
+
+model SkillLeagueTeam {
+  id                   String                  @id @default(uuid())
+  event_id             String
+  event                SkillLeagueEvent        @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  team_name            String
+  team_number          Int                     @default(1)
+  status               String                  @default("DRAFT") // DRAFT, AI_GENERATED, FOUNDER_APPROVED, LOCKED, COMPLETED
+  generation_reasoning String?
+  approved_by          String?
+  approved_at          DateTime?
+  created_at           DateTime                @default(now())
+  updated_at           DateTime                @updatedAt
+
+  members              SkillLeagueTeamMember[]
+  scores               SkillLeagueScore[]
+  winning_results      SkillLeagueResult[]     @relation("WinningTeam")
+  runner_up_results    SkillLeagueResult[]     @relation("RunnerUpTeam")
+
+  @@index([event_id])
+  @@index([status])
+}
+
+model SkillLeagueTeamMember {
+  id              String                  @id @default(uuid())
+  team_id         String
+  team            SkillLeagueTeam         @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  registration_id String
+  registration    SkillLeagueRegistration @relation(fields: [registration_id], references: [id], onDelete: Cascade)
+  student_id      String
+  student_name    String
+  usn             String
+  year            Int
+  role_title      String                  @default("Debater / Speaker")
+  added_at        DateTime                @default(now())
+
+  @@unique([team_id, student_id])
+  @@index([team_id])
+  @@index([student_id])
+}
+
+model SkillLeagueRound {
+  id                String            @id @default(uuid())
+  event_id          String
+  event             SkillLeagueEvent  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  round_number      Int               @default(1)
+  round_name        String
+  challenge_type    String
+  time_limit        Int               @default(60) // seconds or minutes
+  rules             String            @default("Follow stage decorum and adhere to prompt constraints.")
+  twist_description String?
+  status            String            @default("NOT_STARTED") // NOT_STARTED, LIVE, COMPLETED, CANCELLED
+  start_time        DateTime?
+  end_time          DateTime?
+  created_at        DateTime          @default(now())
+
+  scores            SkillLeagueScore[]
+
+  @@index([event_id])
+  @@index([status])
+}
+
+model SkillLeagueScore {
+  id              String            @id @default(uuid())
+  event_id        String
+  event           SkillLeagueEvent  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  round_id        String
+  round           SkillLeagueRound  @relation(fields: [round_id], references: [id], onDelete: Cascade)
+  judge_id        String
+  judge_name      String            @default("Judge Authority")
+  team_id         String?
+  team            SkillLeagueTeam?  @relation(fields: [team_id], references: [id], onDelete: SetNull)
+  student_id      String?
+  criteria_scores String            // JSON string e.g. {"communication": 9, "confidence": 8, "quickThinking": 9}
+  total_score     Float             @default(0.0)
+  comments        String?
+  created_at      DateTime          @default(now())
+
+  @@index([event_id])
+  @@index([round_id])
+  @@index([judge_id])
+}
+
+model SkillLeagueResult {
+  id                  String            @id @default(uuid())
+  event_id            String
+  event               SkillLeagueEvent  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  judge_id            String
+  judge_name          String            @default("Head Judge")
+  winning_team_id     String?
+  winning_team        SkillLeagueTeam?  @relation("WinningTeam", fields: [winning_team_id], references: [id], onDelete: SetNull)
+  winning_student_id  String?
+  winning_student_name String?
+  runner_up_team_id   String?
+  runner_up_team      SkillLeagueTeam?  @relation("RunnerUpTeam", fields: [runner_up_team_id], references: [id], onDelete: SetNull)
+  runner_up_student_id String?
+  scores_summary      String            // JSON summary of round totals
+  judge_remarks       String
+  submitted_at        DateTime          @default(now())
+  status              String            @default("JUDGE_SUBMITTED") // JUDGE_SUBMITTED, FOUNDER_REVIEW, FOUNDER_CONFIRMED, REJECTED, REVIEW_REQUIRED
+  founder_id          String?
+  founder_name        String?
+  founder_remarks     String?
+  confirmed_at        DateTime?
+
+  credit_transactions SkillLeagueCreditTransaction[]
+  reports             SkillLeagueReport[]
+
+  @@index([event_id])
+  @@index([status])
+}
+
+model SkillLeagueCreditAccount {
+  id              String   @id @default(uuid())
+  student_id      String   @unique
+  student_name    String
+  current_balance Int      @default(0)
+  updated_at      DateTime @updatedAt
+
+  @@index([student_id])
+}
+
+model SkillLeagueCreditTransaction {
+  id               String             @id @default(uuid())
+  idempotency_key  String             @unique // ${event_id}_${student_id}_${result_id}_${transaction_type}
+  student_id       String
+  student_name     String
+  event_id         String
+  result_id        String
+  result           SkillLeagueResult  @relation(fields: [result_id], references: [id], onDelete: Cascade)
+  transaction_type String             @default("WINNER") // EVENT_PARTICIPATION, WINNER, RUNNER_UP, BEST_SPEAKER, MOST_IMPROVED, MOST_CONSISTENT, BEST_TEAM_PLAYER, RISING_STAR, SPECIAL_ACHIEVEMENT, MANUAL_ADJUSTMENT
+  previous_balance Int
+  credits_earned   Int
+  new_balance      Int
+  reason           String
+  confirmed_by     String             @default("Founder Authority")
+  timestamp        DateTime           @default(now())
+
+  @@index([student_id])
+  @@index([event_id])
+  @@index([idempotency_key])
+}
+
+model SkillLeagueAchievement {
+  id          String   @id @default(uuid())
+  name        String
+  badge_code  String   @unique // DEBATE_CHAMPION, BEST_SPEAKER, QUICK_THINKER, ADAPTABILITY_MASTER, LEADERSHIP_STAR, COMMUNICATION_PRO, RISING_STAR
+  description String
+  category    String   @default("SOFT_SKILLS")
+  icon_url    String   @default("🏆")
+  created_at  DateTime @default(now())
+
+  student_achievements SkillLeagueStudentAchievement[]
+}
+
+model SkillLeagueStudentAchievement {
+  id              String                 @id @default(uuid())
+  idempotency_key String                 @unique // ${event_id}_${student_id}_${achievement_id}
+  student_id      String
+  student_name    String
+  achievement_id  String
+  achievement     SkillLeagueAchievement @relation(fields: [achievement_id], references: [id], onDelete: Cascade)
+  event_id        String
+  awarded_reason  String
+  awarded_at      DateTime               @default(now())
+
+  @@index([student_id])
+  @@index([achievement_id])
+  @@index([idempotency_key])
+}
+
+model SkillLeagueReport {
+  id                    String            @id @default(uuid())
+  idempotency_key       String            @unique // ${event_id}_${student_id}_${result_id}
+  student_id            String
+  student_name          String
+  event_id              String
+  event                 SkillLeagueEvent  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  result_id             String
+  result                SkillLeagueResult @relation(fields: [result_id], references: [id], onDelete: Cascade)
+  report_json           String            // Complete structured JSON representation
+  personalized_message  String
+  founder_confirmed_by  String
+  generated_at          DateTime          @default(now())
+
+  @@index([student_id])
+  @@index([event_id])
+  @@index([idempotency_key])
+}
+
+model SkillLeagueEmailLog {
+  id              String            @id @default(uuid())
+  idempotency_key String            @unique // ${event_id}_${student_id}_EMAIL
+  student_id      String
+  event_id        String
+  event           SkillLeagueEvent  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  recipient_email String
+  subject         String
+  template_name   String            @default("SKILL_LEAGUE_ACHIEVEMENT")
+  content_preview String
+  status          String            @default("SENT") // PENDING, SENT, FAILED, RETRYING
+  retry_count     Int               @default(0)
+  error_message   String?
+  sent_at         DateTime          @default(now())
+  created_at      DateTime          @default(now())
+
+  @@index([student_id])
+  @@index([event_id])
+  @@index([status])
+}
+
+model SkillLeagueAuditLog {
+  id         String   @id @default(uuid())
+  actor_id   String
+  actor_role String   // STUDENT, JUDGE, FOUNDER, ADMIN
+  action     String   // EVENT_CREATED, REGISTERED, TEAMS_GENERATED, TEAMS_APPROVED, CHALLENGE_REVEALED, SCORE_SUBMITTED, RESULT_SUBMITTED, WINNER_CONFIRMED, CREDITS_AWARDED, BADGE_ASSIGNED, REPORT_GENERATED, EMAIL_SENT
+  entity     String   // EVENT, REGISTRATION, TEAM, ROUND, SCORE, RESULT, CREDIT_TRANSACTION, ACHIEVEMENT, REPORT, EMAIL
+  entity_id  String
+  old_value  String?  // JSON string
+  new_value  String?  // JSON string
+  reason     String?
+  timestamp  DateTime @default(now())
+
+  @@index([actor_id])
+  @@index([action])
+  @@index([entity])
+  @@index([timestamp])
+}
+
+model ClubCreditTransaction {
+  id              String   @id @default(uuid())
+  student_id      String
+  student         User     @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  student_name    String
+  usn             String?
+  domain          String   // IDEA_HUB, CODING, SOFT_SKILLS, SKILL_BARTER
+  activity_id     String
+  activity_name   String
+  credits         Int
+  type            String   @default("EARNED") // EARNED, BONUS, REVERSAL
+  approved_by     String
+  approved_at     DateTime @default(now())
+  idempotency_key String   @unique
+
+  @@index([student_id])
+  @@index([domain])
+}
+
+model ClubEvent {
+  id                      String                  @id @default(uuid())
+  title                   String
+  description             String
+  domain                  String                  // IDEA_HUB, CODING, SOFT_SKILLS, SKILL_BARTER
+  event_date              DateTime
+  start_time              String
+  end_time                String?
+  venue                   String
+  credit_value            Int                     @default(30)
+  registration_deadline   DateTime?
+  status                  String                  @default("DRAFT") // DRAFT, PUBLISHED, COMPLETED, CANCELLED
+  volunteer_access_status String                  @default("NOT_STARTED") // NOT_STARTED, ACTIVE, ENDED
+  created_by              String
+  published_at            DateTime?
+  created_at              DateTime                @default(now())
+  updated_at              DateTime                @updatedAt
+  registrations           ClubEventRegistration[]
+  volunteers              EventVolunteer[]
+
+  @@index([status])
+  @@index([domain])
+}
+
+model ClubEventRegistration {
+  id                   String     @id @default(uuid())
+  event_id             String
+  event                ClubEvent  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  student_id           String
+  student              User       @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  name                 String
+  usn                  String?
+  email                String
+  domain               String
+  status               String     @default("CONFIRMED") // CONFIRMED, CANCELLED, ATTENDED
+  founder_confirmed    Boolean    @default(false)
+  credits_awarded      Boolean    @default(false)
+  credits_awarded_at   DateTime?
+  approved_by          String?
+  credit_email_sent    Boolean    @default(false)
+  registered_at        DateTime   @default(now())
+  idempotency_key      String?    @unique
+
+  @@unique([student_id, event_id])
+  @@index([event_id])
+  @@index([student_id])
+}
+
+model EventVolunteer {
+  id           String     @id @default(uuid())
+  event_id     String
+  event        ClubEvent  @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  student_id   String
+  student      User       @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  name         String
+  usn          String?
+  email        String
+  is_finalized Boolean    @default(false)
+  added_at     DateTime   @default(now())
+
+  @@unique([event_id, student_id])
+  @@index([event_id])
+  @@index([student_id])
+}
+
+model EmailLog {
+  id                  String   @id @default(uuid())
+  type                String   // ACCOUNT_APPROVAL, LOGIN_SECURITY, ADMIN_ALERT, EVENT_ANNOUNCEMENT, REGISTRATION_CONFIRMATION, REMINDER_3DAYS, REMINDER_1DAY, CREDIT_UPDATED, LEADERBOARD_UPDATED, ADMIN_ANNOUNCEMENT, VOLUNTEER_ACCESS_STARTED
+  recipient_email     String
+  recipient_name      String?
+  recipient_uid       String?
+  recipient_user      User?    @relation(fields: [recipient_uid], references: [id], onDelete: SetNull)
+  subject             String
+  event_id            String?
+  registration_id     String?
+  status              String   @default("SENT") // QUEUED, SENT, FAILED
+  provider_message_id String?
+  sent_at             DateTime @default(now())
+  error               String?
+  idempotency_key     String?  @unique
+
+  @@index([type])
+  @@index([recipient_email])
+  @@index([status])
+}
+
+model AdminAuditLog {
+  id          String   @id @default(uuid())
+  actor_uid   String
+  actor       User     @relation("AdminAuditor", fields: [actor_uid], references: [id], onDelete: Cascade)
+  actor_name  String
+  action      String   // STUDENT_APPROVED, STUDENT_BLOCKED, EVENT_CREATED, EVENT_PUBLISHED, CREDIT_AWARDED, VOLUNTEER_LIST_FINALIZED, VOLUNTEER_ACCESS_STARTED, ANNOUNCEMENT_SENT
+  target_type String   // USER, EVENT, REGISTRATION, CREDIT, VOLUNTEER, ANNOUNCEMENT
+  target_id   String
+  metadata    String?  // JSON string
+  timestamp   DateTime @default(now())
+
+  @@index([actor_uid])
+  @@index([action])
+}
+
+model ClubAnnouncement {
+  id           String   @id @default(uuid())
+  subject      String
+  title        String
+  message      String
+  cta_text     String?
+  cta_url      String?
+  audience     String   // ALL_CLUB_MEMBERS, EVENT_REGISTERED_STUDENTS, IDEA_HUB_STUDENTS, CODING_STUDENTS, SOFT_SKILL_STUDENTS, SKILL_BARTER_STUDENTS, VOLUNTEERS
+  event_id     String?
+  sender_uid   String
+  sent_count   Int      @default(0)
+  created_at   DateTime @default(now())
+
+  @@index([audience])
 }

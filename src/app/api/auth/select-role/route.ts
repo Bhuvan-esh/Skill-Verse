@@ -1,78 +1,138 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { signToken } from '@/lib/auth';
+import { sendAdminAccessRequestEmail, sendLoginSecurityEmail } from '@/lib/email-service';
 
 export async function POST(req: Request) {
   try {
-    const { role } = await req.json();
+    const body = await req.json();
+    const { role, email: inputEmail, name: inputName, usn: inputUsn, firebase_uid } = body;
 
-    let targetRole: 'STUDENT' | 'VOLUNTEER' | 'FOUNDER' = 'STUDENT';
-    let defaultEmail = 'participant@club.edu';
-    let defaultName = 'Student Participant';
+    // ─── Role normalisation ──────────────────────────────────────────────────
+    // DB role field: STUDENT | VOLUNTEER | MENTOR | FOUNDER
+    // "MENTOR" is now its own distinct role, not conflated with VOLUNTEER.
+    type DBRole = 'STUDENT' | 'VOLUNTEER' | 'MENTOR' | 'FOUNDER';
+    let targetRole: DBRole = 'STUDENT';
+    let defaultEmail = inputEmail || 'participant@club.edu';
+    let defaultName  = inputName  || 'Student Participant';
 
     const normalizedRole = (role || '').toLowerCase();
+    const isDefaultArchitectEmail = ['anushabhat2762@gmail.com', 'bhuvanj06@gmail.com'].includes((defaultEmail || '').toLowerCase());
 
-    if (normalizedRole.includes('founder') || normalizedRole.includes('visual')) {
-      targetRole = 'FOUNDER';
-      defaultEmail = 'architect@club.edu';
-      defaultName = 'Visual Architect';
+    if (isDefaultArchitectEmail || normalizedRole.includes('founder') || normalizedRole.includes('visual')) {
+      targetRole   = 'FOUNDER';
+      defaultEmail = inputEmail || 'anushabhat2762@gmail.com';
+      defaultName  = inputName  || 'Visual Architect';
     } else if (normalizedRole.includes('architect') || normalizedRole.includes('ambassador')) {
-      targetRole = 'VOLUNTEER';
-      defaultEmail = 'ambassador@club.edu';
-      defaultName = 'Community Ambassador';
+      targetRole   = 'VOLUNTEER';
+      defaultEmail = inputEmail || 'ambassador@club.edu';
+      defaultName  = inputName  || 'Community Ambassador';
     } else if (normalizedRole.includes('mentor')) {
-      targetRole = 'VOLUNTEER';
-      defaultEmail = 'mentor@club.edu';
-      defaultName = 'Club Mentor';
-    } else if (normalizedRole.includes('participant') || normalizedRole.includes('student')) {
-      targetRole = 'STUDENT';
-      defaultEmail = 'participant@club.edu';
-      defaultName = 'Student Participant';
+      targetRole   = 'MENTOR';
+      defaultEmail = inputEmail || 'mentor@club.edu';
+      defaultName  = inputName  || 'Club Mentor';
     } else {
-      targetRole = 'STUDENT';
-      defaultEmail = 'participant@club.edu';
-      defaultName = 'Student Participant';
+      targetRole   = 'STUDENT';
+      defaultEmail = inputEmail || 'participant@club.edu';
+      defaultName  = inputName  || 'Student Participant';
     }
 
-    // Find or create default user in database
+    // ─── Find or create user ─────────────────────────────────────────────────
     let user = await db.user.findUnique({
       where: { college_email: defaultEmail },
     });
 
-    if (!user) {
-      user = await db.user.create({
-        data: {
-          name: defaultName,
-          college_email: defaultEmail,
-          role: targetRole,
-          usn: targetRole === 'STUDENT' ? '1RV23CS001' : null,
-        },
-      });
-    } else {
+    const isFirstTime = !user;
+
+    if (user && isDefaultArchitectEmail && (user.role !== 'FOUNDER' || user.approval_status !== 'APPROVED')) {
       user = await db.user.update({
         where: { id: user.id },
         data: {
-          name: defaultName,
-          role: targetRole,
+          role: 'FOUNDER',
+          approval_status: 'APPROVED',
+          approved_at: new Date(),
         },
       });
     }
 
+    if (!user) {
+      // First-time signup: FOUNDER (and default architect) is auto-approved; everyone else starts PENDING
+      const initialApproval = (targetRole === 'FOUNDER' || isDefaultArchitectEmail) ? 'APPROVED' : 'PENDING';
+
+      user = await db.user.create({
+        data: {
+          name: defaultName,
+          college_email: defaultEmail,
+          firebase_uid: firebase_uid || null,
+          role: targetRole,
+          usn: inputUsn || null,
+          approval_status: initialApproval,
+          approval_requested_at: new Date(),
+          approved_at: initialApproval === 'APPROVED' ? new Date() : null,
+          last_login_at: new Date(),
+        },
+      });
+
+
+      await db.studentCredit.upsert({
+        where: { student_id: user.id },
+        create: { student_id: user.id },
+        update: {},
+      });
+
+      if (initialApproval === 'PENDING') {
+        const founder = await db.user.findFirst({ where: { role: 'FOUNDER' } });
+        sendAdminAccessRequestEmail({
+          adminEmail: founder?.college_email || 'founder@club.edu',
+          studentName: user.name,
+          studentEmail: user.college_email,
+          usn: user.usn,
+          role: targetRole,
+        }).catch((e) => console.error('[Admin Alert Error]:', e));
+      }
+    }
+
+    // ─── Blocked check ───────────────────────────────────────────────────────
+    if (user.approval_status === 'BLOCKED') {
+      return NextResponse.json(
+        { error: 'Your account has been blocked by the administrator.' },
+        { status: 403 }
+      );
+    }
+
+    // ─── Record login ────────────────────────────────────────────────────────
+    await db.user.update({
+      where: { id: user.id },
+      data: { last_login_at: new Date() },
+    });
+
     const token = signToken({
       id: user.id,
       name: user.name,
-      role: targetRole,
+      role: user.role as any,          // use the stored role, not targetRole
       usn: user.usn,
       college_email: user.college_email,
     });
 
+    // Send login security email for all users who sign in / register
+    if (user.college_email) {
+      sendLoginSecurityEmail({
+        recipientEmail: user.college_email,
+        studentName: user.name,
+      }).catch((e) => console.error('[Login Security Email Error]:', e));
+    }
+
     const response = NextResponse.json({
-      message: `Access granted as ${targetRole}`,
+      message: `Session established as ${user.role}`,
+      // ← always return the DB truth; frontend decides the route
+      approval_status: user.approval_status,
+      isFirstTime,
       user: {
         id: user.id,
         name: user.name,
-        role: targetRole,
+        role: user.role,
         college_email: user.college_email,
+        approval_status: user.approval_status,
       },
     });
 

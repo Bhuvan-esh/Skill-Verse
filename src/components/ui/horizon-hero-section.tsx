@@ -8,9 +8,25 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Sparkles, X, ArrowRight, Lock, Zap } from "lucide-react";
+import {
+  LogOut,
+  Sparkles,
+  X,
+  ArrowRight,
+  Lock,
+  Zap,
+  Crown,
+  GraduationCap,
+  Users,
+  Palette,
+  CheckCircle2,
+  ShieldCheck,
+  Layers,
+  ChevronDown
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { OrbitalClock } from "@/components/ui/orbital-clock";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -37,36 +53,363 @@ interface ThreeRefs {
   locations?: number[];
 }
 
-const sectionData = [
-  {
-    id: "skill-barter",
-    title: "SKILL BARTER",
-    line1: "Peer-to-peer skill exchange & micro-mentorship,",
-    line2: "trade knowledge and level up together",
-    active: true,
+export type HorizonRole = 'PARTICIPANT' | 'FOUNDER' | 'MENTOR' | 'AMBASSADOR';
+
+export interface HorizonSectionItem {
+  id: string;
+  title: string;
+  badge: string;
+  line1: string;
+  line2: string;
+  active: boolean;
+  ctaText: string;
+  modalTitle: string;
+  modalSub: string;
+  modalDetails: string[];
+  actionRoute?: string;
+}
+
+export interface RoleConfigItem {
+  id: HorizonRole;
+  title: string;
+  badge: string;
+  icon: any;
+  color: string;
+  textColor: string;
+  borderColor: string;
+  bgGlow: string;
+  tagline: string;
+  sections: HorizonSectionItem[];
+}
+
+export const ROLE_CONFIG: Record<HorizonRole, RoleConfigItem> = {
+  PARTICIPANT: {
+    id: 'PARTICIPANT',
+    title: 'Participant',
+    badge: 'Student Explorer',
+    icon: Users,
+    color: 'from-blue-600 via-indigo-600 to-cyan-500',
+    textColor: 'text-cyan-300',
+    borderColor: 'border-cyan-500/40',
+    bgGlow: 'rgba(56, 189, 248, 0.15)',
+    tagline: 'Collegiate Student Arena & Active Challenges',
+    sections: [
+      {
+        id: 'skill-barter',
+        title: 'SKILL BARTER',
+        badge: 'Peer Exchange',
+        line1: 'Peer-to-peer skill exchange & micro-mentorship,',
+        line2: 'trade knowledge and level up together',
+        active: true,
+        ctaText: 'Enter Skill Barter',
+        modalTitle: 'Skill Barter Hub',
+        modalSub: 'Peer-to-Peer Exchange System',
+        modalDetails: [
+          'Exchange design, web dev, and AI skills with peers',
+          'Complete barter contracts and earn reputation points',
+          'Request 1-on-1 micro-mentorship sessions',
+        ],
+        actionRoute: '/dashboard?tab=skillbarter',
+      },
+      {
+        id: 'coding-challenge',
+        title: 'CODING CHALLENGE',
+        badge: 'Live Arena',
+        line1: 'Algorithmic contests & real-time benchmarks,',
+        line2: 'test your skills and climb the leaderboard',
+        active: true,
+        ctaText: 'Enter Coding Arena',
+        modalTitle: 'Coding Challenge Arena',
+        modalSub: 'Competitive Programming League',
+        modalDetails: [
+          'Solve data structure & algorithm problems in real time',
+          'Submit code with automated unit test runner',
+          'Climb collegiate leaderboard standings',
+        ],
+        actionRoute: '/dashboard?tab=competitions',
+      },
+      {
+        id: 'soft-skills',
+        title: 'SOFT SKILLS',
+        badge: 'Mystery League',
+        line1: 'Interactive workshops & communication challenges,',
+        line2: 'master leadership, public speaking, and teamwork',
+        active: true,
+        ctaText: 'Enter Soft Skills Arena',
+        modalTitle: 'Mystery Skill League',
+        modalSub: 'Soft Skills Challenge Arena',
+        modalDetails: [
+          'Register for mystery speech & debate events',
+          'Collaborate with AI mixed-year student squads',
+          'Earn verified credit rewards and badges',
+        ],
+        actionRoute: '/soft-skills',
+      },
+      {
+        id: 'idea-hub',
+        title: 'IDEA HUB',
+        badge: 'Launching Soon',
+        line1: 'Student project incubator & founder collaboration,',
+        line2: 'bring bold ideas to life with peer teams',
+        active: false,
+        ctaText: 'CHECK THIS',
+        modalTitle: 'Idea Hub Incubator',
+        modalSub: 'Student Innovation Platform',
+        modalDetails: [
+          'Incubate multi-disciplinary collegiate projects',
+          'Connect with developers, designers, and mentors',
+          'Prepare for campus demo day showcases',
+        ],
+        actionRoute: '/idea-hub',
+      },
+    ],
   },
-  {
-    id: "coding-challenge",
-    title: "CODING CHALLENGE",
-    line1: "Algorithmic contests & real-time benchmarks,",
-    line2: "test your skills and climb the leaderboard",
-    active: true,
+  FOUNDER: {
+    id: 'FOUNDER',
+    title: 'Visual Architect',
+    badge: 'Club Leadership',
+    icon: Crown,
+    color: 'from-purple-600 via-indigo-600 to-amber-500',
+    textColor: 'text-purple-300',
+    borderColor: 'border-purple-500/40',
+    bgGlow: 'rgba(167, 139, 250, 0.15)',
+    tagline: 'Visual Architect Executive Governance & Control',
+    sections: [
+      {
+        id: 'skill-barter',
+        title: 'SKILL BARTER',
+        badge: 'Governance & Audits',
+        line1: 'Exchange Oversight, Disputed Trades & Credit Audits,',
+        line2: 'audit peer barter agreements and review credit transactions',
+        active: true,
+        ctaText: 'Open Barter Governance',
+        modalTitle: 'Visual Architect • Barter Governance Desk',
+        modalSub: 'Peer-to-Peer Market Oversight',
+        modalDetails: [
+          'Audit peer barter contracts and resolve escrow flags',
+          'Review credit circulation metrics and user balances',
+          'Approve certified skill badges for high-volume traders',
+        ],
+        actionRoute: '/dashboard?tab=skillbarter',
+      },
+      {
+        id: 'coding-challenge',
+        title: 'CODING CHALLENGE',
+        badge: 'Tournament Director',
+        line1: 'Tournament Director, Telemetry & Anti-Cheat Command,',
+        line2: 'monitor anti-cheat integrity, verify test metrics and scoreboards',
+        active: true,
+        ctaText: 'Open Tournament Command',
+        modalTitle: 'Visual Architect • Coding Tournament Director',
+        modalSub: 'Hackathon & Contest Operations',
+        modalDetails: [
+          'Publish new algorithmic rounds and test suites',
+          'Inspect live submission telemetry and anti-cheat flags',
+          'Lock official tournament scoreboards and grant prize pools',
+        ],
+        actionRoute: '/dashboard?tab=competitions',
+      },
+      {
+        id: 'soft-skills',
+        title: 'SOFT SKILLS',
+        badge: 'Mystery Command',
+        line1: 'Mystery Skill League Founder Command Deck,',
+        line2: 'approve AI mixed squads, trigger live challenge reveals, and ratify winners',
+        active: true,
+        ctaText: 'Open Founder Deck',
+        modalTitle: 'Visual Architect • Skill League Command',
+        modalSub: 'Mystery Event Orchestration',
+        modalDetails: [
+          'Generate & approve AI cross-year mixed squads',
+          'Trigger official timestamped challenge reveals live',
+          'Ratify judge winner results and trigger credit rewards',
+        ],
+        actionRoute: '/soft-skills',
+      },
+      {
+        id: 'idea-hub',
+        title: 'IDEA HUB',
+        badge: 'Executive Innovation',
+        line1: 'Executive Innovation Desk & Milestone Curation,',
+        line2: 'curate student pitches, review milestone submissions, and allocate grants',
+        active: true,
+        ctaText: 'Open Innovation Desk',
+        modalTitle: 'Visual Architect • Executive Innovation Desk',
+        modalSub: 'Incubation Grant & Team Selection',
+        modalDetails: [
+          'Review submitted student project proposals and prototypes',
+          'Allocate innovation project grants and club server resources',
+          'Invite industry judges for campus Demo Day showcases',
+        ],
+        actionRoute: '/idea-hub',
+      },
+    ],
   },
-  {
-    id: "soft-skills",
-    title: "SOFT SKILLS",
-    line1: "Interactive workshops & communication challenges,",
-    line2: "master leadership, public speaking, and teamwork",
-    active: false,
+  MENTOR: {
+    id: 'MENTOR',
+    title: 'Mentor',
+    badge: 'Code & Skill Reviewer',
+    icon: GraduationCap,
+    color: 'from-emerald-600 via-teal-600 to-cyan-500',
+    textColor: 'text-emerald-300',
+    borderColor: 'border-emerald-500/40',
+    bgGlow: 'rgba(52, 211, 153, 0.15)',
+    tagline: 'Technical Review, Office Hours & Solution Jury',
+    sections: [
+      {
+        id: 'skill-barter',
+        title: 'SKILL BARTER',
+        badge: 'Mentor Clinic',
+        line1: '1-on-1 Office Hours & Skill Barter Clinic,',
+        line2: 'offer expert mentoring sessions, verify competencies, and guide students',
+        active: true,
+        ctaText: 'Open Mentor Clinic',
+        modalTitle: 'Mentor • 1-on-1 Mentorship Clinic',
+        modalSub: 'Specialized Student Advisory',
+        modalDetails: [
+          'Publish available 1-on-1 micro-mentorship advisory slots',
+          'Endorse student skill competencies and code portfolios',
+          'Provide career guidance across Full-Stack, AI, and DevOps',
+        ],
+        actionRoute: '/dashboard?tab=skillbarter',
+      },
+      {
+        id: 'coding-challenge',
+        title: 'CODING CHALLENGE',
+        badge: 'Solution Jury',
+        line1: 'Algorithmic Solution Jury & Code Review Station,',
+        line2: 'review student submission complexity, test cases, and clean code hygiene',
+        active: true,
+        ctaText: 'Review Submissions',
+        modalTitle: 'Mentor • Code Review & Solution Jury',
+        modalSub: 'Algorithmic Evaluation Desk',
+        modalDetails: [
+          'Analyze time/space complexity of top participant solutions',
+          'Leave granular code review comments and refactoring tips',
+          'Score competitive programming rounds on code quality',
+        ],
+        actionRoute: '/dashboard?tab=competitions',
+      },
+      {
+        id: 'soft-skills',
+        title: 'SOFT SKILLS',
+        badge: 'Judge Evaluation',
+        line1: 'Soft Skills Jury Evaluation Station,',
+        line2: 'score student squad debates, evaluate rhetoric depth and confidence',
+        active: true,
+        ctaText: 'Open Judge Station',
+        modalTitle: 'Mentor • Soft Skills Judge Station',
+        modalSub: 'Criteria Scoring & Feedback',
+        modalDetails: [
+          'Score squads across Communication, Confidence, and Logic',
+          'Provide live rubric evaluations during mystery round twists',
+          'Submit official results directly to Visual Architect deck',
+        ],
+        actionRoute: '/soft-skills',
+      },
+      {
+        id: 'idea-hub',
+        title: 'IDEA HUB',
+        badge: 'Architecture Review',
+        line1: 'Technical Feasibility & Architecture Reviewer,',
+        line2: 'evaluate student tech stack proposals, architectural diagrams, and scalability',
+        active: true,
+        ctaText: 'Review Architecture',
+        modalTitle: 'Mentor • Technical Architecture Reviewer',
+        modalSub: 'Engineering Feasibility Assessment',
+        modalDetails: [
+          'Evaluate database schema and backend architecture designs',
+          'Recommend scalable cloud patterns, caching, and CI/CD pipelines',
+          'Mentor student leads through MVP delivery milestones',
+        ],
+        actionRoute: '/idea-hub',
+      },
+    ],
   },
-  {
-    id: "idea-hub",
-    title: "IDEA HUB",
-    line1: "Student project incubator & founder collaboration,",
-    line2: "bring bold ideas to life with peer teams",
-    active: false,
+  AMBASSADOR: {
+    id: 'AMBASSADOR',
+    title: 'Community Ambassador',
+    badge: 'Design & Outreach Lead',
+    icon: Palette,
+    color: 'from-pink-600 via-purple-600 to-amber-500',
+    textColor: 'text-pink-300',
+    borderColor: 'border-pink-500/40',
+    bgGlow: 'rgba(244, 114, 182, 0.15)',
+    tagline: 'Community Engagement, Pitch Nights & Live Hosting',
+    sections: [
+      {
+        id: 'skill-barter',
+        title: 'SKILL BARTER',
+        badge: 'Matchmaking Hub',
+        line1: 'Community Cohort Skill Matching Desk,',
+        line2: 'facilitate cross-year cohort matchings, run onboarding workshops',
+        active: true,
+        ctaText: 'Open Matchmaking Hub',
+        modalTitle: 'Ambassador • Skill Matchmaking Hub',
+        modalSub: 'Community Cohort Facilitation',
+        modalDetails: [
+          'Host peer matching mixer sessions for new club members',
+          'Guide junior students into their first skill barter trade',
+          'Track community engagement and collaboration streaks',
+        ],
+        actionRoute: '/dashboard?tab=skillbarter',
+      },
+      {
+        id: 'coding-challenge',
+        title: 'CODING CHALLENGE',
+        badge: 'Sprint Coordinator',
+        line1: 'Live Hackathon Sprint & Check-in Coordinator,',
+        line2: 'manage hackathon check-ins, sprint engagement, and live crowd cheers',
+        active: true,
+        ctaText: 'Coordinate Sprints',
+        modalTitle: 'Ambassador • Sprint Coordination Desk',
+        modalSub: 'Event Check-In & Engagement',
+        modalDetails: [
+          'Verify live participant check-ins and discord roles',
+          'Distribute official sprint badges and digital collectibles',
+          'Broadcast live leaderboard milestones to the club community',
+        ],
+        actionRoute: '/dashboard?tab=competitions',
+      },
+      {
+        id: 'soft-skills',
+        title: 'SOFT SKILLS',
+        badge: 'Stage Host',
+        line1: 'Live Mystery League Stage Host & Check-in,',
+        line2: 'coordinate stage announcements, run participant check-ins, and surprise twists',
+        active: true,
+        ctaText: 'Open Live Stage Desk',
+        modalTitle: 'Ambassador • Live Stage & Check-In Desk',
+        modalSub: 'Tournament Master of Ceremonies',
+        modalDetails: [
+          'Facilitate live participant muster and roster verification',
+          'Announce live round twists and countdown timers',
+          'Document tournament highlights for club social channels',
+        ],
+        actionRoute: '/soft-skills',
+      },
+      {
+        id: 'idea-hub',
+        title: 'IDEA HUB',
+        badge: 'Pitch Night Arena',
+        line1: 'Community Pitch Night & Open-Mic Arena,',
+        line2: 'host open-mic showcase nights, gather student crowd votes, and celebrate teams',
+        active: true,
+        ctaText: 'Open Pitch Arena',
+        modalTitle: 'Ambassador • Community Pitch Night',
+        modalSub: 'Demo Day Showcase Coordination',
+        modalDetails: [
+          'Host weekly open-mic 3-minute lightning pitch sessions',
+          'Collect crowd choice votes and peer feedback',
+          'Showcase rising student projects across campus',
+        ],
+        actionRoute: '/idea-hub',
+      },
+    ],
   },
-];
+};
+
+const sectionData = ROLE_CONFIG.PARTICIPANT.sections;
 
 interface ComponentProps {
   onLogout?: () => void;
@@ -75,38 +418,68 @@ interface ComponentProps {
 export const Component = ({ onLogout }: ComponentProps = {}) => {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const [currentRole, setCurrentRole] = useState<HorizonRole>('PARTICIPANT');
+  const [activeRoleModal, setActiveRoleModal] = useState<HorizonSectionItem | null>(null);
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [lockedModalSection, setLockedModalSection] = useState<string | null>(null);
-  const [roleLockedModal, setRoleLockedModal] = useState<{ roleTitle: string; userRole: string } | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [ideaHubNotified, setIdeaHubNotified] = useState(false);
+  const [ideaHubNotifyLoading, setIdeaHubNotifyLoading] = useState(false);
 
-  const isParticipant = user ? (user.role === 'STUDENT' || (user as any).role === 'PARTICIPANT') : true;
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'FOUNDER') {
+        setCurrentRole('FOUNDER');
+      } else if ((user as any).role === 'MENTOR') {
+        setCurrentRole('MENTOR');
+      } else if (user.role === 'VOLUNTEER' || (user as any).role === 'AMBASSADOR') {
+        setCurrentRole('AMBASSADOR');
+      } else {
+        setCurrentRole('PARTICIPANT');
+      }
+    }
+  }, [user]);
+
+  const activeRoleConfig = ROLE_CONFIG[currentRole] || ROLE_CONFIG.PARTICIPANT;
+  const sectionData = activeRoleConfig.sections;
+
+  const handleIdeaHubNotify = async () => {
+    setIdeaHubNotifyLoading(true);
+    await new Promise((r) => setTimeout(r, 700));
+    setIdeaHubNotifyLoading(false);
+    setIdeaHubNotified(true);
+  };
 
   const sectionTabMap: Record<string, string> = {
     "skill-barter": "skillbarter",
     "coding-challenge": "competitions",
-    "soft-skills": "leaderboard",
+    "soft-skills": "soft-skills",
     "idea-hub": "ideas",
   };
 
   const handleNavigateSection = (sectionId: string) => {
-    // If logged in as non-participant (Visual Architect, Mentor, Ambassador, Volunteer)
-    if (user && (user as any).role !== 'STUDENT' && (user as any).role !== 'PARTICIPANT') {
-      const roleTitle = (user as any).role === 'FOUNDER' ? 'Visual Architect' : (user as any).role === 'MENTOR' ? 'Mentor' : 'Community Ambassador';
-      setRoleLockedModal({
-        roleTitle,
-        userRole: (user as any).role,
-      });
+    const secObj = sectionData.find((s) => s.id === sectionId);
+    if (!secObj) return;
+
+    // PARTICIPANT: Full access to active contents across all 4 pillars
+    if (currentRole === 'PARTICIPANT') {
+      if (sectionId === "soft-skills") {
+        router.push("/soft-skills");
+        return;
+      }
+      if (sectionId === "idea-hub") {
+        setLockedModalSection("IDEA HUB");
+        return;
+      }
+      const targetTab = sectionTabMap[sectionId] || "skillbarter";
+      router.push(`/dashboard?tab=${targetTab}`);
       return;
     }
 
-    const secObj = sectionData.find((s) => s.id === sectionId);
-    if (secObj && !secObj.active) {
-      setLockedModalSection(secObj.title);
-      return;
-    }
-    const targetTab = sectionTabMap[sectionId] || "skillbarter";
-    router.push(`/dashboard?tab=${targetTab}`);
+    // VISUAL ARCHITECT, MENTOR, COMMUNITY AMBASSADOR:
+    // Opens dedicated empty role workspace for that pillar
+    router.push(`/horizon/workspace?role=${currentRole.toLowerCase()}&section=${sectionId}`);
   };
 
   const handleConfirmLogout = async () => {
@@ -935,17 +1308,43 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
     >
       <canvas ref={canvasRef} className="hero-canvas" />
 
-      {/* Interactive 4-Scroll Header Navigator with LOG OUT Button */}
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 bg-slate-950/85 border border-purple-500/40 p-1.5 rounded-full backdrop-blur-2xl shadow-2xl pointer-events-auto">
+      {/* Interactive 4-Scroll Header Navigator with ROLE SWITCHER & LOG OUT Button */}
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-40 flex flex-wrap items-center justify-center gap-2 bg-slate-950/90 border border-purple-500/40 p-1.5 rounded-full backdrop-blur-2xl shadow-2xl pointer-events-auto max-w-[95vw]">
+        {/* Role Locked Pill (Strictly Locked to Authenticated Section) */}
+        <div className="relative">
+          <div
+            className={`px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider font-bold flex items-center gap-1.5 shadow-sm border select-none ${
+              currentRole === 'FOUNDER'
+                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                : currentRole === 'MENTOR'
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                : currentRole === 'AMBASSADOR'
+                ? 'bg-pink-500/20 text-pink-300 border-pink-500/40'
+                : 'bg-blue-500/20 text-cyan-300 border-blue-500/40'
+            }`}
+            title={`Your session is locked to the ${activeRoleConfig.title} section.`}
+          >
+            {currentRole === 'FOUNDER' && <Crown className="w-3.5 h-3.5 text-purple-300" />}
+            {currentRole === 'MENTOR' && <GraduationCap className="w-3.5 h-3.5 text-emerald-300" />}
+            {currentRole === 'AMBASSADOR' && <Palette className="w-3.5 h-3.5 text-pink-300" />}
+            {currentRole === 'PARTICIPANT' && <Users className="w-3.5 h-3.5 text-cyan-300" />}
+            <span>{activeRoleConfig.title}</span>
+            <span className="text-[10px] opacity-75 font-mono ml-0.5" title="Section Locked">🔒</span>
+          </div>
+        </div>
+
+        <div className="h-4 w-px bg-white/20 mx-0.5" />
+
+        {/* 4 Pillars Navigation Buttons */}
         {sectionData.map((sec, idx) => {
           const isActive = currentSection === idx + 1;
           return (
             <button
               key={sec.id}
               onClick={() => scrollToSection(idx)}
-              className={`px-4 py-1.5 rounded-full text-xs font-mono tracking-wider transition-all duration-300 cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider transition-all duration-300 cursor-pointer ${
                 isActive
-                  ? "bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 text-white font-extrabold shadow-lg shadow-purple-500/40 scale-105"
+                  ? `bg-gradient-to-r ${activeRoleConfig.color} text-white font-extrabold shadow-lg shadow-purple-500/40 scale-105`
                   : "text-slate-300 hover:text-white hover:bg-white/10"
               }`}
             >
@@ -954,71 +1353,93 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
           );
         })}
 
-        <div className="h-4 w-px bg-white/20 mx-1" />
+        <div className="h-4 w-px bg-white/20 mx-0.5" />
 
-        {!isParticipant && (
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider text-purple-300 hover:text-white hover:bg-purple-500/20 border border-purple-500/40 transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm"
-          >
-            <Zap className="w-3.5 h-3.5 text-amber-300" />
-            <span>DASHBOARD</span>
-          </button>
-        )}
+        {/* Dashboard Link */}
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="px-3 py-1.5 rounded-full text-xs font-mono tracking-wider text-purple-300 hover:text-white hover:bg-purple-500/20 border border-purple-500/40 transition-all duration-300 flex items-center gap-1 cursor-pointer shadow-sm"
+        >
+          <Zap className="w-3.5 h-3.5 text-amber-300" />
+          <span className="hidden sm:inline">DASHBOARD</span>
+        </button>
 
+        {/* Log Out Button */}
         <button
           onClick={() => setShowLogoutModal(true)}
-          className="px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider text-rose-300 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 transition-all duration-300 flex items-center gap-1.5 cursor-pointer shadow-sm"
+          className="px-3 py-1.5 rounded-full text-xs font-mono tracking-wider text-rose-300 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 transition-all duration-300 flex items-center gap-1 cursor-pointer shadow-sm"
         >
           <LogOut className="w-3.5 h-3.5 text-rose-400" />
-          <span>LOG OUT</span>
+          <span className="hidden sm:inline">LOG OUT</span>
         </button>
       </div>
 
-      {/* Sleek Role-Restricted Access Modal for Non-Participants */}
+      {/* Role-Specific Interactive Pillar Modal */}
       <AnimatePresence>
-        {roleLockedModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 pointer-events-auto">
+        {activeRoleModal && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200 pointer-events-auto">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-md bg-slate-950 border border-purple-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5"
+              className="relative w-full max-w-lg bg-[#0c0a14] border border-purple-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-left space-y-5 overflow-hidden"
             >
+              <div 
+                className="absolute inset-0 pointer-events-none -z-10"
+                style={{ background: `radial-gradient(circle at 50% 30%, ${activeRoleConfig.bgGlow} 0%, rgba(12, 10, 20, 0.98) 70%)` }}
+              />
+
               <button
                 type="button"
-                onClick={() => setRoleLockedModal(null)}
+                onClick={() => setActiveRoleModal(null)}
                 className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
-                <Lock className="w-7 h-7 text-purple-400" />
-              </div>
-
               <div className="space-y-1.5">
-                <div className="inline-block px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-[10px] font-mono text-purple-300 font-bold uppercase tracking-wider mb-1">
-                  🔒 {roleLockedModal.roleTitle} Session
+                <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono uppercase tracking-wider">
+                  <span className={activeRoleConfig.textColor}>● {activeRoleConfig.title}</span>
+                  <span className="text-slate-400">• {activeRoleModal.badge}</span>
                 </div>
-                <h3 className="text-xl font-extrabold text-white font-heading">
-                  Participant Showcase Reserved
+                <h3 className="text-2xl font-extrabold text-white font-heading">
+                  {activeRoleModal.modalTitle}
                 </h3>
-                <p className="text-xs text-slate-300 font-sans leading-relaxed">
-                  You are viewing the 3D event showcase as a <strong>{roleLockedModal.roleTitle}</strong>. Interactive event entry is reserved for Student Participants. Please proceed to your specialized Control Panel Dashboard.
+                <p className="text-xs text-purple-200/80 font-mono">
+                  {activeRoleModal.modalSub}
                 </p>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="space-y-2.5 bg-black/40 p-4 rounded-2xl border border-white/10 text-xs text-slate-200">
+                <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                  Role Capabilities & Responsibilities:
+                </p>
+                {activeRoleModal.modalDetails.map((detail, i) => (
+                  <div key={i} className="flex items-start space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>{detail}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => {
-                    setRoleLockedModal(null);
-                    router.push('/dashboard');
+                    const route = activeRoleModal.actionRoute || '/dashboard';
+                    setActiveRoleModal(null);
+                    router.push(route);
                   }}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer font-mono flex items-center justify-center gap-2"
+                  className={`flex-1 py-3 rounded-xl bg-gradient-to-r ${activeRoleConfig.color} hover:brightness-110 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer font-mono flex items-center justify-center gap-2`}
                 >
-                  <span>Open {roleLockedModal.roleTitle} Dashboard →</span>
+                  <span>Launch {activeRoleModal.title} Deck →</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveRoleModal(null)}
+                  className="py-3 px-5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer"
+                >
+                  Close
                 </button>
               </div>
             </motion.div>
@@ -1111,53 +1532,132 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         </div>
       </div>
 
-      {/* Sleek Coming Soon / Event Locked Modal */}
+      {/* Sleek Coming Soon / Event Locked Modal (Participant Idea Hub) */}
       <AnimatePresence>
         {lockedModalSection && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 pointer-events-auto">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-md bg-slate-950 border border-amber-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5"
-            >
-              <button
-                type="button"
-                onClick={() => setLockedModalSection(null)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200 pointer-events-auto">
+            {lockedModalSection === "IDEA HUB" ? (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="relative w-full max-w-lg bg-[#08070d]/95 border border-purple-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-4 overflow-hidden"
               >
-                <X className="w-4 h-4" />
-              </button>
+                <div 
+                  className="absolute inset-0 pointer-events-none -z-10"
+                  style={{ background: 'radial-gradient(circle at 50% 50%, rgba(167, 139, 250, 0.2) 0%, rgba(8, 7, 13, 0.98) 75%)' }}
+                />
 
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-                <Lock className="w-7 h-7 text-amber-400" />
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="inline-block px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-mono text-amber-300 font-bold uppercase tracking-wider mb-1">
-                  🔒 Coming Soon • Event Locked
-                </div>
-                <h3 className="text-xl font-extrabold text-white font-heading">
-                  {lockedModalSection}
-                </h3>
-                <p className="text-xs text-slate-300 font-sans leading-relaxed">
-                  This section is currently locked & coming soon for participants. Please enter active events to participate!
-                </p>
-              </div>
-
-              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setLockedModalSection(null);
-                    scrollToSection(0);
-                  }}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer font-mono flex items-center justify-center gap-1.5"
+                  onClick={() => setLockedModalSection(null)}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
                 >
-                  <span>Go to Active Event →</span>
+                  <X className="w-4 h-4" />
                 </button>
-              </div>
-            </motion.div>
+
+                <p className="text-[10px] uppercase tracking-[0.4em] text-purple-300/80 font-mono">
+                  Club Idea Hub
+                </p>
+
+                <h1 className="font-playfair font-serif text-3xl sm:text-4xl text-center font-bold tracking-tight text-white">
+                  Launching <span className="italic text-[color:var(--orb-primary,#a78bfa)]">soon.</span>
+                </h1>
+
+                <p className="text-xs sm:text-sm text-slate-300 text-center max-w-md mx-auto leading-relaxed">
+                  Where every student pitch, prototype, and half-formed 2am idea gets a real home.
+                </p>
+
+                <div className="py-2 flex items-center justify-center">
+                  <OrbitalClock />
+                </div>
+
+                <p className="text-xs text-slate-400 font-mono tracking-wide">
+                  [ local time ]
+                </p>
+
+                {/* Notify Card */}
+                <div className="w-full max-w-[420px] mx-auto flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-xl px-5 py-4 text-left">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider font-mono text-purple-300 mb-1">
+                      Status
+                    </p>
+                    <p className="font-serif text-base text-white">Building final modules</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleIdeaHubNotify}
+                    disabled={ideaHubNotifyLoading || ideaHubNotified}
+                    className={`shrink-0 rounded-lg px-4 py-2 text-xs font-semibold transition-all
+                      ${ideaHubNotified
+                        ? "bg-emerald-400/90 text-black cursor-default"
+                        : "bg-[color:var(--orb-primary,#a78bfa)] text-black hover:brightness-110 hover:-translate-y-0.5"
+                      }
+                      disabled:opacity-70`}
+                  >
+                    {ideaHubNotifyLoading ? "Adding…" : ideaHubNotified ? "You're on the list" : "Notify me"}
+                  </button>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLockedModalSection(null);
+                      router.push('/idea-hub');
+                    }}
+                    className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium text-xs transition-all cursor-pointer font-mono flex items-center justify-center gap-1.5"
+                  >
+                    <span>Open Standalone Launch Route →</span>
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="relative w-full max-w-md bg-slate-950 border border-amber-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5"
+              >
+                <button
+                  type="button"
+                  onClick={() => setLockedModalSection(null)}
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                  <Lock className="w-7 h-7 text-amber-400" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="inline-block px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-mono text-amber-300 font-bold uppercase tracking-wider mb-1">
+                    🔒 Coming Soon • Event Locked
+                  </div>
+                  <h3 className="text-xl font-extrabold text-white font-heading">
+                    {lockedModalSection}
+                  </h3>
+                  <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                    This section is currently locked & coming soon for participants. Please enter active events to participate!
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLockedModalSection(null);
+                      scrollToSection(0);
+                    }}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 text-white font-bold text-xs shadow-lg shadow-purple-600/30 transition-all cursor-pointer font-mono flex items-center justify-center gap-1.5"
+                  >
+                    <span>Go to Active Event →</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </div>
         )}
       </AnimatePresence>
@@ -1169,13 +1669,21 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
       >
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeData.title}
+            key={`${currentRole}-${activeData.title}`}
             initial={{ opacity: 0, y: 30, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -30, scale: 1.04 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center justify-center pointer-events-auto"
           >
+            {/* Role Header Badge */}
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-slate-900/90 border border-white/15 text-xs font-mono mb-3 shadow-xl backdrop-blur-md">
+              <span className={`font-bold ${activeRoleConfig.textColor}`}>
+                ● {activeRoleConfig.title}
+              </span>
+              <span className="text-slate-400">• {activeData.badge}</span>
+            </div>
+
             {/* Title with Vibrant Gradient, High Contrast Text Glow, and Drop Shadow */}
             <h1 
               onDoubleClick={() => handleNavigateSection(activeData.id)}
@@ -1199,38 +1707,24 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
               </div>
 
               <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                {activeData.active ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNavigateSection(activeData.id);
-                    }}
-                    className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-500 hover:from-purple-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-purple-500/30 flex items-center justify-center gap-2 transition-all transform hover:scale-105 cursor-pointer font-mono"
-                  >
-                    <span>Enter Event ({activeData.title})</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNavigateSection(activeData.id);
-                    }}
-                    className="px-7 py-3.5 rounded-2xl bg-slate-900/90 border border-amber-500/40 text-amber-300 hover:text-white hover:border-amber-400 font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl flex items-center justify-center gap-2 transition-all cursor-pointer font-mono"
-                  >
-                    <Lock className="w-4 h-4 text-amber-400" />
-                    <span>Coming Soon (Event Locked)</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNavigateSection(activeData.id);
+                  }}
+                  className={`px-7 py-3.5 rounded-2xl bg-gradient-to-r ${activeRoleConfig.color} hover:brightness-110 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-purple-500/30 flex items-center justify-center gap-2 transition-all transform hover:scale-105 cursor-pointer font-mono`}
+                >
+                  <span>{activeData.ctaText}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
 
                 <div className="flex items-center gap-1.5 text-xs font-mono text-purple-300">
                   <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center gap-1.5 shadow-sm">
                     {activeData.active ? (
-                      <span>⚡ Event Active</span>
+                      <span>⚡ {activeData.badge}</span>
                     ) : (
-                      <span>🔒 Locked</span>
+                      <span>🔒 {activeData.badge}</span>
                     )}
                   </span>
                 </div>
