@@ -454,8 +454,8 @@ export default function ScrollHero({
         setIsHelpOpen(true);
       }
     };
-    window.addEventListener('anvaya-tour-event', handleTourEvent);
-    return () => window.removeEventListener('anvaya-tour-event', handleTourEvent);
+    window.addEventListener('orzya-tour-event', handleTourEvent);
+    return () => window.removeEventListener('orzya-tour-event', handleTourEvent);
   }, []);
 
   // Initialize Three.js

@@ -24,7 +24,7 @@ interface TourStep {
 
 const dispatchTourEvent = (detail: any) => {
   if (typeof window !== "undefined") {
-    window.dispatchEvent(new CustomEvent("anvaya-tour-event", { detail }));
+    window.dispatchEvent(new CustomEvent("orzya-tour-event", { detail }));
   }
 };
 
@@ -33,7 +33,7 @@ const TOUR_STEPS: TourStep[] = [
     step: 1,
     title: "1. Landing Page — Enter the Club 🚀",
     tagline: "Landing View Gate",
-    description: "Welcome to ANVAYA! To begin your guided tour, please click the 'ENTER THE STUDENT CLUB' button on the page.",
+    description: "Welcome to ORZYA! To begin your guided tour, please click the 'ENTER THE STUDENT CLUB' button on the page.",
     robotPositionClass: "fixed top-1/3 right-6 sm:right-16 z-[100000]",
     requiresGate: "enter-club",
     action: () => dispatchTourEvent({ type: "back-to-landing" }),
@@ -49,7 +49,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     step: 3,
     title: "3. Innovation Through Design 🎨",
-    tagline: "About ANVAYA",
+    tagline: "About ORZYA",
     description: "Explore student project ideas, computational design systems, and club initiatives.",
     robotPositionClass: "fixed top-1/3 right-6 sm:right-16 z-[100000]",
     action: () => dispatchTourEvent({ type: "open-about" }),
@@ -115,7 +115,7 @@ export function GlobalRobotAssistant() {
     {
       id: "1",
       sender: "bot",
-      text: "Hello! 👋 I'm your ANVAYA 3D AI Assistant. How can I help you navigate the student club ecosystem today?",
+      text: "Hello! 👋 I'm your ORZYA 3D AI Assistant. How can I help you navigate the student club ecosystem today?",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -169,8 +169,8 @@ export function GlobalRobotAssistant() {
         }
       }
     };
-    window.addEventListener("anvaya-tour-event", handleTourEvent);
-    return () => window.removeEventListener("anvaya-tour-event", handleTourEvent);
+    window.addEventListener("orzya-tour-event", handleTourEvent);
+    return () => window.removeEventListener("orzya-tour-event", handleTourEvent);
   }, [isTourActive, currentStepIndex]);
 
   const startTour = () => {
@@ -218,7 +218,7 @@ export function GlobalRobotAssistant() {
       {
         id: Date.now().toString(),
         sender: "bot",
-        text: "Tour completed! 🎉 You have explored the full ANVAYA ecosystem and all 4 Horizon 3D sections. Ask me anything whenever you need help!",
+        text: "Tour completed! 🎉 You have explored the full ORZYA ecosystem and all 4 Horizon 3D sections. Ask me anything whenever you need help!",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       },
     ]);
@@ -247,7 +247,7 @@ export function GlobalRobotAssistant() {
       });
 
       const data = await res.json();
-      const botReply = data.reply || "I'm here to assist you with ANVAYA!";
+      const botReply = data.reply || "I'm here to assist you with ORZYA!";
 
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -389,7 +389,7 @@ export function GlobalRobotAssistant() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white font-heading tracking-wide flex items-center gap-1.5">
-                      <span>ANVAYA Assistant</span>
+                      <span>ORZYA Assistant</span>
                       <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
                     </h3>
                     <p className="text-[11px] text-slate-400 font-sans">3D Interactive AI Companion</p>

@@ -838,13 +838,13 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
         triggerSuccessState();
       }
     };
-    window.addEventListener("anvaya-tour-event", handleTourEvent);
-    return () => window.removeEventListener("anvaya-tour-event", handleTourEvent);
+    window.addEventListener("orzya-tour-event", handleTourEvent);
+    return () => window.removeEventListener("orzya-tour-event", handleTourEvent);
   }, []);
 
   const triggerSuccessState = () => {
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("anvaya-tour-event", { detail: { type: "auth-success" } }));
+      window.dispatchEvent(new CustomEvent("orzya-tour-event", { detail: { type: "auth-success" } }));
     }
     setReverseCanvasVisible(true);
     setTimeout(() => {
@@ -1698,7 +1698,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                 {docModalTab === 'terms' ? (
                   <div className="space-y-4 text-xs text-slate-300 leading-relaxed font-sans pr-2">
                     <h3 className="text-sm font-bold text-white font-heading">Student Club Platform Terms of Service</h3>
-                    <p>Welcome to the Student Club Platform (Idea Hub / SkillVerse / Anvaya). By creating an account or signing in, you agree to comply with the following club regulations:</p>
+                    <p>Welcome to the Student Club Platform (Idea Hub / SkillVerse / Orzya). By creating an account or signing in, you agree to comply with the following club regulations:</p>
 
                     <div className="space-y-3 pt-1">
                       <div>

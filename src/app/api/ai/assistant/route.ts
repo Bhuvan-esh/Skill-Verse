@@ -7,9 +7,9 @@ const KNOWLEDGE_BASE: Record<string, string> = {
   idea: "In the Idea Hub, you can submit innovative project ideas, recruit team members, and get mentorship and credits from Founders!",
   project: "In the Idea Hub, you can submit innovative project ideas, recruit team members, and get mentorship and credits from Founders!",
   credit: "Credits are earned through competition rankings, completing skill-barter mentorship sessions, and contributing to student projects. Check the Leaderboard to see top ranks!",
-  contact: "You can reach support via email at b.11.08.bandana@gmail.com, or phone at +91 8197613412 (Professor), +91 9110412394, +91 9483379575, or +91 9148481986 (Student).",
-  phone: "Contact phone numbers: +91 8197613412 (Professor), +91 9110412394 (Student), +91 9483379575 (Student), +91 9148481986 (Student).",
-  number: "Contact phone numbers: +91 8197613412 (Professor), +91 9110412394 (Student), +91 9483379575 (Student), +91 9148481986 (Student).",
+  contact: "You can reach support via email at b.11.08.bandana@gmail.com. Professor Coordinators: +91 8197613412 (Professor), +91 8904752677 (Professor). Student Coordinators: +91 9110412394 (Student), +91 9483379575 (Student), +91 9148481986 (Student).",
+  phone: "Professor Coordinators: +91 8197613412 (Professor), +91 8904752677 (Professor). Student Coordinators: +91 9110412394 (Student), +91 9483379575 (Student), +91 9148481986 (Student).",
+  number: "Professor Coordinators: +91 8197613412 (Professor), +91 8904752677 (Professor). Student Coordinators: +91 9110412394 (Student), +91 9483379575 (Student), +91 9148481986 (Student).",
   leaderboard: "The Leaderboard showcases student ranks, total credits earned, and badges across Domain 1, 2, 3, and 4.",
   rank: "The Leaderboard showcases student ranks, total credits earned, and badges across Domain 1, 2, 3, and 4.",
   login: "Click 'Sign In/Up' in the menu, enter your registered college email, and verify with OTP or password to access your dashboard.",
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   try {
     const { message } = await req.json();
     if (!message || typeof message !== 'string') {
-      return NextResponse.json({ reply: "Hello! I'm your ANVAYA 3D AI Assistant. How can I help you today?" });
+      return NextResponse.json({ reply: "Hello! I'm your ORZYA 3D AI Assistant. How can I help you today?" });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const prompt = `You are ANVAYA AI Assistant, a friendly 3D robot assistant for the ANVAYA Student Club Digital Ecosystem.
+        const prompt = `You are ORZYA AI Assistant, a friendly 3D robot assistant for the ORZYA Student Club Digital Ecosystem.
 Your goal is to assist students with navigation, skill barter, idea hub, coding challenges, leaderboards, credits, and support.
 Keep your response concise (2-4 sentences max), friendly, and helpful.
 
@@ -53,12 +53,12 @@ User query: "${message}"`;
 
     if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
       return NextResponse.json({
-        reply: "Hello there! 👋 I'm your ANVAYA 3D AI Assistant. Ask me anything about Skill Barter, Idea Hub, Leaderboards, or Support!"
+        reply: "Hello there! 👋 I'm your ORZYA 3D AI Assistant. Ask me anything about Skill Barter, Idea Hub, Leaderboards, or Support!"
       });
     }
 
     return NextResponse.json({
-      reply: "I'm here to assist you with ANVAYA! You can ask me about Skill Barter, submitting Project Ideas, earning Credits, checking Leaderboards, or reaching Support."
+      reply: "I'm here to assist you with ORZYA! You can ask me about Skill Barter, submitting Project Ideas, earning Credits, checking Leaderboards, or reaching Support."
     });
   } catch (error) {
     console.error('AI Assistant API error:', error);

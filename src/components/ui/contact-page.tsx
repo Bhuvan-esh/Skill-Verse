@@ -15,10 +15,11 @@ import {
 import { Button, ButtonProps } from '@/components/ui/button';
 
 const APP_EMAIL = 'b.11.08.bandana@gmail.com';
-const APP_PHONE = '+91 8197613412';
-const APP_PHONE_2 = '+91 9110412394';
-const APP_PHONE_3 = '+91 9483379575';
-const APP_PHONE_4 = '+91 9148481986';
+const APP_PHONE_PROF_1 = '+91 8197613412';
+const APP_PHONE_PROF_2 = '+91 8904752677';
+const APP_PHONE_STUD_1 = '+91 9110412394';
+const APP_PHONE_STUD_2 = '+91 9483379575';
+const APP_PHONE_STUD_3 = '+91 9148481986';
 
 export function ContactPage() {
   const socialLinks = [
@@ -59,27 +60,31 @@ export function ContactPage() {
 
         <BorderSeparator />
 
-        <div className="grid md:grid-cols-3">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4">
 
           <Box
             icon={Mail}
             title="Email"
             description="We respond to all emails within 24 hours."
+            className="border-b md:border-r lg:border-b-0 border-white/10"
           >
-            <a
-              href={`mailto:${APP_EMAIL}`}
-              className="font-mono-code text-base font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200 break-all"
-            >
-              {APP_EMAIL}
-            </a>
+            <div className="flex items-center justify-between gap-x-2 w-full">
+              <a
+                href={`mailto:${APP_EMAIL}`}
+                className="font-mono-code text-xs xl:text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200 break-all"
+              >
+                {APP_EMAIL}
+              </a>
 
-            <CopyButton className="size-8 ml-auto text-slate-300 hover:text-white" test={APP_EMAIL} />
+              <CopyButton className="size-8 shrink-0 text-slate-300 hover:text-white" test={APP_EMAIL} />
+            </div>
           </Box>
 
           <Box
             icon={MapPin}
             title="Visual Architect"
             description="Dept of AI"
+            className="border-b md:border-r-0 lg:border-r lg:border-b-0 border-white/10"
           >
             <span className="font-mono-code text-base font-medium tracking-wide text-purple-300">
               Dept of AI
@@ -88,50 +93,71 @@ export function ContactPage() {
 
           <Box
             icon={Phone}
-            title="Phone"
+            title="Professor Coordinators"
             description="We're available Mon-Fri, 9am-5pm."
-            className="border-b-0 md:border-r-0"
+            className="border-b md:border-r lg:border-b-0 border-white/10"
           >
             <div className="flex flex-col gap-3 w-full">
 
               <div className="flex items-center justify-between gap-x-2">
                 <a
-                  href={`tel:${APP_PHONE}`}
-                  className="block font-mono-code text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                  href={`tel:${APP_PHONE_PROF_1}`}
+                  className="block font-mono-code text-xs xl:text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
                 >
-                  {APP_PHONE} <span className="text-slate-400 font-sans text-xs">(Professor)</span>
+                  {APP_PHONE_PROF_1} <span className="text-slate-400 font-sans text-xs">(Professor)</span>
                 </a>
-                <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE} />
+                <CopyButton className="size-8 shrink-0 text-slate-300 hover:text-white" test={APP_PHONE_PROF_1} />
               </div>
 
               <div className="flex items-center justify-between gap-x-2">
                 <a
-                  href={`tel:${APP_PHONE_2}`}
-                  className="block font-mono-code text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                  href={`tel:${APP_PHONE_PROF_2}`}
+                  className="block font-mono-code text-xs xl:text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
                 >
-                  {APP_PHONE_2} <span className="text-slate-400 font-sans text-xs">(Student)</span>
+                  {APP_PHONE_PROF_2} <span className="text-slate-400 font-sans text-xs">(Professor)</span>
                 </a>
-                <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE_2} />
+                <CopyButton className="size-8 shrink-0 text-slate-300 hover:text-white" test={APP_PHONE_PROF_2} />
+              </div>
+
+            </div>
+          </Box>
+
+          <Box
+            icon={Phone}
+            title="Student Coordinators"
+            description="We're available Mon-Fri, 9am-5pm."
+            className="border-b-0 md:border-r-0 border-white/10"
+          >
+            <div className="flex flex-col gap-3 w-full">
+
+              <div className="flex items-center justify-between gap-x-2">
+                <a
+                  href={`tel:${APP_PHONE_STUD_1}`}
+                  className="block font-mono-code text-xs xl:text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                >
+                  {APP_PHONE_STUD_1} <span className="text-slate-400 font-sans text-xs">(Student)</span>
+                </a>
+                <CopyButton className="size-8 shrink-0 text-slate-300 hover:text-white" test={APP_PHONE_STUD_1} />
               </div>
 
               <div className="flex items-center justify-between gap-x-2">
                 <a
-                  href={`tel:${APP_PHONE_3}`}
-                  className="block font-mono-code text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                  href={`tel:${APP_PHONE_STUD_2}`}
+                  className="block font-mono-code text-xs xl:text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
                 >
-                  {APP_PHONE_3} <span className="text-slate-400 font-sans text-xs">(Student)</span>
+                  {APP_PHONE_STUD_2} <span className="text-slate-400 font-sans text-xs">(Student)</span>
                 </a>
-                <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE_3} />
+                <CopyButton className="size-8 shrink-0 text-slate-300 hover:text-white" test={APP_PHONE_STUD_2} />
               </div>
 
               <div className="flex items-center justify-between gap-x-2">
                 <a
-                  href={`tel:${APP_PHONE_4}`}
-                  className="block font-mono-code text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
+                  href={`tel:${APP_PHONE_STUD_3}`}
+                  className="block font-mono-code text-xs xl:text-sm font-medium tracking-wide hover:underline text-purple-300 hover:text-purple-200"
                 >
-                  {APP_PHONE_4} <span className="text-slate-400 font-sans text-xs">(Student)</span>
+                  {APP_PHONE_STUD_3} <span className="text-slate-400 font-sans text-xs">(Student)</span>
                 </a>
-                <CopyButton className="size-8 text-slate-300 hover:text-white" test={APP_PHONE_4} />
+                <CopyButton className="size-8 shrink-0 text-slate-300 hover:text-white" test={APP_PHONE_STUD_3} />
               </div>
 
             </div>

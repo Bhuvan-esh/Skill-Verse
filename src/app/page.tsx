@@ -11,7 +11,7 @@ const ScrollHero = dynamic(() => import('@/components/ui/ethereal'), {
 
 const CursorDrivenParticleTypography = dynamic(
   () => import('@/components/ui/cursor-driven-particles-typography').then(m => m.CursorDrivenParticleTypography),
-  { ssr: false, loading: () => <div className="text-5xl sm:text-7xl font-extrabold text-purple-400 font-heading">ANVAYA</div> }
+  { ssr: false, loading: () => <div className="text-5xl sm:text-7xl font-extrabold text-purple-400 font-heading">ORZYA</div> }
 );
 
 export default function LandingPage() {
@@ -34,8 +34,8 @@ export default function LandingPage() {
         setEntered(false);
       }
     };
-    window.addEventListener('anvaya-tour-event', handleTourEvent);
-    return () => window.removeEventListener('anvaya-tour-event', handleTourEvent);
+    window.addEventListener('orzya-tour-event', handleTourEvent);
+    return () => window.removeEventListener('orzya-tour-event', handleTourEvent);
   }, []);
 
   const skipOpening = () => {
@@ -52,7 +52,7 @@ export default function LandingPage() {
           <span>← Back</span>
         </button>
         <ScrollHero
-          logo="ANVAYA"
+          logo="ORZYA"
           menuItems={['About', 'Sign In/Up', 'Contact Us']}
           sections={[
             { id: 'hero', headline: 'Ethereal', subheadline: 'Beyond Reality', body: 'Immersive experiences through computational artistry' },
@@ -102,7 +102,7 @@ export default function LandingPage() {
 
           <div className="space-y-3 max-w-xl">
             <h1 className="text-4xl sm:text-6xl font-extrabold text-white tracking-wider font-heading animate-text-stagger-1">
-              ANVAYA
+              ORZYA
             </h1>
             <p className="text-xl sm:text-2xl font-playfair italic text-purple-300 animate-text-stagger-2">
               The thread that connects it all
@@ -122,7 +122,7 @@ export default function LandingPage() {
             </div>
           </div>
           <span className="text-sm font-extrabold bg-gradient-to-r from-white via-slate-200 to-purple-400 bg-clip-text text-transparent font-heading tracking-wider">
-            ANVAYA
+            ORZYA
           </span>
         </div>
       </header>
@@ -137,7 +137,7 @@ export default function LandingPage() {
           {/* Centered Club Name Particle Typography */}
           <div className="w-full max-w-2xl mx-auto h-[120px] sm:h-[150px] relative z-30 flex items-center justify-center">
             <CursorDrivenParticleTypography
-              text="ANVAYA"
+              text="ORZYA"
               fontSize={90}
               particleDensity={3}
               dispersionStrength={15}
@@ -163,7 +163,7 @@ export default function LandingPage() {
               onClick={() => {
                 setEntered(true);
                 if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new CustomEvent('anvaya-tour-event', { detail: { type: 'user-clicked-enter' } }));
+                  window.dispatchEvent(new CustomEvent('orzya-tour-event', { detail: { type: 'user-clicked-enter' } }));
                 }
               }}
               className="group px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-amber-600 hover:from-purple-500 hover:to-amber-500 text-white font-extrabold text-sm shadow-2xl shadow-purple-500/25 flex items-center justify-center space-x-3 transition-all transform hover:-translate-y-0.5 font-mono-code cursor-pointer"

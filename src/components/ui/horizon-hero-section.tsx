@@ -512,11 +512,11 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
   // Dispatch reach-horizon event so AI Assistant knows user is on Horizon page
   useEffect(() => {
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("anvaya-tour-event", { detail: { type: "reach-horizon" } }));
+      window.dispatchEvent(new CustomEvent("orzya-tour-event", { detail: { type: "reach-horizon" } }));
     }
     return () => {
       if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("anvaya-tour-event", { detail: { type: "leave-horizon" } }));
+        window.dispatchEvent(new CustomEvent("orzya-tour-event", { detail: { type: "leave-horizon" } }));
       }
     };
   }, []);
@@ -1145,8 +1145,8 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         window.scrollTo({ top: targetScroll, behavior: "smooth" });
       }
     };
-    window.addEventListener('anvaya-tour-event', handleTourEvent);
-    return () => window.removeEventListener('anvaya-tour-event', handleTourEvent);
+    window.addEventListener('orzya-tour-event', handleTourEvent);
+    return () => window.removeEventListener('orzya-tour-event', handleTourEvent);
   }, [totalSections]);
 
   // Scroll handling & Dynamic Background / Fog / Sun Trajectory Animation
@@ -1354,15 +1354,6 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         })}
 
         <div className="h-4 w-px bg-white/20 mx-0.5" />
-
-        {/* Dashboard Link */}
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="px-3 py-1.5 rounded-full text-xs font-mono tracking-wider text-purple-300 hover:text-white hover:bg-purple-500/20 border border-purple-500/40 transition-all duration-300 flex items-center gap-1 cursor-pointer shadow-sm"
-        >
-          <Zap className="w-3.5 h-3.5 text-amber-300" />
-          <span className="hidden sm:inline">DASHBOARD</span>
-        </button>
 
         {/* Log Out Button */}
         <button
