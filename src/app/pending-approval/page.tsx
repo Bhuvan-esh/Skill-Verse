@@ -3,9 +3,6 @@
 import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
-import { listenToOwnStatus, logOut as firebaseLogOut } from '@/lib/authService'
 import {
   Check,
   RefreshCw,
@@ -128,49 +125,34 @@ function PendingApprovalContent() {
     }
   }, [roleParam, nameParam, user])
 
-  // Live background polling for status change (manual fallback)
+
+  // Live background polling every 5 seconds — auto-redirects on approval
   useEffect(() => {
     const checkLiveStatus = async () => {
       try {
+        const emailToCheck = emailParam || user?.college_email
+        if (!emailToCheck) return
         const res = await fetch('/api/auth/check-access', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailParam || user?.college_email, usn: user?.usn }),
+          body: JSON.stringify({ email: emailToCheck }),
         })
         const data = await res.json()
         if (data.approval_status === 'APPROVED') {
-          setApprovalStatus('approved')
-          await refreshUser()
-          router.push('/horizon')
-        }
-      } catch (_) {}
-    }
-
-    const interval = setInterval(checkLiveStatus, 6000)
-    return () => clearInterval(interval)
-  }, [emailParam, user, refreshUser, router])
-
-  // Firebase real-time listener — auto-redirects as soon as Firestore status flips to approved
-  useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      if (!firebaseUser) return
-
-      const unsubStatus = listenToOwnStatus(firebaseUser.uid, (status) => {
-        if (status === 'approved') {
           setApprovalStatus('approved')
           setFeedbackMessage({
             type: 'success',
             text: '🎉 Application Approved! Redirecting to your dashboard...',
           })
-          setTimeout(() => router.push('/horizon'), 1000)
+          await refreshUser()
+          setTimeout(() => { window.location.href = '/horizon' }, 1200)
         }
-      })
+      } catch (_) {}
+    }
 
-      return unsubStatus
-    })
-
-    return () => unsubAuth()
-  }, [router])
+    const interval = setInterval(checkLiveStatus, 5000)
+    return () => clearInterval(interval)
+  }, [emailParam, user, refreshUser])
 
 
   const roleInfo = ROLE_DATA[activeRole]
@@ -201,7 +183,7 @@ function PendingApprovalContent() {
         })
         await refreshUser()
         setTimeout(() => {
-          router.push('/horizon')
+          window.location.href = '/horizon'
         }, 1000)
       } else if (data.approval_status === 'BLOCKED') {
         setFeedbackMessage({
@@ -218,6 +200,45 @@ function PendingApprovalContent() {
       setFeedbackMessage({
         type: 'info',
         text: 'Your application is still undergoing review with your Visual Architect.',
+      })
+    } finally {
+      setIsCheckingLogin(false)
+    }
+  }
+
+  // Demo Action: Simulate Visual Architect Approval
+  const handleSimulateApprove = async () => {
+    setIsCheckingLogin(true)
+    setFeedbackMessage(null)
+
+    try {
+      const res = await fetch('/api/auth/check-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailParam || user?.college_email,
+          usn: user?.usn,
+          simulate_approval: true,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (data.approval_status === 'APPROVED') {
+        setApprovalStatus('approved')
+        setFeedbackMessage({
+          type: 'success',
+          text: '🎉 Visual Architect Approved Your Access! Redirecting to your dashboard…',
+        })
+        await refreshUser()
+        setTimeout(() => {
+          router.push('/horizon')
+        }, 1200)
+      }
+    } catch (e) {
+      setFeedbackMessage({
+        type: 'info',
+        text: 'Failed to simulate approval.',
       })
     } finally {
       setIsCheckingLogin(false)
@@ -310,6 +331,24 @@ function PendingApprovalContent() {
         }}
       />
 
+
+      {/* 1. Role switch bar (dev/demo preview only) */}
+      <div className="w-full max-w-[460px] mb-6 p-1 bg-[#131119]/80 border border-[rgba(255,255,255,0.09)] backdrop-blur-md rounded-2xl flex items-center justify-between text-xs font-mono relative z-10 shadow-lg">
+        {(['participant', 'ambassador', 'mentor'] as RoleType[]).map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => setActiveRole(r)}
+            className={`flex-1 py-2 px-2 sm:px-3 rounded-xl font-medium text-[11px] sm:text-xs transition-all text-center cursor-pointer truncate ${
+              activeRole === r
+                ? 'bg-[#a78bfa]/20 text-[#a78bfa] border border-[#a78bfa]/40 shadow-sm'
+                : 'text-[#9d97ab] hover:text-[#f2eef7] hover:bg-white/[0.03]'
+            }`}
+          >
+            {r === 'participant' ? 'Participant' : r === 'ambassador' ? 'Community Ambassador' : 'Mentor'}
+          </button>
+        ))}
+      </div>
 
       {/* 2. Main Glassmorphic Card (Max Width ~460px) */}
       <div className="w-full max-w-[460px] glass-approval-card p-6 sm:p-8 shadow-2xl animate-pending-card relative z-10">
@@ -498,6 +537,17 @@ function PendingApprovalContent() {
                   <span>Refresh status</span>
                 </>
               )}
+            </button>
+
+            {/* Demo Button: Simulate Approval */}
+            <button
+              type="button"
+              onClick={handleSimulateApprove}
+              disabled={isCheckingLogin}
+              className="w-full py-2 px-4 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-sans font-medium text-[12.5px] transition-all flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-60"
+            >
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <span>⚡ Approve Access (Visual Architect Demo)</span>
             </button>
           </div>
         </div>

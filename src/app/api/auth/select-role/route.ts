@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { signToken } from '@/lib/auth';
+import { signToken, verifyPassword, hashPassword } from '@/lib/auth';
 import { sendAdminAccessRequestEmail, sendLoginSecurityEmail } from '@/lib/email-service';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { role, email: inputEmail, name: inputName, usn: inputUsn, firebase_uid } = body;
+    const { role, email: inputEmail, name: inputName, usn: inputUsn, firebase_uid, password: inputPassword } = body;
 
     // ─── Role normalisation ──────────────────────────────────────────────────
     // DB role field: STUDENT | VOLUNTEER | MENTOR | FOUNDER
@@ -44,6 +44,13 @@ export async function POST(req: Request) {
 
     const isFirstTime = !user;
 
+    if (user && user.password_hash && inputPassword) {
+      const isValid = await verifyPassword(inputPassword, user.password_hash);
+      if (!isValid) {
+        return NextResponse.json({ error: 'Incorrect password for this account.' }, { status: 401 });
+      }
+    }
+
     if (user && isDefaultArchitectEmail && (user.role !== 'FOUNDER' || user.approval_status !== 'APPROVED')) {
       user = await db.user.update({
         where: { id: user.id },
@@ -58,6 +65,7 @@ export async function POST(req: Request) {
     if (!user) {
       // First-time signup: FOUNDER (and default architect) is auto-approved; everyone else starts PENDING
       const initialApproval = (targetRole === 'FOUNDER' || isDefaultArchitectEmail) ? 'APPROVED' : 'PENDING';
+      const passwordHash = inputPassword ? await hashPassword(inputPassword) : null;
 
       user = await db.user.create({
         data: {
@@ -66,6 +74,7 @@ export async function POST(req: Request) {
           firebase_uid: firebase_uid || null,
           role: targetRole,
           usn: inputUsn || null,
+          password_hash: passwordHash,
           approval_status: initialApproval,
           approval_requested_at: new Date(),
           approved_at: initialApproval === 'APPROVED' ? new Date() : null,
@@ -81,14 +90,42 @@ export async function POST(req: Request) {
       });
 
       if (initialApproval === 'PENDING') {
-        const founder = await db.user.findFirst({ where: { role: 'FOUNDER' } });
+        const founders = await db.user.findMany({ where: { role: 'FOUNDER' } });
+        const founderEmails = Array.from(new Set([
+          ...founders.map(f => f.college_email),
+          'founder1@club.edu',
+          'architect@club.edu'
+        ]));
+
+        for (const adminEmail of founderEmails) {
+          sendAdminAccessRequestEmail({
+            adminEmail,
+            studentName: user.name,
+            studentEmail: user.college_email,
+            usn: user.usn,
+            role: targetRole,
+          }).catch((e) => console.error('[Admin Alert Error]:', e));
+        }
+      }
+    }
+
+    // ─── Also fire admin email when an EXISTING PENDING user logs in ─────────
+    if (user && user.approval_status === 'PENDING' && !isFirstTime) {
+      const founders = await db.user.findMany({ where: { role: 'FOUNDER' } });
+      const founderEmails = Array.from(new Set([
+        ...founders.map(f => f.college_email),
+        'founder1@club.edu',
+        'architect@club.edu'
+      ]));
+
+      for (const adminEmail of founderEmails) {
         sendAdminAccessRequestEmail({
-          adminEmail: founder?.college_email || 'founder@club.edu',
+          adminEmail,
           studentName: user.name,
           studentEmail: user.college_email,
           usn: user.usn,
-          role: targetRole,
-        }).catch((e) => console.error('[Admin Alert Error]:', e));
+          role: user.role,
+        }).catch((e) => console.error('[Admin Reminder Error]:', e));
       }
     }
 
@@ -114,8 +151,8 @@ export async function POST(req: Request) {
       college_email: user.college_email,
     });
 
-    // Send login security email for all users who sign in / register
-    if (user.college_email) {
+    // Send login security email ONLY for approved users
+    if (user.approval_status === 'APPROVED' && user.college_email) {
       sendLoginSecurityEmail({
         recipientEmail: user.college_email,
         studentName: user.name,

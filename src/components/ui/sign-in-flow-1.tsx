@@ -744,80 +744,34 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
     setLoading(true);
 
     try {
-      const { signUpWithEmail, signInWithEmail } = await import("@/lib/authService");
-      const firestoreRole =
-        selectedRole === "founder" || selectedRole === "architect"
-          ? "visual_architect"
-          : selectedRole === "ambassador" || selectedRole === "volunteer"
-          ? "community_ambassador"
-          : selectedRole === "mentor"
-          ? "mentor"
-          : "participant";
+      // Direct Database Auth via select-role API
+      const res = await fetch("/api/auth/select-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: selectedRole,
+          email: email.trim().toLowerCase(),
+          name: firstName ? `${firstName} ${lastName}`.trim() : email.split("@")[0],
+          password,
+        }),
+      });
 
-      let result: { uid: string; status: any };
-      try {
-        result = await signUpWithEmail({
-          firstName: firstName || email.split("@")[0],
-          lastName: lastName || "",
-          email,
-          password: password || "SkillVerse2025!",
-          role: firestoreRole as "visual_architect" | "community_ambassador" | "mentor" | "participant",
-          emailOptOut: noMarketing,
-        });
-      } catch (signErr: any) {
-        if (signErr?.code === "auth/email-already-in-use") {
-          // Returning user: automatically sign in with provided credentials
-          result = await signInWithEmail(email, password || "SkillVerse2025!");
+      const data = await res.json();
+
+      if (res.ok) {
+        await refreshUser();
+        if (data.approval_status === "APPROVED" || selectedRole === "founder" || selectedRole === "architect") {
+          triggerSuccessState();
         } else {
-          throw signErr;
+          const displayName = firstName ? `${firstName} ${lastName}`.trim() : email.split("@")[0];
+          window.location.href = `/pending-approval?role=${selectedRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(email)}`;
         }
-      }
-
-      setFirebaseUid(result.uid);
-
-      // Establish backend session cookie
-      try {
-        await fetch("/api/auth/select-role", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            role: selectedRole,
-            email,
-            name: firstName ? `${firstName} ${lastName}`.trim() : email.split("@")[0],
-            firebase_uid: result.uid,
-          }),
-        });
-      } catch (_) {}
-
-      await refreshUser();
-
-      if (result.status === "approved" || firestoreRole === "visual_architect") {
-        triggerSuccessState();
       } else {
-        const displayName = firstName
-          ? `${firstName} ${lastName}`.trim()
-          : email.split("@")[0];
-        const displayRole =
-          firestoreRole === "community_ambassador" ? "ambassador"
-          : firestoreRole === "visual_architect" ? "ambassador"
-          : firestoreRole;
-        router.push(
-          `/pending-approval?role=${displayRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(email)}`
-        );
+        setError(data.error || "Authentication failed.");
       }
     } catch (err: any) {
       console.error("Auth error:", err);
-      if (err?.code === "auth/operation-not-allowed") {
-        setError("Email/Password provider is disabled in Firebase. Enable it in Firebase Console > Authentication > Sign-in method.");
-      } else if (err?.code === "auth/wrong-password" || err?.code === "auth/invalid-credential") {
-        setError("Incorrect password for this email. Please re-enter your password.");
-      } else if (err?.code === "auth/weak-password") {
-        setError("Password is too weak. Please use at least 6 characters.");
-      } else if (err?.message?.includes("offline") || err?.code === "unavailable") {
-        setError("Firestore Database is not enabled yet. Visit Firebase Console > Firestore Database > Click 'Create database'.");
-      } else {
-        setError(err?.message || "Authentication failed. Please try again.");
-      }
+      setError(err?.message || "Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -825,11 +779,42 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
 
 
 
-  const handleQuickPreset = (presetUsn: string, emailPreset: string) => {
+  const handleQuickPreset = async (emailPreset: string, passwordPreset: string, rolePreset: string) => {
     setEmail(emailPreset);
-    setUsnInput(presetUsn);
+    setPassword(passwordPreset);
+    setSelectedRole(rolePreset);
+    setTermsAgreed(true);
     setError("");
-    setStep("role");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/select-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: rolePreset,
+          email: emailPreset,
+          password: passwordPreset,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        await refreshUser();
+        if (data.approval_status === "APPROVED" || rolePreset === "founder" || rolePreset === "architect") {
+          triggerSuccessState();
+        } else {
+          const nameToUse = data.user?.name || "Student";
+          window.location.href = `/pending-approval?role=${rolePreset}&name=${encodeURIComponent(nameToUse)}&email=${encodeURIComponent(emailPreset)}`;
+        }
+      } else {
+        setError(data.error || "Preset login failed.");
+      }
+    } catch (e: any) {
+      setError(e?.message || "Failed to log in with preset.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -1277,22 +1262,30 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                 </form>
 
                 {/* Quick Presets */}
-                <div className="pt-2 text-center border-t border-white/5">
-                  <p className="text-[11px] text-gray-500 font-mono mb-1.5">⚡ Quick Presets (One-click Login):</p>
-                  <div className="flex justify-center gap-2">
+                <div className="pt-3 text-center border-t border-white/10 space-y-2">
+                  <p className="text-[11px] text-slate-400 font-mono">⚡ Fresh Demo Presets (One-click Login & Email Confirmation):</p>
+                  
+                  <div className="flex flex-wrap justify-center gap-2">
                     <button
                       type="button"
-                      onClick={() => handleQuickPreset("1MS21CS001", "alex@club.edu")}
-                      className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-xs text-purple-300 border border-purple-500/20 transition-all"
+                      onClick={() => handleQuickPreset("ambassador@demo.com", "demo123", "ambassador")}
+                      className="px-3 py-1.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 text-xs text-pink-300 border border-pink-500/30 transition-all cursor-pointer font-medium"
                     >
-                      Alex (1MS21CS001)
+                      Community Ambassador
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleQuickPreset("1MS21CS002", "prior@club.edu")}
-                      className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-xs text-blue-300 border border-blue-500/20 transition-all"
+                      onClick={() => handleQuickPreset("mentor@demo.com", "demo123", "mentor")}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-xs text-emerald-300 border border-emerald-500/30 transition-all cursor-pointer font-medium"
                     >
-                      Prior (1MS21CS002)
+                      Mentor
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickPreset("participant@demo.com", "demo123", "participant")}
+                      className="px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-xs text-blue-300 border border-blue-500/30 transition-all cursor-pointer font-medium"
+                    >
+                      Participant
                     </button>
                   </div>
                 </div>

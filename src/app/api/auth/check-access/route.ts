@@ -1,9 +1,10 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
 export async function POST(req: Request) {
   try {
-    const { email, usn, firebase_uid } = await req.json();
+    const body = await req.json();
+    const { email, usn, firebase_uid, simulate_approval, action } = body;
 
     if (!email && !usn && !firebase_uid) {
       return NextResponse.json({ error: 'Email, USN, or Firebase UID required' }, { status: 400 });
@@ -17,16 +18,6 @@ export async function POST(req: Request) {
           firebase_uid ? { firebase_uid } : undefined,
         ].filter(Boolean) as any,
       },
-      select: {
-        id: true,
-        name: true,
-        role: true,
-        usn: true,
-        college_email: true,
-        approval_status: true,
-        approval_requested_at: true,
-        approved_at: true,
-      },
     });
 
     if (!user) {
@@ -34,6 +25,23 @@ export async function POST(req: Request) {
         exists: false,
         approval_status: 'UNKNOWN',
         message: 'Account not found in system.',
+      });
+    }
+
+    // Allow demo/test approval simulation
+    if (action === 'approve_demo' || simulate_approval === true) {
+      const updated = await db.user.update({
+        where: { id: user.id },
+        data: {
+          approval_status: 'APPROVED',
+          approved_at: new Date(),
+          approved_by: 'Visual Architect (Simulated)',
+        },
+      });
+      return NextResponse.json({
+        exists: true,
+        approval_status: updated.approval_status,
+        user: updated,
       });
     }
 

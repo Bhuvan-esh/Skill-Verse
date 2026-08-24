@@ -158,6 +158,74 @@ async function main() {
       password_hash: volunteerPasswordHash,
     },
   });
+
+  // 4b. Clean up old test demo accounts
+  await prisma.user.deleteMany({
+    where: {
+      college_email: {
+        in: [
+          'ambassador.demo@club.edu',
+          'mentor.demo@club.edu',
+          'participant.demo@club.edu',
+          'pending.ambassador@club.edu',
+          'pending.mentor@club.edu',
+          'pending.participant@club.edu',
+        ],
+      },
+    },
+  }).catch(() => {});
+
+  // Seed 3 Fresh Demo Accounts for testing Visual Architect confirmation
+  const demoPassHash = await bcrypt.hash('demo123', 10);
+
+  // 1. Community Ambassador Demo
+  await prisma.user.upsert({
+    where: { college_email: 'ambassador@demo.com' },
+    update: { password_hash: demoPassHash, approval_status: 'PENDING' },
+    create: {
+      name: 'Demo Ambassador',
+      role: 'VOLUNTEER',
+      college_email: 'ambassador@demo.com',
+      password_hash: demoPassHash,
+      approval_status: 'PENDING',
+    },
+  });
+
+  // 2. Mentor Demo
+  await prisma.user.upsert({
+    where: { college_email: 'mentor@demo.com' },
+    update: { password_hash: demoPassHash, approval_status: 'PENDING' },
+    create: {
+      name: 'Demo Mentor',
+      role: 'MENTOR',
+      college_email: 'mentor@demo.com',
+      password_hash: demoPassHash,
+      approval_status: 'PENDING',
+    },
+  });
+
+  // 3. Participant Demo
+  await prisma.preloadedUSN.upsert({
+    where: { usn: '1MS21DEMO01' },
+    update: { college_email: 'participant@demo.com', student_name: 'Demo Participant' },
+    create: { usn: '1MS21DEMO01', college_email: 'participant@demo.com', student_name: 'Demo Participant' },
+  });
+
+  await prisma.user.upsert({
+    where: { college_email: 'participant@demo.com' },
+    update: { password_hash: demoPassHash, approval_status: 'PENDING' },
+    create: {
+      name: 'Demo Participant',
+      role: 'STUDENT',
+      usn: '1MS21DEMO01',
+      college_email: 'participant@demo.com',
+      password_hash: demoPassHash,
+      approval_status: 'PENDING',
+      is_preloaded: true,
+    },
+  });
+
+  console.log('✅ Seeded 3 Fresh Demo Accounts (ambassador@demo.com, mentor@demo.com, participant@demo.com) with password demo123.');
   console.log('✅ Seeded Volunteer, Architect & Mentor accounts.');
 
   // 5. Seed Private Idea Channels for Students

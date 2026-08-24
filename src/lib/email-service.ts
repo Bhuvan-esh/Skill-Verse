@@ -497,10 +497,10 @@ export async function sendAdminAccessRequestEmail({
         <p style="margin: 0 0 6px 0; color: #cbd5e1;">Role Requested: <strong style="color: #f0b45e;">${role}</strong></p>
         <p style="margin: 0; color: #cbd5e1;">Requested At: <strong style="color: #ffffff;">${reqTime}</strong></p>
       </div>
-      <p>Please review this applicant in the Founder Dashboard to approve, reject, or block their access.</p>
+      <p>Please review and confirm access for this applicant. Click the button below to approve them immediately:</p>
     `,
-    ctaText: 'Review Pending Access Requests',
-    ctaUrl: `${portalUrl}/horizon/workspace?role=founder&section=skill-barter`,
+    ctaText: 'Approve Access Request Now',
+    ctaUrl: `${portalUrl}/api/auth/approve-student?email=${encodeURIComponent(studentEmail)}`,
   });
 
   return sendClubEmail({
