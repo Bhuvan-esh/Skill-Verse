@@ -531,6 +531,54 @@ export async function sendAdminAccessRequestEmail({
 }
 
 /**
+ * 3b. Notify all OTHER Visual Architects that one VA has already decided
+ */
+export async function sendVADecisionNotificationEmail({
+  notifyEmail,
+  decidingVAName,
+  studentName,
+  studentEmail,
+  decision,
+}: {
+  notifyEmail: string;
+  decidingVAName: string;
+  studentName: string;
+  studentEmail: string;
+  decision: 'APPROVED' | 'REJECTED';
+}) {
+  const isApproved = decision === 'APPROVED';
+
+  const html = buildHackCultureEmail({
+    title: isApproved
+      ? '✅ Access Request Already Approved'
+      : '❌ Access Request Already Denied',
+    preheader: `${decidingVAName} already ${isApproved ? 'approved' : 'denied'} ${studentName}'s request`,
+    badgeText: isApproved ? '● Already Approved' : '● Already Denied',
+    badgeColor: isApproved ? '#10b981' : '#ef4444',
+    mainContentHtml: `
+      <p>Another Visual Architect has already acted on this access request — <strong>no further action is needed from you.</strong></p>
+      <div style="background: ${isApproved ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'}; border: 1px solid ${isApproved ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}; border-radius: 12px; padding: 18px; margin: 18px 0; font-size: 13px;">
+        <p style="margin: 0 0 6px 0; color: #cbd5e1;">Applicant: <strong style="color: #ffffff;">${studentName}</strong></p>
+        <p style="margin: 0 0 6px 0; color: #cbd5e1;">Email: <strong style="color: #ffffff;">${studentEmail}</strong></p>
+        <p style="margin: 0 0 6px 0; color: #cbd5e1;">Decision: <strong style="color: ${isApproved ? '#10b981' : '#ef4444'};">${isApproved ? '✅ APPROVED' : '❌ DENIED'}</strong></p>
+        <p style="margin: 0; color: #cbd5e1;">Decided by: <strong style="color: #ffffff;">${decidingVAName}</strong></p>
+      </div>
+      <p>This request is now <strong>locked</strong>. If you click your original email link, it will show you that this has already been resolved by another Visual Architect.</p>
+    `,
+    footerNote: 'You are receiving this because you are a registered Visual Architect on the SkillVerse platform.',
+  });
+
+  return sendClubEmail({
+    type: 'ADMIN_ALERT',
+    recipientEmail: notifyEmail,
+    subject: isApproved
+      ? `[No Action Needed] ${studentName}'s access was already approved`
+      : `[No Action Needed] ${studentName}'s access was already denied`,
+    htmlContent: html,
+  });
+}
+
+/**
  * 4. New Event Announcement (BROADCAST to ALL approved members)
  */
 export async function sendEventAnnouncementEmail({

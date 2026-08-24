@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getSession } from '@/lib/auth';
-import { sendAccountApprovalEmail } from '@/lib/email-service';
+import { sendAccountApprovalEmail, sendVADecisionNotificationEmail } from '@/lib/email-service';
 
 const styles = `
   body { background: #0b0a10; color: #f2eef7; font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
@@ -103,13 +103,25 @@ export async function GET(req: Request) {
         });
       } catch (_) {}
 
+      // Notify all OTHER Visual Architects that this has been denied
+      const allFounders = await db.user.findMany({ where: { role: 'FOUNDER' } });
+      for (const va of allFounders) {
+        sendVADecisionNotificationEmail({
+          notifyEmail: va.college_email,
+          decidingVAName: 'A Visual Architect',
+          studentName: student.name,
+          studentEmail: student.college_email,
+          decision: 'REJECTED',
+        }).catch(() => {});
+      }
+
       return new NextResponse(
         `<!DOCTYPE html><html><head><title>Request Denied - SkillVerse</title><style>${styles}</style></head>
         <body><div class="card">
           <div class="badge badge-red">● REQUEST DENIED</div>
           <h1 style="color:#ef4444">Access Denied</h1>
           <p>You have denied the access request from <strong style="color:#f2eef7">${student.name}</strong> (${student.college_email}).</p>
-          <p>This decision is final. Other Visual Architects will see this request as already resolved.</p>
+          <p>This decision is final. All other Visual Architects have been notified by email.</p>
           <a href="${appUrl}/horizon">Return to Platform</a>
         </div></body></html>`,
         { headers: { 'Content-Type': 'text/html' } }
@@ -146,6 +158,18 @@ export async function GET(req: Request) {
       }).catch((e) => console.error('[Approval Email Error]:', e));
     }
 
+    // Notify all OTHER Visual Architects that this has been approved
+    const allFounders = await db.user.findMany({ where: { role: 'FOUNDER' } });
+    for (const va of allFounders) {
+      sendVADecisionNotificationEmail({
+        notifyEmail: va.college_email,
+        decidingVAName: 'A Visual Architect',
+        studentName: student.name,
+        studentEmail: student.college_email,
+        decision: 'APPROVED',
+      }).catch(() => {});
+    }
+
     return new NextResponse(
       `<!DOCTYPE html><html><head><title>Access Approved - SkillVerse</title><style>${styles}</style></head>
       <body><div class="card">
@@ -153,7 +177,7 @@ export async function GET(req: Request) {
         <h1 style="color:#10b981">Access Approved!</h1>
         <p>You have approved <strong style="color:#f2eef7">${student.name}</strong> (${student.college_email}).</p>
         <p>A confirmation email has been sent to the applicant. They can now log into SkillVerse directly.</p>
-        <p style="font-size:12px; margin-top:16px;">Other Visual Architects who click their email link will see this as already resolved.</p>
+        <p style="font-size:12px; margin-top:16px;">All other Visual Architects have been notified that this request is resolved.</p>
         <a href="${appUrl}/horizon">Return to Platform</a>
       </div></body></html>`,
       { headers: { 'Content-Type': 'text/html' } }
