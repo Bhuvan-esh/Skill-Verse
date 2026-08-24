@@ -497,10 +497,29 @@ export async function sendAdminAccessRequestEmail({
         <p style="margin: 0 0 6px 0; color: #cbd5e1;">Role Requested: <strong style="color: #f0b45e;">${role}</strong></p>
         <p style="margin: 0; color: #cbd5e1;">Requested At: <strong style="color: #ffffff;">${reqTime}</strong></p>
       </div>
-      <p>Please review and confirm access for this applicant. Click the button below to approve them immediately:</p>
+      <p>Please review and take action on this applicant:</p>
+      <div style="text-align: center; margin: 28px 0 8px 0;">
+        <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+          <tr>
+            <td style="padding-right: 12px;">
+              <a href="${portalUrl}/api/auth/approve-student?email=${encodeURIComponent(studentEmail)}"
+                style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff !important; font-weight: 700; font-size: 13px; padding: 14px 24px; border-radius: 10px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.8px;">
+                ✅ Approve Access
+              </a>
+            </td>
+            <td>
+              <a href="${portalUrl}/api/auth/approve-student?email=${encodeURIComponent(studentEmail)}&action=deny"
+                style="display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: #ffffff !important; font-weight: 700; font-size: 13px; padding: 14px 24px; border-radius: 10px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.8px;">
+                ❌ Deny Request
+              </a>
+            </td>
+          </tr>
+        </table>
+      </div>
+      <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 12px;">
+        Only one Visual Architect needs to act. Once decided, this request will be locked.
+      </p>
     `,
-    ctaText: 'Approve Access Request Now',
-    ctaUrl: `${portalUrl}/api/auth/approve-student?email=${encodeURIComponent(studentEmail)}`,
   });
 
   return sendClubEmail({
