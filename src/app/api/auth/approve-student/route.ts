@@ -51,34 +51,13 @@ export async function GET(req: Request) {
       );
     }
 
-    // ─── IDEMPOTENCY CHECK: Already decided → don't allow another action ─────
-    if (student.approval_status === 'APPROVED') {
-      return new NextResponse(
-        `<!DOCTYPE html><html><head><title>Already Approved - SkillVerse</title><style>${styles}</style></head>
-        <body><div class="card">
-          <div class="badge badge-gray">● ALREADY DECIDED</div>
-          <h1 style="color:#9d97ab">Already Approved</h1>
-          <p><strong style="color:#f2eef7">${student.name}</strong> was already approved by another Visual Architect.</p>
-          <p>This request has been locked — no further action is needed.</p>
-          <a href="${appUrl}/horizon">Return to Platform</a>
-        </div></body></html>`,
-        { headers: { 'Content-Type': 'text/html' } }
-      );
-    }
-
-    if (student.approval_status === 'REJECTED') {
-      return new NextResponse(
-        `<!DOCTYPE html><html><head><title>Already Denied - SkillVerse</title><style>${styles}</style></head>
-        <body><div class="card">
-          <div class="badge badge-gray">● ALREADY DECIDED</div>
-          <h1 style="color:#9d97ab">Already Denied</h1>
-          <p>The request from <strong style="color:#f2eef7">${student.name}</strong> was already denied by another Visual Architect.</p>
-          <p>This request has been locked — no further action is needed.</p>
-          <a href="${appUrl}/horizon">Return to Platform</a>
-        </div></body></html>`,
-        { headers: { 'Content-Type': 'text/html' } }
-      );
-    }
+    // Note current status for informational banner — but do NOT block; both VAs can act
+    const previousStatus = student.approval_status;
+    const alreadyDecidedNote = previousStatus !== 'PENDING'
+      ? `<p style="font-size:12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 10px; margin-top: 16px;">
+           ℹ️ This applicant was previously <strong style="color:${previousStatus === 'APPROVED' ? '#10b981' : '#ef4444'}">${previousStatus}</strong> by another Visual Architect. Your decision below has now overridden it.
+         </p>`
+      : '';
 
     // ─── DENY ACTION ──────────────────────────────────────────────────────────
     if (action === 'deny') {
@@ -121,7 +100,8 @@ export async function GET(req: Request) {
           <div class="badge badge-red">● REQUEST DENIED</div>
           <h1 style="color:#ef4444">Access Denied</h1>
           <p>You have denied the access request from <strong style="color:#f2eef7">${student.name}</strong> (${student.college_email}).</p>
-          <p>This decision is final. All other Visual Architects have been notified by email.</p>
+          <p>All other Visual Architects have been notified by email.</p>
+          ${alreadyDecidedNote}
           <a href="${appUrl}/horizon">Return to Platform</a>
         </div></body></html>`,
         { headers: { 'Content-Type': 'text/html' } }
@@ -177,7 +157,8 @@ export async function GET(req: Request) {
         <h1 style="color:#10b981">Access Approved!</h1>
         <p>You have approved <strong style="color:#f2eef7">${student.name}</strong> (${student.college_email}).</p>
         <p>A confirmation email has been sent to the applicant. They can now log into SkillVerse directly.</p>
-        <p style="font-size:12px; margin-top:16px;">All other Visual Architects have been notified that this request is resolved.</p>
+        <p>All other Visual Architects have been notified.</p>
+        ${alreadyDecidedNote}
         <a href="${appUrl}/horizon">Return to Platform</a>
       </div></body></html>`,
       { headers: { 'Content-Type': 'text/html' } }
