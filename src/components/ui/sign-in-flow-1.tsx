@@ -670,9 +670,9 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
             triggerSuccessState();
           } else {
             const displayRole =
-              mappedRole === "community_ambassador" ? "ambassador"
-              : mappedRole === "visual_architect" ? "ambassador"
-              : mappedRole;
+              (mappedRole as string) === "community_ambassador" || (mappedRole as string) === "visual_architect"
+                ? "ambassador"
+                : mappedRole;
             router.push(
               `/pending-approval?role=${displayRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(userEmail)}`
             );

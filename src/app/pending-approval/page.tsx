@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import { logOut as firebaseLogOut } from '@/lib/authService'
 import {
   Check,
   RefreshCw,

@@ -402,7 +402,6 @@ body {
 
 /* GPU Hardware Acceleration */
 .hero-canvas,
-.scroll-hero,
 .perspective-scene {
   transform: translateZ(0);
   backface-visibility: hidden;
