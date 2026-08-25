@@ -39,6 +39,7 @@ export interface ScrollHeroProps {
   colorPalette?: ColorPalette;
   logo?: string;
   menuItems?: string[];
+  onBack?: () => void;
 }
 
 const paletteGLSL = `
@@ -318,7 +319,7 @@ const fragmentShader = `
     color += pattern * 0.015;
 
     color = clamp(color, 0.0, 4.0);
-    gl_FragColor = vec4(color, 1.0 - uScrollProgress*0.12);
+    gl_FragColor = vec4(color, 1.0);
   }
 `;
 
@@ -334,7 +335,7 @@ const cinematicPostShader = {
     uVignette: { value: 0.35 },
     uAberration: { value: 0.0018 },
     uGrain: { value: 0.22 },
-    uLetterbox: { value: 0.6 }
+    uLetterbox: { value: 1.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -392,9 +393,6 @@ const cinematicPostShader = {
       float vig = smoothstep(0.85, 0.2, dist);
       col *= mix(1.0, vig, uVignette);
 
-      float bar = smoothstep(uLetterbox, 0.0, abs(vUv.y - 0.5));
-      col *= bar;
-
       col = aces(col);
       col = pow(col, vec3(1.0/2.2));
 
@@ -418,7 +416,8 @@ export default function ScrollHero({
     dark: '#0a0a0a'
   },
   logo = 'STUDIO',
-  menuItems = ['Work', 'About', 'Services', 'Contact']
+  menuItems = ['Work', 'About', 'Services', 'Contact'],
+  onBack
 }: ScrollHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -440,6 +439,9 @@ export default function ScrollHero({
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeSection, setActiveSection] = useState(0);
+  const activeSectionRef = useRef(0);
+  activeSectionRef.current = activeSection;
+
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -476,7 +478,6 @@ export default function ScrollHero({
       camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
       camera.position.set(0, 0, 5);
 
-      let isVisible = true;
       let isAnimating = false;
 
       renderer = new THREE.WebGLRenderer({
@@ -562,14 +563,18 @@ export default function ScrollHero({
 
           mat.uniforms.uScrollProgress.value = scrollRef.current.progress;
           mat.uniforms.uScrollVelocity.value = scrollRef.current.velocity;
+          mat.uniforms.uSectionIndex.value = activeSectionRef.current;
 
-          // Buttery smooth lerp calculation (0 GC overhead)
+          // Continuous 3D auto-spin animation + smooth mouse/scroll offset
+          const autoSpinY = t * 0.45;
+          const autoSpinX = Math.sin(t * 0.35) * 0.35;
+
           scrollRef.current.currentRotationX += (scrollRef.current.targetRotationX - scrollRef.current.currentRotationX) * 0.12;
           scrollRef.current.currentRotationY += (scrollRef.current.targetRotationY - scrollRef.current.currentRotationY) * 0.12;
 
-          mesh.rotation.x = scrollRef.current.currentRotationX;
-          mesh.rotation.y = scrollRef.current.currentRotationY;
-          mesh.position.y = Math.sin(t * 0.45) * 0.05;
+          mesh.rotation.x = autoSpinX + scrollRef.current.currentRotationX + (mouseRef.current.sy - 0.5) * 0.4;
+          mesh.rotation.y = autoSpinY + scrollRef.current.currentRotationY + (mouseRef.current.sx - 0.5) * 0.6;
+          mesh.position.y = Math.sin(t * 0.6) * 0.08;
         }
 
         const lastPass = composer.passes[composer.passes.length - 1] as any;
@@ -596,34 +601,15 @@ export default function ScrollHero({
       const handleVisibility = () => {
         if (document.hidden) {
           stopAnimation();
-        } else if (isVisible) {
+        } else {
           startAnimation();
         }
       };
       document.addEventListener('visibilitychange', handleVisibility);
 
-      const intersectionObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            isVisible = entry.isIntersecting;
-            if (isVisible && !document.hidden) {
-              startAnimation();
-            } else {
-              stopAnimation();
-            }
-          });
-        },
-        { threshold: 0.05 }
-      );
-
-      if (canvasRef.current) {
-        intersectionObserver.observe(canvasRef.current);
-      }
-
       return () => {
         window.removeEventListener('resize', onResize);
         document.removeEventListener('visibilitychange', handleVisibility);
-        intersectionObserver.disconnect();
         stopAnimation();
         geometry.dispose();
         material.dispose();
@@ -658,14 +644,19 @@ export default function ScrollHero({
         scrollRef.current.targetRotationX = self.progress * Math.PI * 3.0;
         scrollRef.current.targetRotationY = self.progress * Math.PI * 4.5;
 
+        if (sections && sections.length > 0) {
+          const idx = Math.min(
+            Math.floor(self.progress * sections.length),
+            sections.length - 1
+          );
+          setActiveSection(idx);
+        }
+
         clearTimeout(velTimeout);
         velTimeout = setTimeout(() => {
           scrollRef.current.velocity = 0;
         }, 120);
 
-        if (progressRef.current) {
-          progressRef.current.style.transform = `scaleY(${self.progress})`;
-        }
       }
     });
 
@@ -703,18 +694,24 @@ export default function ScrollHero({
 
   return (
     <div ref={containerRef} className="scroll-hero bg-[#0a0a0a] min-h-screen relative w-full">
-      <div className="sticky top-0 left-0 w-full h-screen pointer-events-none z-0 overflow-hidden">
+      <div className="fixed top-0 left-0 w-full h-screen pointer-events-none z-0 overflow-hidden">
         <canvas ref={canvasRef} className="w-full h-full" />
       </div>
 
-      <div className="scroll-progress fixed top-0 right-4 w-1 h-full z-30 pointer-events-none">
-        <div ref={progressRef} className="scroll-progress-bar w-full h-full bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500 origin-top transform scale-y-0" />
-      </div>
-
-      <nav className="nav-container fixed top-0 left-0 w-full p-6 z-20 pointer-events-auto backdrop-blur-md bg-black/20 border-b border-white/10">
+      <nav className="nav-container fixed top-0 left-0 w-full px-6 py-4 z-[100] pointer-events-auto backdrop-blur-md bg-black/40 border-b border-white/10 shadow-2xl">
         <div className="nav-inner max-w-7xl mx-auto flex items-center justify-between">
-          <div className="nav-logo text-xl font-bold tracking-widest text-white font-heading">
-            {logo ? logo : null}
+          <div className="flex items-center space-x-6">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-xs font-mono-code text-slate-300 hover:text-white border border-white/10 flex items-center space-x-1.5 transition-all cursor-pointer hover:scale-105"
+              >
+                <span>← Back</span>
+              </button>
+            )}
+            <div className="nav-logo text-xl font-bold tracking-widest text-white font-heading">
+              {logo ? logo : null}
+            </div>
           </div>
           <div className="nav-menu flex space-x-8 ml-auto">
             {menuItems.map((item, i) => {
@@ -783,7 +780,7 @@ export default function ScrollHero({
       </nav>
 
       {/* Sticky centered text overlay - pinned in viewport center over 3D model */}
-      <div className="sticky top-0 left-0 w-full h-screen pointer-events-none z-10 flex items-center justify-center px-6 -mt-[100vh]">
+      <div className="fixed top-0 left-0 w-full h-screen pointer-events-none z-10 flex items-center justify-center px-6">
         {sections.map((section, index) => (
           <div
             key={section.id}
@@ -805,7 +802,7 @@ export default function ScrollHero({
       </div>
 
       {/* Invisible scroll triggers maintaining page height for scroll interactions */}
-      <div className="relative z-0 pointer-events-none -mt-[100vh]">
+      <div className="relative z-0 pointer-events-none">
         {sections.map((section, index) => (
           <div
             key={section.id}
@@ -814,6 +811,52 @@ export default function ScrollHero({
             className="h-screen w-full"
           />
         ))}
+      </div>
+
+      {/* Interactive Bottom Section Indicators & Navigation */}
+      <div className="fixed bottom-8 left-0 w-full z-30 pointer-events-auto flex items-center justify-center space-x-4 px-4">
+        <button
+          onClick={() => {
+            const prev = (activeSection - 1 + sections.length) % sections.length;
+            setActiveSection(prev);
+            const el = sectionsRef.current[prev];
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 text-white/80 hover:text-white border border-white/10 backdrop-blur-md flex items-center justify-center transition-all cursor-pointer hover:scale-110"
+          aria-label="Previous Section"
+        >
+          ‹
+        </button>
+
+        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-black/40 border border-white/10 backdrop-blur-md">
+          {sections.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                setActiveSection(idx);
+                const el = sectionsRef.current[idx];
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                activeSection === idx ? 'bg-purple-400 scale-125 shadow-sm shadow-purple-400' : 'bg-white/30 hover:bg-white/60'
+              }`}
+              aria-label={`Go to section ${idx + 1}`}
+            />
+          ))}
+        </div>
+
+        <button
+          onClick={() => {
+            const next = (activeSection + 1) % sections.length;
+            setActiveSection(next);
+            const el = sectionsRef.current[next];
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 text-white/80 hover:text-white border border-white/10 backdrop-blur-md flex items-center justify-center transition-all cursor-pointer hover:scale-110"
+          aria-label="Next Section"
+        >
+          ›
+        </button>
       </div>
 
       {/* Separate About Us Modal Window */}

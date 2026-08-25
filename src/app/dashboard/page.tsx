@@ -12,6 +12,7 @@ import LeaderboardSection from '@/components/LeaderboardSection';
 import FounderControlPanel from '@/components/FounderControlPanel';
 import VolunteerTaskBoard from '@/components/VolunteerTaskBoard';
 import BizLinkMentorshipTracker from '@/components/BizLinkMentorshipTracker';
+import StudentProfileView from '@/components/StudentProfileView';
 import { Award, Bell, X, ShieldAlert } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -78,28 +79,62 @@ export default function DashboardPage() {
       const data = await res.json();
       const defaultNotifs = [
         {
+          id: 'notif-sb-accepted',
+          title: '🤝 SkillBarter Request Accepted',
+          message: "Rahul Sharma accepted your barter request for 'PostgreSQL Query Optimization & Indexing'. The session is now active in My Sessions!",
+          created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+          read: false,
+          category: 'SKILL_BARTER',
+        },
+        {
+          id: 'notif-sb-msg',
+          title: '💬 New Message in Barter Session',
+          message: "Meera K sent a message in UI Design exchange: 'I reviewed the Figma design tokens you shared! Looks great.'",
+          created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          read: false,
+          category: 'SKILL_BARTER',
+        },
+        {
+          id: 'notif-sb-badge',
+          title: '🏆 SkillBarter Badge Unlocked',
+          message: "✨ Achievement Unlocked: 'Trusted Guide' (Maintain 4.5+ rating). Your profile reputation badge has been updated automatically!",
+          created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+          read: false,
+          category: 'ACHIEVEMENT',
+        },
+        {
+          id: 'notif-sb-credit',
+          title: '⚡ Session Completed & Credits Awarded',
+          message: "Session completed with Sanjay V for Docker Compose. +15 SkillBarter Contribution Credits credited to Domain 4!",
+          created_at: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
+          read: true,
+          category: 'CREDITS',
+        },
+        {
           id: 'notif-sess-launch',
           title: '🎉 Session Launched',
           message: 'AI Code Review & Automated Agent Hackathon session is now live! Accept your slot under Profile → Upcoming Sessions.',
-          created_at: new Date().toISOString(),
-          read: false,
+          created_at: new Date(Date.now() - 1000 * 60 * 720).toISOString(),
+          read: true,
+          category: 'CAMPUS',
         },
         {
           id: 'notif-open-desk',
           title: '💬 Message from Open Desk',
           message: '"Welcome to the club! Your session request for SQL Queries has been approved by the Open Desk team."',
-          created_at: new Date().toISOString(),
-          read: false,
+          created_at: new Date(Date.now() - 1000 * 60 * 1440).toISOString(),
+          read: true,
+          category: 'OPEN_DESK',
         },
       ];
 
-      if (res.ok && data.notifications) {
+      if (res.ok && data.notifications && data.notifications.length > 0) {
         const combined = [...defaultNotifs, ...data.notifications];
         setNotifications(combined);
         setUnreadCount(combined.filter((n) => !n.read).length);
       } else {
         setNotifications(defaultNotifs);
-        setUnreadCount(2);
+        setUnreadCount(defaultNotifs.filter((n) => !n.read).length);
       }
     } catch (e) {
       console.error(e);
@@ -192,6 +227,10 @@ export default function DashboardPage() {
 
         {activeTab === 'skillbarter' && (
           <SkillBarterSection user={user} onRefresh={refreshUser} />
+        )}
+
+        {activeTab === 'profile' && (
+          <StudentProfileView user={user} onRefresh={refreshUser} />
         )}
 
         {activeTab === 'privatechat' && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (

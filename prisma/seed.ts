@@ -204,7 +204,7 @@ async function main() {
     },
   });
 
-  // 3. Participant Demo
+  // 3. Participant Demo (@demo.com & @club.edu)
   await prisma.preloadedUSN.upsert({
     where: { usn: '1MS21DEMO01' },
     update: { college_email: 'participant@demo.com', student_name: 'Demo Participant' },
@@ -225,7 +225,22 @@ async function main() {
     },
   });
 
-  console.log('✅ Seeded 3 Fresh Demo Accounts (ambassador@demo.com, mentor@demo.com, participant@demo.com) with password demo123.');
+  // Always present participant.demo@club.edu
+  await prisma.user.upsert({
+    where: { college_email: 'participant.demo@club.edu' },
+    update: { password_hash: demoPassHash, approval_status: 'PENDING' },
+    create: {
+      name: 'Demo Participant',
+      role: 'STUDENT',
+      usn: '1MS21DEMO02',
+      college_email: 'participant.demo@club.edu',
+      password_hash: demoPassHash,
+      approval_status: 'PENDING',
+      is_preloaded: true,
+    },
+  });
+
+  console.log('✅ Seeded Fresh Demo Accounts (including participant.demo@club.edu & participant@demo.com) with password demo123.');
   console.log('✅ Seeded Volunteer, Architect & Mentor accounts.');
 
   // 5. Seed Private Idea Channels for Students

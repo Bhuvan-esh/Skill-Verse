@@ -10,9 +10,10 @@ import { MousePointerClick, ShieldX } from 'lucide-react';
 interface SkillBarterProps {
   user: any;
   onRefresh: () => void;
+  initialTab?: 'requests' | 'sessions' | 'discover' | 'achievements' | 'profile';
 }
 
-export default function SkillBarterSection({ user, onRefresh }: SkillBarterProps) {
+export default function SkillBarterSection({ user, onRefresh, initialTab }: SkillBarterProps) {
   const roleStr = (user?.role || '').toUpperCase();
   const nameStr = (user?.name || '').toUpperCase();
 
@@ -29,7 +30,7 @@ export default function SkillBarterSection({ user, onRefresh }: SkillBarterProps
 
   // If logged in as Participant (Student): Show full participant contents immediately
   if (isParticipant) {
-    return <StudentSkillBarterView user={user} onRefresh={onRefresh} />;
+    return <StudentSkillBarterView user={user} onRefresh={onRefresh} initialTab={initialTab} />;
   }
 
   // Determine role display name for non-participants

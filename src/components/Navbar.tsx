@@ -15,7 +15,9 @@ import {
   Zap,
   ArrowLeft,
   Code,
-  History
+  History,
+  TrendingUp,
+  User,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -147,18 +149,6 @@ export default function Navbar({
               activeRole === 'STUDENT' && (
                 <>
                   <button
-                    onClick={() => setActiveTab('ideas')}
-                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      activeTab === 'ideas'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                  >
-                    <Lightbulb className="w-4 h-4" />
-                    <span>Profile</span>
-                  </button>
-
-                  <button
                     onClick={() => setActiveTab('skillbarter')}
                     className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                       activeTab === 'skillbarter'
@@ -168,6 +158,18 @@ export default function Navbar({
                   >
                     <Users className="w-4 h-4" />
                     <span>Skillora</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('ideas')}
+                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                      activeTab === 'ideas'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Progress</span>
                   </button>
 
                   <button
@@ -193,6 +195,18 @@ export default function Navbar({
                     <MessageSquare className="w-4 h-4" />
                     <span>Open Desk</span>
                   </button>
+
+                  <button
+                    onClick={() => setActiveTab('profile')}
+                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                      activeTab === 'profile'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Profile</span>
+                  </button>
                 </>
               )
             )}
@@ -211,17 +225,6 @@ export default function Navbar({
                 </button>
 
                 <button
-                  onClick={() => setActiveTab('ideas')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'ideas'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <Lightbulb className="w-3.5 h-3.5" />
-                  <span>Profile</span>
-                </button>
-
-                <button
                   onClick={() => setActiveTab('skillbarter')}
                   className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'skillbarter'
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
@@ -233,6 +236,17 @@ export default function Navbar({
                 </button>
 
                 <button
+                  onClick={() => setActiveTab('ideas')}
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'ideas'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                >
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Progress</span>
+                </button>
+
+                <button
                   onClick={() => setActiveTab('leaderboard')}
                   className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'leaderboard'
                       ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
@@ -241,6 +255,17 @@ export default function Navbar({
                 >
                   <Award className="w-3.5 h-3.5 text-amber-400" />
                   <span>Leaderboard</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'profile'
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    }`}
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Profile</span>
                 </button>
 
                 <button

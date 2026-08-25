@@ -96,7 +96,7 @@ async function handleOAuthResult(user: User, provider: "google" | "apple") {
       ).catch(() => {});
       return {
         uid: user.uid,
-        status: initialStatus as const,
+        status: initialStatus as UserDoc["status"],
         email: userEmail,
         firstName: firstName || "Anusha",
         lastName: lastName || "Bhat",

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAuth } from "@/context/AuthContext";
-import { X, ArrowRight, Check, ShieldAlert, ShieldCheck, Crown, Palette, GraduationCap, Users, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
+import { X, ArrowRight, Check, ShieldAlert, ShieldCheck, Crown, Palette, GraduationCap, Users, ArrowLeft, Sparkles } from "lucide-react";
 import { Component as HorizonHeroSection } from "@/components/ui/horizon-hero-section";
 
 type Uniforms = {
@@ -670,9 +670,9 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
             triggerSuccessState();
           } else {
             const displayRole =
-              mappedRole === "community_ambassador" ? "ambassador"
-              : mappedRole === "visual_architect" ? "ambassador"
-              : mappedRole;
+              (mappedRole as string) === "community_ambassador" || (mappedRole as string) === "visual_architect"
+                ? "ambassador"
+                : mappedRole;
             router.push(
               `/pending-approval?role=${displayRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(userEmail)}`
             );
@@ -1076,27 +1076,6 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
 
                 {/* Form Inputs matching Image 2 */}
                 <form onSubmit={handleEmailSubmit} className="space-y-3">
-                  <div className="flex items-center justify-between pb-1">
-                    <span className="text-xs font-semibold text-slate-300 font-sans">Account Details</span>
-                    {(firstName || lastName || email || password) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFirstName("");
-                          setLastName("");
-                          setEmail("");
-                          setPassword("");
-                          setUsnInput("");
-                          setError("");
-                        }}
-                        className="text-[11px] text-purple-300 hover:text-white font-mono flex items-center gap-1 cursor-pointer transition-colors"
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        <span>Clear & Enter Fresh</span>
-                      </button>
-                    )}
-                  </div>
-
                   {/* First Name & Last Name */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
@@ -1105,6 +1084,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                         placeholder="First Name"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
+                        autoComplete="off"
                         className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
                       />
                       <span className="text-xs sm:text-sm text-slate-300 font-sans pointer-events-none whitespace-nowrap font-medium">
@@ -1117,6 +1097,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                         placeholder="Last Name"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
+                        autoComplete="off"
                         className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
                       />
                       <span className="text-xs sm:text-sm text-slate-300 font-sans pointer-events-none whitespace-nowrap font-medium">
@@ -1132,6 +1113,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                       placeholder="your.email@college.edu"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      autoComplete="off"
                       className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
                       required
                     />
@@ -1147,6 +1129,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                       placeholder="••••••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
                       className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
                       required
                     />
@@ -1266,19 +1249,11 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                     </div>
                   </div>
 
-                  {/* Inline Error Alert */}
-                  {error && (
-                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
-                      <ShieldAlert className="w-4 h-4 flex-shrink-0" />
-                      <span>{error}</span>
-                    </div>
-                  )}
-
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={loading}
-                    className="w-full mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading || !termsAgreed}
+                    className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <span>Creating account...</span>
@@ -1290,35 +1265,6 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                     )}
                   </button>
                 </form>
-
-                {/* Quick Presets */}
-                <div className="pt-3 text-center border-t border-white/10 space-y-2">
-                  <p className="text-[11px] text-slate-400 font-mono">⚡ Fresh Demo Presets (One-click Login & Email Confirmation):</p>
-                  
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleQuickPreset("ambassador@demo.com", "demo123", "ambassador")}
-                      className="px-3 py-1.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 text-xs text-pink-300 border border-pink-500/30 transition-all cursor-pointer font-medium"
-                    >
-                      Community Ambassador
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickPreset("mentor@demo.com", "demo123", "mentor")}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-xs text-emerald-300 border border-emerald-500/30 transition-all cursor-pointer font-medium"
-                    >
-                      Mentor
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickPreset("participant@demo.com", "demo123", "participant")}
-                      className="px-3 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-xs text-blue-300 border border-blue-500/30 transition-all cursor-pointer font-medium"
-                    >
-                      Participant
-                    </button>
-                  </div>
-                </div>
               </motion.div>
             ) : step === "google-confirm" ? (
               <motion.div

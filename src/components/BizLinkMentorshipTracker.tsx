@@ -307,7 +307,7 @@ export default function BizLinkMentorshipTracker() {
           <div className="md:col-span-5 bg-[#1A1D28] border border-[#2E3241] rounded-2xl p-5 flex flex-col justify-between">
             <div>
               <h2 className="text-[21px] font-semibold text-[#F1EFE6] bizlink-serif">
-                Weekly progress
+                Weekly growth
               </h2>
               <p className="text-xs text-[#A9A9AE]">Mentoring sessions run per day</p>
             </div>

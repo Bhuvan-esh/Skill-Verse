@@ -45,14 +45,9 @@ export default function LandingPage() {
   if (entered) {
     return (
       <div className="relative min-h-screen bg-[#0a0a0a]">
-        <button
-          onClick={() => setEntered(false)}
-          className="fixed top-6 left-6 z-50 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-xs font-mono-code text-slate-400 hover:text-white border border-white/10 flex items-center space-x-1.5 transition-all cursor-pointer"
-        >
-          <span>← Back</span>
-        </button>
         <ScrollHero
           logo="ORZYA"
+          onBack={() => setEntered(false)}
           menuItems={['About', 'Sign In/Up', 'Contact Us']}
           sections={[
             { id: 'hero', headline: 'Ethereal', subheadline: 'Beyond Reality', body: 'Immersive experiences through computational artistry' },
