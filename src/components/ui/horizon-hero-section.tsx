@@ -1066,6 +1066,16 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
   // Keyboard (Spacebar / Arrow keys / PageDown) listener for wording & section navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable ||
+          target.closest("input, textarea, [contenteditable]"));
+
+      if (isInput) return;
+
       if (e.code === "Space" || e.key === " " || e.key === "ArrowDown" || e.key === "PageDown") {
         e.preventDefault();
         const windowHeight = window.innerHeight;

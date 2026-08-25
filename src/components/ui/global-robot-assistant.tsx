@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { RobotOnly } from "./robot-only";
-import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation, Lock } from "lucide-react";
+import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation, Lock, ShieldCheck, Award, Users, Compass } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatMessage {
@@ -98,6 +100,8 @@ const TOUR_STEPS: TourStep[] = [
 ];
 
 export function GlobalRobotAssistant() {
+  const { user } = useAuth();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -108,17 +112,66 @@ export function GlobalRobotAssistant() {
   // Active Tour Mode State
   const [isTourActive, setIsTourActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [activeSectionName, setActiveSectionName] = useState<string>("Skill Barter");
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Normalize user's active role for UI and AI
+  const userRole = user?.role ? (
+    user.role === "FOUNDER" ? "architect" :
+    user.role === "MENTOR" ? "mentor" :
+    user.role === "VOLUNTEER" ? "ambassador" : "participant"
+  ) : "guest";
+
+  const roleLabel = {
+    participant: "Participant",
+    mentor: "Club Mentor",
+    ambassador: "Community Ambassador",
+    architect: "Visual Architect",
+    guest: "Visitor / Pre-Login",
+  }[userRole];
+
+  const getInitialGreeting = React.useCallback(() => {
+    if (userRole === "participant") {
+      return `Hey ${user?.name ? user.name.split(" ")[0] : "Builder"}! 👋 I'm your ORZYA AI Assistant. Ask me how to swap skills in Skill Barter, solve coding challenges, pitch in Idea Hub, or contact coordinators!`;
+    }
+    if (userRole === "mentor") {
+      return `Welcome Mentor ${user?.name ? user.name.split(" ")[0] : ""}! 👋 How can I help you with mentee guidance, Idea Hub project reviews, or Skill Barter exchanges today?`;
+    }
+    if (userRole === "ambassador") {
+      return `Greetings Ambassador ${user?.name ? user.name.split(" ")[0] : ""}! 🚀 Ready to connect peers in Skill Barter, organize challenges, or support participants? Ask me anything!`;
+    }
+    if (userRole === "architect") {
+      return `Welcome Visual Architect ${user?.name ? user.name.split(" ")[0] : ""}! ⚡ I'm here to assist with member approvals, credit audits, Idea Hub incubations, or platform governance.`;
+    }
+    return "Hello! 👋 I'm your ORZYA 3D AI Assistant. Need help signing in, choosing a role (Participant, Mentor, Ambassador), or joining the club?";
+  }, [userRole, user?.name]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
       sender: "bot",
-      text: "Hello! 👋 I'm your ORZYA 3D AI Assistant. How can I help you navigate the student club ecosystem today?",
+      text: getInitialGreeting(),
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
+
+  // Update initial greeting when user logs in/out
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].id === "1") {
+        return [
+          {
+            id: "1",
+            sender: "bot",
+            text: getInitialGreeting(),
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ];
+      }
+      return prev;
+    });
+  }, [getInitialGreeting]);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -154,6 +207,14 @@ export function GlobalRobotAssistant() {
         setIsOnHorizon(false);
       }
 
+      if (type === "set-horizon-section") {
+        const idx = e.detail?.sectionIndex;
+        if (idx === 1) setActiveSectionName("Skill Barter");
+        else if (idx === 2) setActiveSectionName("Coding Challenge");
+        else if (idx === 3) setActiveSectionName("Soft Skills");
+        else if (idx === 4) setActiveSectionName("Idea Hub");
+      }
+
       // Gate 1: User clicked "ENTER THE STUDENT CLUB" -> Auto advance from Step 1 to Step 2
       if (type === "user-clicked-enter" && isTourActive) {
         if (currentStepIndex === 0) {
@@ -187,11 +248,9 @@ export function GlobalRobotAssistant() {
   const handleNextTourStep = () => {
     const currentStep = TOUR_STEPS[currentStepIndex];
     if (currentStep.requiresGate === "enter-club") {
-      // Do nothing, wait for user to click "ENTER THE STUDENT CLUB" button
       return;
     }
     if (currentStep.requiresGate === "sign-in") {
-      // Do nothing, wait for user to complete sign in / up
       return;
     }
 
@@ -212,7 +271,6 @@ export function GlobalRobotAssistant() {
     setIsTourActive(false);
     setCurrentStepIndex(0);
     
-    // Add completion message to chat
     setMessages((prev) => [
       ...prev,
       {
@@ -235,15 +293,28 @@ export function GlobalRobotAssistant() {
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
 
+    // Immediately clear input box and display user's message bubble
+    setInputMessage("");
     setMessages((prev) => [...prev, userMsg]);
-    if (!customText) setInputMessage("");
     setIsLoading(true);
+
+    const historyPayload = [...messages, userMsg].slice(-10).map((m) => ({
+      sender: m.sender,
+      text: m.text,
+    }));
 
     try {
       const res = await fetch("/api/ai/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: textToSend }),
+        body: JSON.stringify({
+          message: textToSend,
+          history: historyPayload,
+          role: userRole,
+          page: pathname || "horizon",
+          section: activeSectionName,
+          userName: user?.name,
+        }),
       });
 
       const data = await res.json();
@@ -271,11 +342,50 @@ export function GlobalRobotAssistant() {
     }
   };
 
-  const quickPills = [
-    { label: "🤝 Skill Barter", query: "How does Skill Barter work?" },
-    { label: "💡 Project Ideas", query: "How do I submit an idea in Idea Hub?" },
-    { label: "🏆 Earn Credits", query: "How do credits and ranks work?" },
-  ];
+  // Role-Specific Quick Pills
+  const getRoleQuickPills = () => {
+    if (userRole === "participant") {
+      return [
+        { label: "🤝 Swap Skills", query: "How do I swap skills and request mentorship in Skill Barter?" },
+        { label: "💻 Coding Contests", query: "How do coding challenges and benchmark credits work?" },
+        { label: "💡 Pitch Idea", query: "How do I submit an idea in Idea Hub and recruit a team?" },
+        { label: "🗣️ Soft Skills", query: "How do soft skills workshops and leadership sessions work?" },
+        { label: "📞 Support Desk", query: "Give me the coordinator phone numbers and support email." },
+      ];
+    }
+    if (userRole === "mentor") {
+      return [
+        { label: "🤝 Mentoring Guide", query: "How do mentors guide students in Skill Barter?" },
+        { label: "💡 Review Ideas", query: "How do I review student project feasibility in Idea Hub?" },
+        { label: "💻 Coding Feedback", query: "How can mentors give feedback on coding challenges?" },
+        { label: "📞 Coordinator Desk", query: "Give me the coordinator contact details for mentors." },
+      ];
+    }
+    if (userRole === "ambassador") {
+      return [
+        { label: "🚀 Ambassador Duties", query: "What are my core responsibilities as a Community Ambassador?" },
+        { label: "🤝 Match Peers", query: "How do I help match participants for Skill Barter circles?" },
+        { label: "🏆 Host Challenges", query: "How do ambassadors coordinate coding events and workshops?" },
+        { label: "📞 Escalate Issue", query: "Give me coordinator phone numbers to escalate issues." },
+      ];
+    }
+    if (userRole === "architect") {
+      return [
+        { label: "⚡ Member Approvals", query: "How do Visual Architects review and approve access requests?" },
+        { label: "💎 Credit Audits", query: "How do I audit and manage credit distributions?" },
+        { label: "💡 Incubate Projects", query: "How do I approve project funding in Idea Hub?" },
+        { label: "📞 Core Contacts", query: "Give me coordinator phone numbers and support details." },
+      ];
+    }
+    return [
+      { label: "🔑 How to Sign In", query: "How do I sign in or create an account for the Student Club?" },
+      { label: "👥 Roles Overview", query: "What is the difference between Participant, Mentor, Ambassador, and Architect?" },
+      { label: "⏳ Pending Approval", query: "How does the Visual Architect approval process work for new members?" },
+      { label: "📞 Contact Support", query: "Give me the coordinator phone numbers and support email." },
+    ];
+  };
+
+  const quickPills = getRoleQuickPills();
 
   const currentTourStep = TOUR_STEPS[currentStepIndex];
 
@@ -388,11 +498,18 @@ export function GlobalRobotAssistant() {
                     <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white font-heading tracking-wide flex items-center gap-1.5">
-                      <span>ORZYA Assistant</span>
-                      <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-                    </h3>
-                    <p className="text-[11px] text-slate-400 font-sans">3D Interactive AI Companion</p>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="text-sm font-bold text-white font-heading tracking-wide flex items-center gap-1">
+                        <span>ORZYA Assistant</span>
+                        <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                      </h3>
+                      <span className="px-1.5 py-0.5 rounded-full text-[9.5px] font-mono uppercase tracking-wider bg-purple-500/20 border border-purple-500/40 text-purple-300">
+                        {roleLabel}
+                      </span>
+                    </div>
+                    <p className="text-[10.5px] text-slate-400 font-sans">
+                      {user ? `Role Context: ${roleLabel}` : "Pre-Login & Navigation Guide"}
+                    </p>
                   </div>
                 </div>
 
@@ -450,7 +567,7 @@ export function GlobalRobotAssistant() {
                           : "bg-slate-900 border border-white/10 text-slate-200 rounded-tl-none shadow-md"
                       }`}
                     >
-                      <p>{msg.text}</p>
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
                       <span
                         className={`block text-[9px] mt-1 opacity-60 text-right ${
                           msg.sender === "user" ? "text-purple-200" : "text-slate-400"
@@ -496,6 +613,7 @@ export function GlobalRobotAssistant() {
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
                   placeholder="Ask AI Assistant anything..."
                   className="flex-1 bg-slate-900 border border-white/10 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-all font-sans"
                 />
@@ -524,6 +642,22 @@ export function GlobalRobotAssistant() {
             <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             <span className="font-bold tracking-wide">Double-click on the section to enter</span>
           </motion.div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* 3b. HOME TOUR TRIGGER BUTTON (ABOVE AI ASSISTANT) */}
+        {/* ------------------------------------------------------------- */}
+        {!isTourActive && !isOpen && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={startTour}
+            className="mb-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600/90 via-indigo-600/90 to-cyan-500/90 hover:from-purple-500 hover:to-cyan-400 text-white text-[10.5px] font-mono-code font-bold shadow-lg shadow-purple-500/30 border border-white/20 backdrop-blur-md flex items-center space-x-1.5 cursor-pointer transition-all animate-bounce"
+            title="Start 3D Guided Home Tour"
+          >
+            <Sparkles className="w-3 h-3 text-cyan-300 animate-spin" />
+            <span>🚀 Start Home Tour</span>
+          </motion.button>
         )}
 
         {/* ------------------------------------------------------------- */}

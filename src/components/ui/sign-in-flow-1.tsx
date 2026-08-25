@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useAuth } from "@/context/AuthContext";
-import { X, ArrowRight, Check, ShieldAlert, ShieldCheck, Crown, Palette, GraduationCap, Users, ArrowLeft, Sparkles } from "lucide-react";
+import { X, ArrowRight, Check, ShieldAlert, ShieldCheck, Crown, Palette, GraduationCap, Users, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
 import { Component as HorizonHeroSection } from "@/components/ui/horizon-hero-section";
 
 type Uniforms = {
@@ -1076,12 +1076,33 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
 
                 {/* Form Inputs matching Image 2 */}
                 <form onSubmit={handleEmailSubmit} className="space-y-3">
+                  <div className="flex items-center justify-between pb-1">
+                    <span className="text-xs font-semibold text-slate-300 font-sans">Account Details</span>
+                    {(firstName || lastName || email || password) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFirstName("");
+                          setLastName("");
+                          setEmail("");
+                          setPassword("");
+                          setUsnInput("");
+                          setError("");
+                        }}
+                        className="text-[11px] text-purple-300 hover:text-white font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <RefreshCw className="w-3 h-3" />
+                        <span>Clear & Enter Fresh</span>
+                      </button>
+                    )}
+                  </div>
+
                   {/* First Name & Last Name */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
                       <input
                         type="text"
-                        placeholder="Harshit"
+                        placeholder="First Name"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
@@ -1093,7 +1114,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                     <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
                       <input
                         type="text"
-                        placeholder="Sharma"
+                        placeholder="Last Name"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
@@ -1108,7 +1129,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
                     <input
                       type="email"
-                      placeholder="harshitlog@gmail.com"
+                      placeholder="your.email@college.edu"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
@@ -1127,6 +1148,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
+                      required
                     />
                     <span className="text-xs sm:text-sm text-slate-300 font-sans pointer-events-none font-medium">
                       Password
@@ -1244,11 +1266,19 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                     </div>
                   </div>
 
+                  {/* Inline Error Alert */}
+                  {error && (
+                    <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center space-x-2">
+                      <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    disabled={loading || !termsAgreed}
-                    className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading}
+                    className="w-full mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <span>Creating account...</span>

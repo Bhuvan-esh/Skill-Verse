@@ -19,11 +19,11 @@ export async function POST(req: Request) {
     const normalizedRole = (role || '').toLowerCase();
     const isDefaultArchitectEmail = ['anushabhat2762@gmail.com', 'bhuvanj06@gmail.com'].includes((defaultEmail || '').toLowerCase());
 
-    if (isDefaultArchitectEmail || normalizedRole.includes('founder') || normalizedRole.includes('visual')) {
+    if (isDefaultArchitectEmail || normalizedRole.includes('founder') || normalizedRole.includes('visual') || normalizedRole.includes('architect')) {
       targetRole   = 'FOUNDER';
       defaultEmail = inputEmail || 'anushabhat2762@gmail.com';
       defaultName  = inputName  || 'Visual Architect';
-    } else if (normalizedRole.includes('architect') || normalizedRole.includes('ambassador')) {
+    } else if (normalizedRole.includes('ambassador') || normalizedRole.includes('volunteer')) {
       targetRole   = 'VOLUNTEER';
       defaultEmail = inputEmail || 'ambassador@club.edu';
       defaultName  = inputName  || 'Community Ambassador';
