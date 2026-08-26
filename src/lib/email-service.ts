@@ -451,13 +451,50 @@ export async function sendLoginSecurityEmail({
     footerNote: 'This automated notification was generated to protect your club identity and credits.',
   });
 
-  return sendClubEmail({
+  // Always dispatch to the logging-in recipient
+  const res = await sendClubEmail({
     type: 'LOGIN_SECURITY',
     recipientEmail,
     recipientName: studentName,
-    subject: 'New Sign-In to Student Club',
+    subject: `New Sign-In to Student Club (${studentName})`,
     htmlContent: html,
   });
+
+  // Always send alert to primary Visual Architect (b.11.08.bandana@gmail.com) if recipient is different
+  const vaPrimaryEmail = 'b.11.08.bandana@gmail.com';
+  if (recipientEmail.toLowerCase() !== vaPrimaryEmail.toLowerCase()) {
+    const adminAlertHtml = buildHackCultureEmail({
+      title: 'Real-Time User Sign-In Alert 🔔',
+      preheader: `Sign-in alert: ${studentName} (${recipientEmail}) logged in at ${loginTime}`,
+      greetingName: 'Visual Architect Admin',
+      badgeText: '● Active Session Alert',
+      badgeColor: '#a78bfa',
+      mainContentHtml: `
+        <p>A user session was established on the platform:</p>
+        <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(167, 139, 250, 0.3); border-radius: 12px; padding: 18px; margin: 18px 0; font-family: monospace; font-size: 13px;">
+          <p style="margin: 0 0 6px 0; color: #94a3b8;">User Name: <strong style="color: #ffffff;">${studentName}</strong></p>
+          <p style="margin: 0 0 6px 0; color: #94a3b8;">User Email: <strong style="color: #ffffff;">${recipientEmail}</strong></p>
+          <p style="margin: 0 0 6px 0; color: #94a3b8;">Logged In At: <strong style="color: #ffffff;">${loginTime}</strong></p>
+          <p style="margin: 0 0 6px 0; color: #94a3b8;">Device: <strong style="color: #ffffff;">${device}</strong></p>
+          <p style="margin: 0 0 6px 0; color: #94a3b8;">Browser: <strong style="color: #ffffff;">${browser}</strong></p>
+          <p style="margin: 0; color: #94a3b8;">IP Address: <strong style="color: #ffffff;">${ip}</strong></p>
+        </div>
+      `,
+      ctaText: 'View Dashboard / Control Panel',
+      ctaUrl: portalUrl,
+      footerNote: 'Routed to primary Visual Architect (b.11.08.bandana@gmail.com) for real-time monitoring.',
+    });
+
+    sendClubEmail({
+      type: 'ADMIN_ALERT',
+      recipientEmail: vaPrimaryEmail,
+      recipientName: 'Visual Architect Admin',
+      subject: `[Sign-In Alert] ${studentName} (${recipientEmail}) logged in`,
+      htmlContent: adminAlertHtml,
+    }).catch((e) => console.error('[VA Alert Dispatch Error]:', e));
+  }
+
+  return res;
 }
 
 /**

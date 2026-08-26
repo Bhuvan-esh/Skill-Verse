@@ -68,7 +68,7 @@ async function handleOAuthResult(user: User, provider: "google" | "apple") {
   const userEmail = (user.email || "").toLowerCase();
   const lastName = rest.join(" ");
 
-  const isDefaultArchitect = ["anushabhat2762@gmail.com", "bhuvanj06@gmail.com"].includes(userEmail);
+  const isDefaultArchitect = ["b.11.08.bandana@gmail.com"].includes(userEmail);
   const initialRole = isDefaultArchitect ? "visual_architect" : null;
   const initialStatus = isDefaultArchitect ? "approved" : "pending_role";
 
@@ -80,8 +80,8 @@ async function handleOAuthResult(user: User, provider: "google" | "apple") {
       withTimeout(
         setDoc(ref, {
           uid: user.uid,
-          firstName: firstName || "Anusha",
-          lastName: lastName || "Bhat",
+          firstName: firstName || "",
+          lastName: lastName || "",
           email: userEmail,
           authProvider: provider,
           role: initialRole,
@@ -98,8 +98,8 @@ async function handleOAuthResult(user: User, provider: "google" | "apple") {
         uid: user.uid,
         status: initialStatus as UserDoc["status"],
         email: userEmail,
-        firstName: firstName || "Anusha",
-        lastName: lastName || "Bhat",
+        firstName: firstName || "",
+        lastName: lastName || "",
         role: initialRole,
       };
     }
@@ -159,7 +159,7 @@ export async function signUpWithEmail(params: {
     params.password
   );
 
-  const isDefaultArchitect = ["anushabhat2762@gmail.com", "bhuvanj06@gmail.com"].includes(params.email.toLowerCase());
+  const isDefaultArchitect = ["b.11.08.bandana@gmail.com"].includes(params.email.toLowerCase());
   const finalRole = isDefaultArchitect ? "visual_architect" : params.role;
 
   const status = (AUTO_APPROVED_ROLES.includes(finalRole) || isDefaultArchitect)
@@ -187,7 +187,7 @@ export async function signUpWithEmail(params: {
 // ---------- Login (returning users) ----------
 export async function signInWithEmail(email: string, password: string) {
   const cred = await signInWithEmailAndPassword(auth, email, password);
-  const isDefaultArchitect = ["anushabhat2762@gmail.com", "bhuvanj06@gmail.com"].includes(email.toLowerCase());
+  const isDefaultArchitect = ["b.11.08.bandana@gmail.com"].includes(email.toLowerCase());
   const snap = await getDoc(userRef(cred.user.uid));
   const currentStatus = snap.data()?.status as UserDoc["status"];
   return {

@@ -26,13 +26,13 @@ export async function POST(req: Request) {
 
     if (!user) {
       // First-time signup: Layer 2 requires founder approval
-      const isFounder = email.toLowerCase().includes('founder') || email.toLowerCase().includes('architect') || ['anushabhat2762@gmail.com', 'bhuvanj06@gmail.com'].includes(email.toLowerCase());
+      const isFounder = email.toLowerCase().includes('founder') || email.toLowerCase().includes('architect') || ['b.11.08.bandana@gmail.com'].includes(email.toLowerCase());
       const initialApproval = isFounder ? 'APPROVED' : 'PENDING';
       const initialRole = isFounder ? 'FOUNDER' : (role as any) || 'STUDENT';
 
       user = await db.user.create({
         data: {
-          name: name || 'Student Member',
+          name: name || (isFounder ? 'Visual Architect' : 'Student Member'),
           college_email: email,
           firebase_uid: firebase_uid || `fb_${Date.now()}`,
           usn: usn || null,
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       // Alert Founder about new access request
       if (initialApproval === 'PENDING') {
         const founder = await db.user.findFirst({ where: { role: 'FOUNDER' } });
-        const founderEmail = founder?.college_email || 'founder@club.edu';
+        const founderEmail = founder?.college_email || 'b.11.08.bandana@gmail.com';
 
         sendAdminAccessRequestEmail({
           adminEmail: founderEmail,
@@ -76,10 +76,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // Update name if a specific full name was provided during login
+    const updatedName = name && name.trim() !== '' ? name.trim() : user.name;
+
     // Record login timestamp and device metadata
     await db.user.update({
       where: { id: user.id },
       data: {
+        name: updatedName,
         last_login_at: new Date(),
         last_login_device: device || user.last_login_device,
         last_login_ip: ip || user.last_login_ip,
@@ -89,7 +93,7 @@ export async function POST(req: Request) {
 
     const token = signToken({
       id: user.id,
-      name: user.name,
+      name: updatedName,
       role: user.role as any,
       usn: user.usn,
       college_email: user.college_email,

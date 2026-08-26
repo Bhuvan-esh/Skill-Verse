@@ -14,27 +14,37 @@ export async function POST(req: Request) {
     type DBRole = 'STUDENT' | 'VOLUNTEER' | 'MENTOR' | 'FOUNDER';
     let targetRole: DBRole = 'STUDENT';
     let defaultEmail = inputEmail || 'participant@club.edu';
-    let defaultName  = inputName  || 'Student Participant';
+    let defaultName  = inputName ? inputName.trim() : '';
 
     const normalizedRole = (role || '').toLowerCase();
-    const isDefaultArchitectEmail = ['anushabhat2762@gmail.com', 'bhuvanj06@gmail.com'].includes((defaultEmail || '').toLowerCase());
+    const isDefaultArchitectEmail = ['b.11.08.bandana@gmail.com'].includes((defaultEmail || '').toLowerCase());
 
-    if (isDefaultArchitectEmail || normalizedRole.includes('founder') || normalizedRole.includes('visual')) {
+    if (normalizedRole.includes('founder') || normalizedRole.includes('visual')) {
+      if (!isDefaultArchitectEmail) {
+        return NextResponse.json(
+          { error: 'Visual Architect access is restricted. Only b.11.08.bandana@gmail.com can sign in under Visual Architects.' },
+          { status: 403 }
+        );
+      }
       targetRole   = 'FOUNDER';
-      defaultEmail = inputEmail || 'anushabhat2762@gmail.com';
-      defaultName  = inputName  || 'Visual Architect';
+      defaultEmail = inputEmail || 'b.11.08.bandana@gmail.com';
+      defaultName  = inputName ? inputName.trim() : '';
+    } else if (isDefaultArchitectEmail) {
+      targetRole   = 'FOUNDER';
+      defaultEmail = inputEmail || 'b.11.08.bandana@gmail.com';
+      defaultName  = inputName ? inputName.trim() : '';
     } else if (normalizedRole.includes('architect') || normalizedRole.includes('ambassador')) {
       targetRole   = 'VOLUNTEER';
       defaultEmail = inputEmail || 'ambassador@club.edu';
-      defaultName  = inputName  || 'Community Ambassador';
+      defaultName  = inputName ? inputName.trim() : '';
     } else if (normalizedRole.includes('mentor')) {
       targetRole   = 'MENTOR';
       defaultEmail = inputEmail || 'mentor@club.edu';
-      defaultName  = inputName  || 'Club Mentor';
+      defaultName  = inputName ? inputName.trim() : '';
     } else {
       targetRole   = 'STUDENT';
       defaultEmail = inputEmail || 'participant@club.edu';
-      defaultName  = inputName  || 'Student Participant';
+      defaultName  = inputName ? inputName.trim() : '';
     }
 
     // ─── Find or create user ─────────────────────────────────────────────────
@@ -93,8 +103,7 @@ export async function POST(req: Request) {
         const founders = await db.user.findMany({ where: { role: 'FOUNDER' } });
         const founderEmails = Array.from(new Set([
           ...founders.map(f => f.college_email),
-          'founder1@club.edu',
-          'architect@club.edu'
+          'b.11.08.bandana@gmail.com'
         ]));
 
         for (const adminEmail of founderEmails) {
@@ -137,15 +146,21 @@ export async function POST(req: Request) {
       );
     }
 
+    // Update user's name if a specific full name was provided
+    const sessionName = inputName && inputName.trim() !== '' ? inputName.trim() : user.name;
+
     // ─── Record login ────────────────────────────────────────────────────────
     await db.user.update({
       where: { id: user.id },
-      data: { last_login_at: new Date() },
+      data: {
+        name: sessionName,
+        last_login_at: new Date(),
+      },
     });
 
     const token = signToken({
       id: user.id,
-      name: user.name,
+      name: sessionName,
       role: user.role as any,          // use the stored role, not targetRole
       usn: user.usn,
       college_email: user.college_email,
@@ -155,7 +170,7 @@ export async function POST(req: Request) {
     if (user.approval_status === 'APPROVED' && user.college_email) {
       sendLoginSecurityEmail({
         recipientEmail: user.college_email,
-        studentName: user.name,
+        studentName: sessionName,
       }).catch((e) => console.error('[Login Security Email Error]:', e));
     }
 

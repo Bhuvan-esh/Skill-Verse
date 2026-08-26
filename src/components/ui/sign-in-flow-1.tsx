@@ -560,8 +560,8 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
       }
 
       if (result.email) setEmail(result.email);
-      if (result.firstName) setFirstName(result.firstName);
-      if (result.lastName) setLastName(result.lastName);
+      setFirstName("");
+      setLastName("");
       setFirebaseUid(result.uid);
       setOauthStatus(result.status || "pending_role");
       setOauthRole(result.role || null);
@@ -587,11 +587,21 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
       setError("Please agree to the Terms and Services to continue.");
       return;
     }
+    const isDefaultArchitect = ["b.11.08.bandana@gmail.com"].includes((email || "").toLowerCase());
+    if ((selectedRole === "founder" || oauthRole === "founder") && !isDefaultArchitect) {
+      setError("Visual Architect category is restricted. Only b.11.08.bandana@gmail.com can sign in as a Visual Architect.");
+      return;
+    }
+    const fullNameEntered = `${firstName || ''} ${lastName || ''}`.trim();
+    if (!fullNameEntered || !firstName.trim() || !lastName.trim()) {
+      setError("Please enter your full name (First Name and Last Name) to proceed.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
-      const isDefaultArchitect = ["anushabhat2762@gmail.com", "bhuvanj06@gmail.com"].includes((email || "").toLowerCase());
       const isApproved = oauthStatus === "approved" || isDefaultArchitect;
 
       if (isApproved) {
@@ -602,7 +612,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
             body: JSON.stringify({
               role: oauthRole || (isDefaultArchitect ? "founder" : "participant"),
               email: email,
-              name: `${firstName || ''} ${lastName || ''}`.trim() || email?.split('@')[0],
+              name: fullNameEntered,
               firebase_uid: firebaseUid,
             }),
           });
@@ -611,7 +621,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
         triggerSuccessState();
       } else if (oauthStatus === "pending_approval") {
         router.push(
-          `/pending-approval?role=participant&name=${encodeURIComponent(firstName || 'Student')}&email=${encodeURIComponent(email || '')}`
+          `/pending-approval?role=participant&name=${encodeURIComponent(fullNameEntered)}&email=${encodeURIComponent(email || '')}`
         );
       } else {
         // Proceed to role selection
@@ -736,6 +746,14 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
       setError("Please enter your email address");
       return;
     }
+    if (selectedRole === "founder" && email.trim().toLowerCase() !== "b.11.08.bandana@gmail.com") {
+      setError("Visual Architect category is restricted. Only b.11.08.bandana@gmail.com can sign in as a Visual Architect.");
+      return;
+    }
+    if (!firstName.trim() || !lastName.trim()) {
+      setError("Please enter your full name (First Name and Last Name) to proceed.");
+      return;
+    }
     if (!termsAgreed) {
       setError("Please agree to the Terms and Services to continue.");
       return;
@@ -744,6 +762,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
     setLoading(true);
 
     try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`;
       // Direct Database Auth via select-role API
       const res = await fetch("/api/auth/select-role", {
         method: "POST",
@@ -751,7 +770,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
         body: JSON.stringify({
           role: selectedRole,
           email: email.trim().toLowerCase(),
-          name: firstName ? `${firstName} ${lastName}`.trim() : email.split("@")[0],
+          name: fullName,
           password,
         }),
       });
@@ -763,8 +782,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
         if (data.approval_status === "APPROVED" || selectedRole === "founder" || selectedRole === "architect") {
           triggerSuccessState();
         } else {
-          const displayName = firstName ? `${firstName} ${lastName}`.trim() : email.split("@")[0];
-          window.location.href = `/pending-approval?role=${selectedRole}&name=${encodeURIComponent(displayName)}&email=${encodeURIComponent(email)}`;
+          window.location.href = `/pending-approval?role=${selectedRole}&name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`;
         }
       } else {
         setError(data.error || "Authentication failed.");
@@ -1290,13 +1308,44 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                     {(firstName || email || "?").charAt(0).toUpperCase()}
                   </div>
-                  <div className="min-w-0">
-                    {firstName && (
-                      <p className="text-white font-semibold text-sm truncate font-sans">{firstName} {lastName}</p>
-                    )}
+                  <div className="min-w-0 flex-1">
                     <p className="text-slate-300 text-xs truncate font-mono">{email}</p>
+                    <span className="inline-block mt-1 text-[10px] text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded-full font-mono">
+                      Visual Architect Session
+                    </span>
                   </div>
                   <GoogleIcon />
+                </div>
+
+                {/* Mandated Full Name Inputs */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="block text-xs font-semibold text-slate-300 font-sans">
+                    Enter your Full Name for this session <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-purple-400/60 rounded-xl px-3.5 py-2.5 transition-all">
+                      <input
+                        type="text"
+                        placeholder="First Name"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        autoComplete="off"
+                        className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
+                        required
+                      />
+                    </div>
+                    <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-purple-400/60 rounded-xl px-3.5 py-2.5 transition-all">
+                      <input
+                        type="text"
+                        placeholder="Last Name"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        autoComplete="off"
+                        className="w-full bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none font-sans pr-2"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {error && (
