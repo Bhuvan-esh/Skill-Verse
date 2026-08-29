@@ -22,7 +22,10 @@ import {
   Save,
   CheckCheck,
   User,
-  GraduationCap
+  GraduationCap,
+  Globe,
+  Users,
+  Eye
 } from 'lucide-react';
 
 import {
@@ -85,6 +88,8 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
   const [newProjectTitle, setNewProjectTitle] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isPublishedInDiscover, setIsPublishedInDiscover] = useState(false);
+  const [togglingPublish, setTogglingPublish] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
   // Load profile details from backend API
@@ -100,6 +105,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
           if (Array.isArray(data.profile.canTeach)) setCanTeach(data.profile.canTeach);
           if (Array.isArray(data.profile.wantsToLearn)) setWantsToLearn(data.profile.wantsToLearn);
           if (Array.isArray(data.profile.specialProjects)) setSpecialProjects(data.profile.specialProjects);
+          if (data.profile.isPublishedInDiscover !== undefined) setIsPublishedInDiscover(Boolean(data.profile.isPublishedInDiscover));
         }
       } catch {
         // Keep initial clean baseline
@@ -107,6 +113,64 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
     };
     fetchProfile();
   }, [user?.id]);
+
+  const handleToggleDiscoverPublish = async () => {
+    try {
+      const nextState = !isPublishedInDiscover;
+
+      // Compulsory verification before publishing
+      if (nextState) {
+        const missing: string[] = [];
+        if (!canTeach || canTeach.length === 0) missing.push('Can Guide (Expertise)');
+        if (!wantsToLearn || wantsToLearn.length === 0) missing.push('Eager to Learn (Goals)');
+        if (!specialProjects || specialProjects.length === 0) missing.push('Special Skills & Projects');
+
+        if (missing.length > 0) {
+          setFeedbackMsg(`⚠️ Compulsory Requirement: Please fill in ${missing.join(', ')} before publishing to Discover Peers.`);
+          setTimeout(() => setFeedbackMsg(null), 5000);
+
+          // Proactively open the first incomplete section to assist the student
+          if (!canTeach || canTeach.length === 0) handleOpenCanTeachModal();
+          else if (!wantsToLearn || wantsToLearn.length === 0) handleOpenWantsToLearnModal();
+          else handleOpenProjectsModal();
+          return;
+        }
+      }
+
+      setTogglingPublish(true);
+      setIsPublishedInDiscover(nextState);
+
+      const res = await fetch('/api/skill-barter/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id || 'default',
+          isPublishedInDiscover: nextState,
+          canTeach,
+          wantsToLearn,
+          specialProjects,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setFeedbackMsg(
+          nextState
+            ? '✓ Your profile is now published in Discover Peers! Visible to all participants in Skillora.'
+            : '✓ Your profile has been removed from the Discover Peers directory.'
+        );
+        setTimeout(() => setFeedbackMsg(null), 4000);
+      } else {
+        setIsPublishedInDiscover(!nextState);
+        throw new Error(data.error || 'Failed to update discovery status');
+      }
+    } catch (e: any) {
+      setFeedbackMsg(e.message || 'Error updating Discover Peers status');
+      setTimeout(() => setFeedbackMsg(null), 4000);
+    } finally {
+      setTogglingPublish(false);
+    }
+  };
 
   // Open Edit Modals
   const handleOpenProfileInfoModal = () => {
@@ -139,7 +203,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
     setActiveEditSection('NONE');
   };
 
-  // Handlers for Can Teach
+  // Handlers for Can Guide
   const handleAddCanTeach = () => {
     const trimmed = newCanTeachInput.trim();
     if (trimmed && !editCanTeach.includes(trimmed)) {
@@ -152,7 +216,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
     setEditCanTeach(editCanTeach.filter(s => s !== skillToRemove));
   };
 
-  // Handlers for Wants to Learn
+  // Handlers for Eager to Learn
   const handleAddWantsToLearn = () => {
     const trimmed = newWantsToLearnInput.trim();
     if (trimmed && !editWantsToLearn.includes(trimmed)) {
@@ -315,6 +379,20 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
+                onClick={handleToggleDiscoverPublish}
+                disabled={togglingPublish}
+                className={`px-3.5 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer ${
+                  isPublishedInDiscover
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/30'
+                    : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white'
+                }`}
+                title="Publish or remove your profile from Discover Peers in Skillora"
+              >
+                <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isPublishedInDiscover ? '✓ Listed on Discover Peers' : '✨ Add to Discover Peers'}</span>
+              </button>
+
+              <button
                 onClick={handleOpenProfileInfoModal}
                 className="px-3.5 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/30 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
               >
@@ -372,18 +450,117 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
         </div>
       </div>
 
+      
       {/* =================================================================== */}
-      {/* SKILL SECTIONS: 3 CLEAN CARDS (Can Teach, Wants to Learn, Projects) */}
+      {/* DISCOVER PEERS PUBLISHING & SHOWCASE BANNER                         */}
+      {/* =================================================================== */}
+      <div className={`rounded-2xl border p-5 sm:p-6 transition-all space-y-4 shadow-xl ${
+        isPublishedInDiscover
+          ? 'bg-gradient-to-r from-emerald-950/40 via-[#0d0e1a] to-[#0d0e1a] border-emerald-500/40 shadow-emerald-950/20'
+          : (canTeach.length > 0 && wantsToLearn.length > 0 && specialProjects.length > 0)
+          ? 'bg-[#0d0e1a] border-violet-500/40 shadow-violet-950/20'
+          : 'bg-[#0d0e1a] border-white/[0.08]'
+      }`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${isPublishedInDiscover ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+              <span className={`text-[11px] font-mono font-bold uppercase tracking-widest ${isPublishedInDiscover ? 'text-emerald-400' : 'text-slate-400'}`}>
+                {isPublishedInDiscover ? 'Live in Skillora Discover Directory' : 'Discover Peers Directory'}
+              </span>
+            </div>
+            <h3 className="text-base sm:text-lg font-bold text-white font-heading">
+              {isPublishedInDiscover ? 'Your Profile is Visible to All Participants' : 'Add Your Profile to Discover Peers'}
+            </h3>
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+              {isPublishedInDiscover
+                ? 'Your profile, expertise skills, learning goals, and projects are visible to all students in Discover Peers. Other participants can explore your profile and request 1:1 barters.'
+                : 'Publish your profile so other students can discover your technical skills, request mentorship from you, and exchange knowledge in Skillora.'}
+            </p>
+
+            {/* Compulsory 3-Section Checklist */}
+            <div className="pt-2 flex items-center gap-2 flex-wrap text-[11px] font-mono">
+              <button
+                type="button"
+                onClick={handleOpenCanTeachModal}
+                className={`px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
+                  canTeach.length > 0
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
+                }`}
+              >
+                <span>{canTeach.length > 0 ? '✓' : '⚠️'}</span>
+                <span>Can Guide {canTeach.length > 0 ? `(${canTeach.length})` : '(Required)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenWantsToLearnModal}
+                className={`px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
+                  wantsToLearn.length > 0
+                    ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300'
+                    : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
+                }`}
+              >
+                <span>{wantsToLearn.length > 0 ? '✓' : '⚠️'}</span>
+                <span>Eager to Learn {wantsToLearn.length > 0 ? `(${wantsToLearn.length})` : '(Required)'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleOpenProjectsModal}
+                className={`px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
+                  specialProjects.length > 0
+                    ? 'bg-purple-500/10 border-purple-500/30 text-purple-300'
+                    : 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
+                }`}
+              >
+                <span>{specialProjects.length > 0 ? '✓' : '⚠️'}</span>
+                <span>Special Projects {specialProjects.length > 0 ? `(${specialProjects.length})` : '(Required)'}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleToggleDiscoverPublish}
+              disabled={togglingPublish}
+              className={`px-4 py-2.5 rounded-xl text-xs font-mono font-bold flex items-center gap-2 transition-all cursor-pointer shadow-lg ${
+                isPublishedInDiscover
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/25'
+                  : (canTeach.length > 0 && wantsToLearn.length > 0 && specialProjects.length > 0)
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-600/25 animate-pulse'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-white/10'
+              }`}
+            >
+              {isPublishedInDiscover ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>Listed in Discover Peers (Tap to Remove)</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Publish to Discover Peers →</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* =================================================================== */}
+      {/* SKILL SECTIONS: 3 CLEAN CARDS (Can Guide, Eager to Learn, Projects) */}
       {/* =================================================================== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
-        {/* Card 1: Can Teach (Expertise) */}
+        {/* Card 1: Can Guide (Expertise) */}
         <div className="rounded-2xl border border-white/[0.07] bg-[#0d0e1a] p-6 space-y-4 shadow-lg hover:border-emerald-500/30 transition-all flex flex-col justify-between">
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
               <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2 font-heading">
                 <Code2 className="w-4 h-4 text-emerald-400" />
-                <span>Can Teach (Expertise)</span>
+                <span>Can Guide (Expertise)</span>
               </h4>
               <button
                 onClick={handleOpenCanTeachModal}
@@ -408,19 +585,19 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
                 className="py-4 text-center space-y-1.5 border border-dashed border-emerald-500/20 rounded-xl bg-emerald-500/[0.02] hover:bg-emerald-500/[0.05] transition-colors cursor-pointer"
               >
                 <p className="text-xs text-slate-400">No expertise skills added yet.</p>
-                <p className="text-[10px] font-mono text-emerald-400 font-bold">+ Tap Edit to add skills you teach</p>
+                <p className="text-[10px] font-mono text-emerald-400 font-bold">+ Tap Edit to add skills you can guide</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Card 2: Wants to Learn (Goals) */}
+        {/* Card 2: Eager to Learn (Goals) */}
         <div className="rounded-2xl border border-white/[0.07] bg-[#0d0e1a] p-6 space-y-4 shadow-lg hover:border-cyan-500/30 transition-all flex flex-col justify-between">
           <div className="space-y-3">
             <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
               <h4 className="text-xs font-bold text-slate-200 flex items-center gap-2 font-heading">
                 <BookOpen className="w-4 h-4 text-cyan-400" />
-                <span>Wants to Learn (Goals)</span>
+                <span>Eager to Learn (Goals)</span>
               </h4>
               <button
                 onClick={handleOpenWantsToLearnModal}
@@ -445,7 +622,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
                 className="py-4 text-center space-y-1.5 border border-dashed border-cyan-500/20 rounded-xl bg-cyan-500/[0.02] hover:bg-cyan-500/[0.05] transition-colors cursor-pointer"
               >
                 <p className="text-xs text-slate-400">No learning goals added yet.</p>
-                <p className="text-[10px] font-mono text-cyan-400 font-bold">+ Tap Edit to add your goals</p>
+                <p className="text-[10px] font-mono text-cyan-400 font-bold">+ Tap Edit to add skills you are eager to learn</p>
               </div>
             )}
           </div>
@@ -787,7 +964,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
               <div className="flex items-center gap-2">
                 <Code2 className="w-5 h-5 text-emerald-400" />
                 <h3 className="text-base font-bold text-white font-heading">
-                  Can Teach (Expertise Skills)
+                  Can Guide (Expertise Skills)
                 </h3>
               </div>
               <button
@@ -824,7 +1001,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
                 </button>
               </div>
 
-              {/* Current Can Teach Skills List */}
+              {/* Current Can Guide Skills List */}
               <div className="space-y-2 pt-2">
                 <p className="text-[11px] font-mono text-slate-400 uppercase">Current Expertise Skills ({editCanTeach.length}):</p>
                 {editCanTeach.length > 0 ? (
@@ -885,7 +1062,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
               <div className="flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-cyan-400" />
                 <h3 className="text-base font-bold text-white font-heading">
-                  Wants to Learn (Goals & Aspirations)
+                  Eager to Learn (Goals & Aspirations)
                 </h3>
               </div>
               <button
@@ -922,7 +1099,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
                 </button>
               </div>
 
-              {/* Current Wants to Learn Goals List */}
+              {/* Current Eager to Learn Goals List */}
               <div className="space-y-2 pt-2">
                 <p className="text-[11px] font-mono text-slate-400 uppercase">Current Learning Goals ({editWantsToLearn.length}):</p>
                 {editWantsToLearn.length > 0 ? (

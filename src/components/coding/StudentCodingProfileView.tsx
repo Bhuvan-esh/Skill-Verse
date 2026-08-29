@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Code2,
   BookOpen,
@@ -28,7 +28,11 @@ import {
   ArrowRight,
   Users,
   MapPin,
-  Crown
+  Crown,
+  Edit3,
+  X,
+  Save,
+  CheckCheck
 } from 'lucide-react';
 import {
   evaluateCodingAchievements,
@@ -119,6 +123,84 @@ export default function StudentCodingProfileView({
   const [calendarYear, setCalendarYear] = useState<number>(new Date().getFullYear());
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number | null>(15);
 
+  // Editable Profile Header Information State (Clean baseline for newly created accounts)
+  const [profileName, setProfileName] = useState<string>(user?.name || '');
+  const [profileYearBranch, setProfileYearBranch] = useState<string>('');
+  const [profileBio, setProfileBio] = useState<string>('');
+  const [isProfileInfoModalOpen, setIsProfileInfoModalOpen] = useState(false);
+
+  // Edit Buffer States
+  const [editName, setEditName] = useState('');
+  const [editYearBranch, setEditYearBranch] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+
+  // Dynamic Metrics & Stats
+  const creditsDisplay = user?.credits?.total !== undefined
+    ? `${user.credits.total} Pts`
+    : typeof user?.credits === 'number'
+    ? `${user.credits} Pts`
+    : '0 Pts';
+
+  // Load profile details from backend API
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`/api/skill-barter/profile?userId=${encodeURIComponent(user?.id || 'default')}`);
+        const data = await res.json();
+        if (res.ok && data.profile) {
+          if (data.profile.name) setProfileName(data.profile.name);
+          if (data.profile.yearBranch) setProfileYearBranch(data.profile.yearBranch);
+          if (data.profile.bio) setProfileBio(data.profile.bio);
+        }
+      } catch {
+        // Keep initial clean baseline
+      }
+    };
+    fetchProfile();
+  }, [user?.id]);
+
+  const handleOpenProfileInfoModal = () => {
+    setEditName(profileName || user?.name || '');
+    setEditYearBranch(profileYearBranch || '');
+    setEditBio(profileBio || '');
+    setIsProfileInfoModalOpen(true);
+  };
+
+  const handleSaveProfileInfo = async () => {
+    try {
+      setIsSaving(true);
+      const res = await fetch('/api/skill-barter/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id || 'default',
+          name: editName,
+          yearBranch: editYearBranch,
+          bio: editBio,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setProfileName(editName);
+        setProfileYearBranch(editYearBranch);
+        setProfileBio(editBio);
+        setIsProfileInfoModalOpen(false);
+        setFeedbackMsg('✓ Profile information updated successfully!');
+        setTimeout(() => setFeedbackMsg(null), 4000);
+        if (onRefresh) onRefresh();
+      } else {
+        throw new Error(data.error || 'Failed to update profile info');
+      }
+    } catch (e: any) {
+      setFeedbackMsg(e.message || 'Error updating profile info');
+      setTimeout(() => setFeedbackMsg(null), 4000);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // 1. Coding Arena Milestones (20 Badges) — Open / 1 Unlocked (#1 Code Starter) & All others locked!
   const codingMetrics: CodingActivityMetrics = {
     challengesCompleted: 1,
@@ -206,6 +288,17 @@ export default function StudentCodingProfileView({
   return (
     <div className="space-y-8 max-w-5xl mx-auto py-2 font-sans">
 
+      {/* Feedback Banner */}
+      {feedbackMsg && (
+        <div className="p-3.5 rounded-xl text-xs font-mono font-bold flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 shadow-md">
+          <span className="flex items-center gap-2">
+            <CheckCheck className="w-4 h-4 text-emerald-400" />
+            <span>{feedbackMsg}</span>
+          </span>
+          <button onClick={() => setFeedbackMsg(null)} className="text-slate-400 hover:text-white cursor-pointer">✕</button>
+        </div>
+      )}
+
       {/* =================================================================== */}
       {/* 1. CODER PROFILE HEADER CARD                                       */}
       {/* =================================================================== */}
@@ -216,7 +309,15 @@ export default function StudentCodingProfileView({
             <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-600 via-indigo-600 to-pink-500 flex items-center justify-center text-5xl shadow-2xl ring-4 ring-[#080910]">
               👩‍💻
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={handleOpenProfileInfoModal}
+                className="px-3.5 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Edit Profile Info</span>
+              </button>
+
               <span className="px-3.5 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md">
                 <CalendarIcon className="w-3.5 h-3.5 text-purple-400" />
                 <span>Consistent Helper · Verified Builder</span>
@@ -224,25 +325,39 @@ export default function StudentCodingProfileView({
             </div>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight font-heading">
-              {user?.name || 'demo L'}
-            </h2>
+          {/* Header Texts (Empty defaults with friendly placeholders) */}
+          <div className="group relative">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-2xl font-bold text-white tracking-tight font-heading">
+                {profileName || user?.name || 'New Participant'}
+              </h2>
+              <button
+                onClick={handleOpenProfileInfoModal}
+                className="p-1 rounded-lg text-slate-500 hover:text-purple-400 hover:bg-white/5 transition-colors cursor-pointer"
+                title="Edit name, branch and bio"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <p className="text-xs text-slate-400 font-mono mt-1">
-              3rd Year · Computer Science & Engineering (CSE)
+              {profileYearBranch || (
+                <span className="text-slate-500 italic">Branch & Year not specified · Tap Edit Profile Info</span>
+              )}
             </p>
             <p className="text-xs text-slate-400 mt-2 font-light max-w-2xl leading-relaxed">
-              Active student developer contributing to peer learning circles, AI algorithm challenges, and full-stack web applications.
+              {profileBio || (
+                <span className="text-slate-500 italic">No bio added yet. Tap &quot;Edit Profile Info&quot; to describe your focus and skills.</span>
+              )}
             </p>
           </div>
 
-          {/* Stats Grid */}
+          {/* Stats Grid (Clean zero baselines for new accounts) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
             {[
-              { label: 'Credits Earned', value: '85 Pts', color: 'text-purple-400' },
-              { label: 'Peers Helped', value: '6 Students', color: 'text-emerald-400' },
-              { label: 'Sessions Done', value: '8 Sessions', color: 'text-cyan-400' },
-              { label: 'Average Rating', value: '4.9 ★', color: 'text-amber-400' },
+              { label: 'Credits Earned', value: creditsDisplay, color: 'text-purple-400' },
+              { label: 'Peers Helped', value: '0 Students', color: 'text-emerald-400' },
+              { label: 'Sessions Done', value: '0 Sessions', color: 'text-cyan-400' },
+              { label: 'Average Rating', value: '0.0 ★', color: 'text-amber-400' },
             ].map(({ label, value, color }) => (
               <div key={label} className="text-center p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                 <p className={`text-base font-bold font-mono ${color}`}>{value}</p>
@@ -598,31 +713,34 @@ export default function StudentCodingProfileView({
                     className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer relative overflow-hidden flex flex-col items-center justify-center group ${
                       isEarned
                         ? 'bg-gradient-to-b from-purple-950/40 via-slate-900 to-slate-950 border-purple-500/40 hover:border-purple-300 hover:scale-110 shadow-lg ring-1 ring-purple-500/20'
-                        : badge.isNextAchievable
-                        ? 'bg-slate-900/90 border-amber-500/40 hover:border-amber-300 hover:scale-110 ring-1 ring-amber-500/20'
                         : 'bg-white/[0.02] border-white/[0.05] opacity-45 hover:opacity-85 hover:scale-105'
                     }`}
                   >
-                    {/* Top Bar: Badge Number & Quick Status */}
-                    <div className="w-full flex items-center justify-between text-[10px] font-mono mb-1">
-                      <span className="font-bold text-purple-400">#{badge.badgeNumber}</span>
-                      {isEarned ? (
-                        <span className="text-emerald-400 text-[10px] font-bold">✓ Earned</span>
-                      ) : badge.isNextAchievable ? (
-                        <span className="text-amber-300 text-[9px] font-bold">Next Goal</span>
-                      ) : (
-                        <span className="text-slate-500 text-[9px]">🔒 Locked</span>
-                      )}
+                    {/* Top Tag with Level / Lock */}
+                    <div className="flex items-center justify-between w-full mb-1">
+                      <span className="text-[10px] font-mono font-bold text-purple-300">
+                        #{badge.badgeNumber}
+                      </span>
+                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${
+                        isEarned ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/5 text-slate-500'
+                      }`}>
+                        {isEarned ? 'UNLOCKED' : 'LOCKED'}
+                      </span>
                     </div>
 
-                    {/* Pure Logo Icon */}
-                    <div className={`w-18 h-18 rounded-2xl flex items-center justify-center text-4xl my-2 shadow-inner transition-transform group-hover:scale-115 ${
-                      isEarned
-                        ? 'bg-gradient-to-br ' + badge.color + ' text-white shadow-xl ring-2 ring-white/10'
-                        : 'bg-white/5 text-slate-400 border border-white/10 grayscale'
+                    {/* Pure Big Logo Visual */}
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl my-2 shadow-inner group-hover:scale-115 transition-transform ${
+                      isEarned ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-white/[0.03] border border-white/[0.05] grayscale'
                     }`}>
                       {badge.icon}
                     </div>
+
+                    {/* Title */}
+                    <p className={`text-xs font-bold truncate max-w-[120px] font-heading ${
+                      isEarned ? 'text-white' : 'text-slate-500'
+                    }`}>
+                      {badge.name}
+                    </p>
                   </div>
                 );
               })}
@@ -632,128 +750,169 @@ export default function StudentCodingProfileView({
       </div>
 
       {/* =================================================================== */}
-      {/* 4. EXACT INTERACTIVE BADGE DETAIL MODAL (WHEN LOGO IS TAPPED)      */}
+      {/* MODAL: EDIT PROFILE INFO (NAME, BRANCH, BIO)                        */}
       {/* =================================================================== */}
-      {selectedBadgeDetail && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md glass-panel p-6 rounded-3xl border border-purple-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
-            {/* Header: Badge # and Tier */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="space-y-0.5">
-                <span className="text-xs font-mono text-purple-400 font-bold block">
-                  Milestone #{selectedBadgeDetail.badgeNumber}
-                </span>
-                <span className="text-sm font-bold text-amber-400 font-heading block">
-                  {selectedBadgeDetail.tierName}
-                </span>
-              </div>
-              <button
-                onClick={() => setSelectedBadgeDetail(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
-              >
-                <XCircle className="w-5 h-5" />
+      {isProfileInfoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl bg-[#0d0e1a] border border-white/10 p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <h3 className="text-base font-bold text-white font-heading flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-purple-400" />
+                <span>Edit Profile Info</span>
+              </h3>
+              <button onClick={() => setIsProfileInfoModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Logo, Title & Category */}
-            <div className="text-center space-y-2 py-2">
-              <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-2xl bg-gradient-to-br ${
-                selectedBadgeDetail.isUnlocked ? selectedBadgeDetail.color : 'from-slate-800 to-slate-900 border border-white/10'
-              }`}>
-                {selectedBadgeDetail.icon}
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-mono text-slate-300 block mb-1">Display Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="e.g. Rahul Sharma"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono"
+                />
               </div>
-              <h3 className="text-xl font-extrabold text-white font-heading">
-                {selectedBadgeDetail.name}
-              </h3>
-              <p className="text-xs text-purple-300 font-mono">
-                {selectedBadgeDetail.category}
-              </p>
+
+              <div>
+                <label className="text-xs font-mono text-slate-300 block mb-1">Year & Branch</label>
+                <input
+                  type="text"
+                  value={editYearBranch}
+                  onChange={(e) => setEditYearBranch(e.target.value)}
+                  placeholder="e.g. 3rd Year · Computer Science & Engineering (CSE)"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-mono text-slate-300 block mb-1">Bio / About Me</label>
+                <textarea
+                  rows={3}
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  placeholder="Describe your technical focus, passion projects, and coding interests..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-sans leading-relaxed"
+                />
+              </div>
             </div>
 
-            {/* Requirement & Status Box */}
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 text-xs">
-              <div>
-                <span className="text-slate-400 font-mono uppercase block text-[10px]">Requirement:</span>
-                <p className="text-white font-semibold mt-0.5">{selectedBadgeDetail.requirement}</p>
-              </div>
-
-              <div>
-                <span className="text-slate-400 font-mono uppercase block text-[10px]">Status:</span>
-                <p className={`font-bold mt-0.5 font-mono ${
-                  selectedBadgeDetail.isUnlocked ? 'text-emerald-400' : 'text-amber-400'
-                }`}>
-                  {selectedBadgeDetail.isUnlocked ? '✓ Unlocked & Earned in Coding Arena' : '🔒 Locked — Complete prerequisite sprint goals'}
-                </p>
-              </div>
-
-              <div>
-                <span className="text-slate-400 font-mono uppercase block text-[10px]">Description:</span>
-                <p className="text-slate-300 leading-relaxed mt-0.5">{selectedBadgeDetail.description}</p>
-              </div>
-            </div>
-
-            {/* Close Button */}
-            <div className="pt-2 flex justify-end">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
               <button
-                onClick={() => setSelectedBadgeDetail(null)}
-                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs cursor-pointer"
+                type="button"
+                onClick={() => setIsProfileInfoModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-white/5 text-slate-400 hover:text-white text-xs font-mono cursor-pointer"
               >
-                Close
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveProfileInfo}
+                disabled={isSaving}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-lg"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>{isSaving ? 'Saving...' : 'Save Profile Info'}</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Grand Master Prestige Badge detail modal */}
-      {selectedGhBadgeDetail && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md glass-panel p-6 rounded-3xl border border-cyan-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+      {/* =================================================================== */}
+      {/* BADGE INSPECT DETAIL MODALS (CODING + GRAND MASTER)                 */}
+      {/* =================================================================== */}
+      {selectedBadgeDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl bg-[#0d0e1a] border border-purple-500/30 p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-xs font-mono text-cyan-400 font-bold flex items-center gap-1">
-                <Crown className="w-3.5 h-3.5 text-amber-400" />
-                <span>Grand Master Prestige Badge</span>
+              <span className="text-xs font-mono font-bold text-purple-300">
+                Badge #{selectedBadgeDetail.badgeNumber} · {selectedBadgeDetail.category}
               </span>
-              <button
-                onClick={() => setSelectedGhBadgeDetail(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
-              >
-                <XCircle className="w-5 h-5" />
+              <button onClick={() => setSelectedBadgeDetail(null)} className="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer">
+                <X className="w-4 h-4" />
               </button>
             </div>
-
-            <div className="text-center space-y-2 py-2">
-              <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-5xl shadow-2xl ${
-                selectedGhBadgeDetail.isUnlocked ? 'bg-cyan-500/20 border border-cyan-500/40' : 'bg-white/5 border border-white/10 grayscale'
-              }`}>
-                {selectedGhBadgeDetail.icon}
+            <div className="text-center space-y-3 py-2">
+              <div className="w-20 h-20 mx-auto rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-5xl shadow-lg">
+                {selectedBadgeDetail.icon}
               </div>
-              <h3 className="text-xl font-extrabold text-white font-heading">
-                {selectedGhBadgeDetail.name}
-              </h3>
-              <p className="text-xs text-cyan-300 font-mono">
-                {selectedGhBadgeDetail.category}
-              </p>
+              <h3 className="text-lg font-bold text-white font-heading">{selectedBadgeDetail.name}</h3>
+              <p className="text-xs text-slate-300 font-sans leading-relaxed">{selectedBadgeDetail.description}</p>
             </div>
-
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 text-xs">
-              <p className="text-slate-300 leading-relaxed">{selectedGhBadgeDetail.description}</p>
-              <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono">
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-xs font-mono space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Unlock Requirement:</span>
+                <span className="text-purple-300 font-bold">{selectedBadgeDetail.requirement}</span>
+              </div>
+              <div className="flex items-center justify-between">
                 <span className="text-slate-400">Status:</span>
-                <span className={selectedGhBadgeDetail.isUnlocked ? 'text-emerald-400 font-bold' : 'text-slate-500'}>
-                  {selectedGhBadgeDetail.isUnlocked ? '✓ Grand Achievement Earned' : '🔒 Locked — High-Stakes Milestone'}
+                <span className={selectedBadgeDetail.isUnlocked ? 'text-emerald-400 font-bold' : 'text-slate-500'}>
+                  {selectedBadgeDetail.isUnlocked ? '✓ UNLOCKED' : '🔒 LOCKED'}
                 </span>
               </div>
+              {selectedBadgeDetail.unlockedAt && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Earned Date:</span>
+                  <span className="text-amber-300 font-bold">{selectedBadgeDetail.unlockedAt}</span>
+                </div>
+              )}
             </div>
+            <button
+              onClick={() => setSelectedBadgeDetail(null)}
+              className="w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-mono font-bold cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setSelectedGhBadgeDetail(null)}
-                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs cursor-pointer"
-              >
-                Close
+      {selectedGhBadgeDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl bg-[#0d0e1a] border border-cyan-500/30 p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <span className="text-xs font-mono font-bold text-cyan-300">
+                Grand Master Prestige Badge
+              </span>
+              <button onClick={() => setSelectedGhBadgeDetail(null)} className="p-1 rounded-lg text-slate-400 hover:text-white cursor-pointer">
+                <X className="w-4 h-4" />
               </button>
             </div>
+            <div className="text-center space-y-3 py-2">
+              <div className="w-20 h-20 mx-auto rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-5xl shadow-lg">
+                {selectedGhBadgeDetail.icon}
+              </div>
+              <h3 className="text-lg font-bold text-white font-heading">{selectedGhBadgeDetail.name}</h3>
+              <p className="text-xs text-slate-300 font-sans leading-relaxed">{selectedGhBadgeDetail.description}</p>
+            </div>
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-xs font-mono space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Current Level:</span>
+                <span className="text-cyan-300 font-bold">x{selectedGhBadgeDetail.currentLevel || 1}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Status:</span>
+                <span className={selectedGhBadgeDetail.isUnlocked ? 'text-emerald-400 font-bold' : 'text-slate-500'}>
+                  {selectedGhBadgeDetail.isUnlocked ? '✓ UNLOCKED' : '🔒 LOCKED'}
+                </span>
+              </div>
+              {selectedGhBadgeDetail.unlockedAt && (
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Earned Date:</span>
+                  <span className="text-amber-300 font-bold">{selectedGhBadgeDetail.unlockedAt}</span>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setSelectedGhBadgeDetail(null)}
+              className="w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-mono font-bold cursor-pointer"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

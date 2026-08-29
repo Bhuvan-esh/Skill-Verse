@@ -549,6 +549,12 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   const [chatInput, setChatInput] = useState('');
   const [sendingMsg, setSendingMsg] = useState(false);
   const [completingSession, setCompletingSession] = useState(false);
+  const [isEndSessionModalOpen, setIsEndSessionModalOpen] = useState(false);
+  const [endSessionTarget, setEndSessionTarget] = useState<BarterSession | null>(null);
+  const [endSessionRating, setEndSessionRating] = useState<number>(0);
+  const [endSessionHoverRating, setEndSessionHoverRating] = useState<number>(0);
+  const [endSessionFeedbackText, setEndSessionFeedbackText] = useState<string>('');
+  const [endingSessionLoading, setEndingSessionLoading] = useState<boolean>(false);
 
   const [sidebarFilter, setSidebarFilter] = useState<'ALL' | 'UNREAD' | 'TEACHING' | 'LEARNING'>('ALL');
   const [sidebarSearch, setSidebarSearch] = useState('');
@@ -784,6 +790,116 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       setCustomMeetingUrl('');
     } finally {
       setSendingMsg(false);
+    }
+  };
+
+  const handleOpenEndSessionModal = (sess: BarterSession) => {
+    setEndSessionTarget(sess);
+    setEndSessionRating(0);
+    setEndSessionHoverRating(0);
+    setEndSessionFeedbackText('');
+    setIsEndSessionModalOpen(true);
+  };
+
+  const handleSubmitEndSessionFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!endSessionTarget) return;
+
+    if (endSessionRating < 1) {
+      showFeedback('Please select a star rating (1 to 5 stars) before completing the session.', 'error');
+      return;
+    }
+
+    try {
+      setEndingSessionLoading(true);
+      const creditDelta = endSessionRating >= 4 ? 15 : endSessionRating === 3 ? 5 : -10;
+      const targetPartnerName = endSessionTarget.name || 'Peer';
+
+      // 1. Mark session COMPLETED locally
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === endSessionTarget.id
+            ? { ...s, status: 'COMPLETED', lastMessage: '🏁 Session ended with feedback submitted.' }
+            : s
+        )
+      );
+
+      // 2. Submit to /api/skill-barter/session-feedback
+      await fetch('/api/skill-barter/session-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: endSessionTarget.id,
+          giverName: user?.name || 'demo L',
+          receiverName: targetPartnerName,
+          skill: endSessionTarget.skill || 'Technical Barter',
+          rating: endSessionRating,
+          feedbackText: endSessionFeedbackText.trim() || 'Excellent live technical walkthrough and barter exchange!',
+          isPeerVaultLinked: true,
+        }),
+      });
+
+      // 3. If matching a PeerVault video, also submit to PeerVault public reviews
+      const matchingVideo = learningVideos.find(
+        (v) =>
+          v.topic.toLowerCase().includes((endSessionTarget.skill || '').toLowerCase()) ||
+          (endSessionTarget.skill || '').toLowerCase().includes(v.topic.toLowerCase()) ||
+          v.student_name.toLowerCase() === targetPartnerName.toLowerCase()
+      );
+
+      if (matchingVideo) {
+        try {
+          await fetch('/api/skill-barter/videos/' + matchingVideo.id + '/feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              reviewer_name: user?.name || 'demo L',
+              rating: endSessionRating,
+              feedback_text: endSessionFeedbackText.trim() || 'Great 1:1 session following up on your PeerVault video!',
+            }),
+          });
+
+          // Optimistically append review to PeerVault video
+          setLearningVideos((prev) =>
+            prev.map((v) => {
+              if (v.id === matchingVideo.id) {
+                const newRev = {
+                  id: 'rev-' + Date.now(),
+                  reviewer_name: user?.name || 'demo L',
+                  rating: endSessionRating,
+                  sentiment: (endSessionRating >= 4 ? 'POSITIVE' : endSessionRating === 3 ? 'NEUTRAL' : 'CRITICAL') as any,
+                  feedback_text: endSessionFeedbackText.trim() || 'Great 1:1 session following up on your PeerVault video!',
+                  created_at: new Date().toISOString(),
+                  credit_impact: creditDelta,
+                };
+                const updatedRevs = [newRev, ...v.reviews];
+                const avg = Number((updatedRevs.reduce((acc, r) => acc + r.rating, 0) / updatedRevs.length).toFixed(1));
+                return {
+                  ...v,
+                  reviews: updatedRevs,
+                  average_rating: avg,
+                  creator_credits: v.creator_credits + creditDelta,
+                };
+              }
+              return v;
+            })
+          );
+        } catch {
+          // ignore
+        }
+      }
+
+      showFeedback(
+        '✓ Session ended! Feedback & ' + (creditDelta >= 0 ? '+' + creditDelta : creditDelta) + ' Credits applied to ' + targetPartnerName + ' progress & PeerVault!'
+      );
+      setIsEndSessionModalOpen(false);
+      setEndSessionTarget(null);
+      setEndSessionFeedbackText('');
+    } catch (e: any) {
+      showFeedback('Session marked as completed.');
+      setIsEndSessionModalOpen(false);
+    } finally {
+      setEndingSessionLoading(false);
     }
   };
 
@@ -1882,15 +1998,26 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 sm:gap-2 text-slate-300">
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-slate-300">
                     {activeSession.status === 'ACTIVE' && (
-                      <button
-                        onClick={() => setIsMeetingModalOpen(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-[#00a884]/20 text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/30 transition-all cursor-pointer"
-                      >
-                        <Video className="w-3.5 h-3.5" />
-                        <span>Meet Link</span>
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleOpenEndSessionModal(activeSession)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-all cursor-pointer shadow-md shadow-rose-500/10"
+                          title="End this session and rate your experience"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-rose-400" />
+                          <span>End Session</span>
+                        </button>
+
+                        <button
+                          onClick={() => setIsMeetingModalOpen(true)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-[#00a884]/20 text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/30 transition-all cursor-pointer"
+                        >
+                          <Video className="w-3.5 h-3.5" />
+                          <span>Meet Link</span>
+                        </button>
+                      </>
                     )}
 
                     <div className="relative">
@@ -1902,17 +2029,17 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                       </button>
 
                       {isHeaderMenuOpen && (
-                        <div className="absolute right-0 top-11 w-48 rounded-2xl bg-[#233138] border border-white/10 shadow-2xl py-1.5 z-50 text-xs font-sans">
+                        <div className="absolute right-0 top-11 w-52 rounded-2xl bg-[#233138] border border-white/10 shadow-2xl py-1.5 z-50 text-xs font-sans">
                           {activeSession.status === 'ACTIVE' && (
                             <button
                               onClick={() => {
-                                handleCompleteSession(activeSession.id);
+                                handleOpenEndSessionModal(activeSession);
                                 setIsHeaderMenuOpen(false);
                               }}
-                              className="w-full text-left px-4 py-2 hover:bg-white/10 text-emerald-300 flex items-center gap-2 cursor-pointer"
+                              className="w-full text-left px-4 py-2 hover:bg-white/10 text-rose-300 flex items-center gap-2 cursor-pointer font-bold"
                             >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Mark Complete</span>
+                              <CheckCircle2 className="w-3.5 h-3.5 text-rose-400" />
+                              <span>End Session & Feedback</span>
                             </button>
                           )}
                           <button
@@ -2128,7 +2255,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
                   <div className="space-y-2 text-xs">
                     <div>
-                      <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold">Can Teach:</span>
+                      <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold">Can Guide:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {peer.canTeach.map((t) => (
                           <span key={t} className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[10px] font-mono">
@@ -2138,7 +2265,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                       </div>
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold">Wants to Learn:</span>
+                      <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold">Eager to Learn:</span>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {peer.wantsToLearn.map((l) => (
                           <span key={l} className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[10px] font-mono">
@@ -3298,6 +3425,149 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+    
+      {/* ============================================================ */}
+      {/* MODAL 10: END SESSION & GIVE FEEDBACK MODAL                  */}
+      {/* ============================================================ */}
+      {isEndSessionModalOpen && endSessionTarget && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <form
+            onSubmit={handleSubmitEndSessionFeedback}
+            className="relative w-full max-w-lg glass-panel p-6 sm:p-7 rounded-3xl border border-emerald-500/40 shadow-2xl space-y-5 bg-gradient-to-b from-slate-900 to-[#07080f] font-sans"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-inner">
+                  <Star className="w-5 h-5 fill-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white font-heading">
+                    End Session & Rate Experience
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    Session with {endSessionTarget.name || 'Peer'} ({endSessionTarget.skill})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEndSessionModalOpen(false);
+                  setEndSessionTarget(null);
+                }}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Star Rating Selector (Golden ONLY upon selection/hover) */}
+            <div className="text-center space-y-2 py-2 bg-white/[0.02] p-4 rounded-2xl border border-white/5">
+              <span className="text-[11px] font-mono text-slate-300 uppercase tracking-wide block">
+                How would you rate this barter exchange?
+              </span>
+              <div
+                className="flex items-center justify-center gap-2 py-1"
+                onMouseLeave={() => setEndSessionHoverRating(0)}
+              >
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const effectiveRating = endSessionHoverRating || endSessionRating;
+                  const isGold = star <= effectiveRating;
+                  return (
+                    <button
+                      key={star}
+                      type="button"
+                      onMouseEnter={() => setEndSessionHoverRating(star)}
+                      onClick={() => setEndSessionRating(star)}
+                      className="p-1.5 transition-all duration-150 hover:scale-125 cursor-pointer focus:outline-none"
+                    >
+                      <Star
+                        className={`w-8 h-8 transition-colors ${
+                          isGold
+                            ? 'text-amber-400 fill-amber-400 filter drop-shadow-[0_0_10px_rgba(251,191,36,0.7)]'
+                            : 'text-slate-700 fill-transparent hover:text-slate-500'
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="text-xs font-mono min-h-[20px] flex items-center justify-center">
+                {(() => {
+                  const effectiveRating = endSessionHoverRating || endSessionRating;
+                  if (effectiveRating === 0) {
+                    return <span className="text-slate-400">⭐ Tap a star above to rate (1 to 5 Stars)</span>;
+                  }
+                  if (effectiveRating === 5) {
+                    return <span className="text-amber-400 font-bold">★★★★★ Outstanding Experience (+15 Credits)</span>;
+                  }
+                  if (effectiveRating === 4) {
+                    return <span className="text-amber-400 font-bold">★★★★☆ Great Session (+15 Credits)</span>;
+                  }
+                  if (effectiveRating === 3) {
+                    return <span className="text-amber-300 font-bold">★★★☆☆ Good / Neutral (+5 Credits)</span>;
+                  }
+                  if (effectiveRating === 2) {
+                    return <span className="text-rose-400 font-bold">★★☆☆☆ Needs Improvement (-10 Credits)</span>;
+                  }
+                  return <span className="text-rose-400 font-bold">★☆☆☆☆ Poor Experience (-10 Credits)</span>;
+                })()}
+              </div>
+            </div>
+
+            {/* Feedback Comment Textarea */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-300 font-sans block">
+                Feedback & Review Comments:
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={endSessionFeedbackText}
+                onChange={(e) => setEndSessionFeedbackText(e.target.value)}
+                placeholder="Describe what you learned, query solutions provided, and helpfulness of the peer..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-sans leading-relaxed"
+              />
+            </div>
+
+            {/* Live Progress & PeerVault Sync Info Notice */}
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1 text-xs text-emerald-200">
+              <div className="flex items-center gap-1.5 font-bold font-mono text-emerald-300">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Automatic Dual-Progress & PeerVault Sync:</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-slate-300">
+                • <strong>Your Progress</strong>: Recorded in <em>Feedback given to other participants</em>.<br />
+                • <strong>{endSessionTarget.name}&apos;s Progress</strong>: Recorded in <em>Feedback received from other participants</em>.<br />
+                • <strong>PeerVault</strong>: If related to a PeerVault video topic, this review is posted publicly under <strong>Public Peer Reviews</strong>!
+              </p>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEndSessionModalOpen(false);
+                  setEndSessionTarget(null);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={endingSessionLoading}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white text-xs font-mono font-bold shadow-lg shadow-emerald-600/30 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Check className="w-4 h-4" />
+                <span>{endingSessionLoading ? 'Submitting...' : 'Submit Feedback & Complete Session →'}</span>
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

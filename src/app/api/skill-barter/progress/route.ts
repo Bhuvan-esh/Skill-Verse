@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { GLOBAL_SESSION_FEEDBACKS } from '@/lib/sessionFeedbackStore';
 
 export async function GET(req: Request) {
   try {
@@ -101,7 +102,7 @@ export async function GET(req: Request) {
     ];
 
     // 3. Feedback exchanged (What OTHER participants have given to THIS participant)
-    const col3Cards = [
+    const baseCol3Cards = [
       {
         id: 'c3-1',
         avatar: 'RH',
@@ -171,7 +172,7 @@ export async function GET(req: Request) {
     ];
 
     // 4. Feedback given to other participants (What THIS participant has given to others)
-    const col4Cards = [
+    const baseCol4Cards = [
       {
         id: 'c4-1',
         avatar: 'RH',
@@ -219,6 +220,53 @@ export async function GET(req: Request) {
       },
     ];
 
+    // Live Dynamic Feedbacks from End Session
+    const dynamicReceived = (GLOBAL_SESSION_FEEDBACKS || [])
+      .filter((f) => f.receiverName.toLowerCase() === userName.toLowerCase() || userName === 'Anusha A')
+      .map((f) => ({
+        id: f.id,
+        avatar: f.giverName.substring(0, 2).toUpperCase(),
+        avatarBg: '#E8B84B',
+        avatarColor: '#1A1204',
+        heading: `${f.giverName} → You`,
+        subheading: `Session Feedback: ${f.skill}`,
+        isHighlight: true,
+        feedbacks: [
+          {
+            label: 'Session Feedback Received',
+            text: f.feedbackText,
+            rating: '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating),
+            sentiment: f.sentiment,
+            credits: `+${f.creditImpact} Credits Received`,
+          },
+        ],
+        date: '📅 Today',
+        comments: 1,
+        attachments: 1,
+        search: `${f.giverName} ${f.skill} ${f.feedbackText}`.toLowerCase(),
+      }));
+
+    const dynamicGiven = (GLOBAL_SESSION_FEEDBACKS || [])
+      .filter((f) => f.giverName.toLowerCase() === userName.toLowerCase() || userName === 'Anusha A')
+      .map((f) => ({
+        id: f.id,
+        avatar: f.receiverName.substring(0, 2).toUpperCase(),
+        avatarBg: '#9E92F0',
+        avatarColor: '#16122C',
+        name: f.receiverName,
+        role: `Feedback given for: ${f.skill}`,
+        text: `You gave: "${f.feedbackText}"`,
+        rating: '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating),
+        creditImpact: `+${f.creditImpact} Credits Awarded to ${f.receiverName}`,
+        date: '📅 Today',
+        comments: 1,
+        attachments: 1,
+        search: `${f.receiverName} ${f.skill} ${f.feedbackText}`.toLowerCase(),
+      }));
+
+    const col3Cards = [...dynamicReceived, ...baseCol3Cards];
+    const col4Cards = [...dynamicGiven, ...baseCol4Cards];
+
     return NextResponse.json({
       success: true,
       col1: col1Cards,
@@ -226,9 +274,9 @@ export async function GET(req: Request) {
       col3: col3Cards,
       col4: col4Cards,
       stats: {
-        sessionsCompletedPct: 80,
+        sessionsCompletedPct: 85,
         classesInProgress: 3,
-        creditsEarnedThisWeek: 45,
+        creditsEarnedThisWeek: 60,
       },
     });
   } catch (error: any) {
