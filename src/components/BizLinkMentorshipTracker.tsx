@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, MessageSquare, Paperclip, MoreVertical } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, MessageSquare, Paperclip, MoreVertical, Film, Star, ThumbsUp, CheckCheck, BookOpen, Users, Sparkles } from 'lucide-react';
 
 interface BizLinkMentorshipTrackerProps {
   user?: any;
@@ -9,6 +9,7 @@ interface BizLinkMentorshipTrackerProps {
 
 export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrackerProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const displayName = user?.name || 'Anusha A';
   const displayInitials = displayName
@@ -20,21 +21,21 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
 
   const q = searchQuery.trim().toLowerCase();
 
-  // Cards data
-  const col1Cards = [
+  // Column 1: Mentoring already delivered (from My Sessions teaching & PeerVault published walkthroughs)
+  const [col1Cards, setCol1Cards] = useState([
     {
       id: 'c1-1',
       avatar: 'RH',
       avatarBg: '#E8B84B',
       avatarColor: '#1A1204',
-      name: 'Rahul',
-      role: '4th yr · CSE',
-      text: 'Ran a live walkthrough on SQL queries for two students this weekend',
-      tags: ['Mentor', 'SQL', 'PostgreSQL'],
-      date: '📅 18 Apr',
-      comments: 2,
-      attachments: 1,
-      search: 'rahul 4th yr cse mentor sql postgresql walkthrough queries',
+      name: 'Rahul Sharma',
+      role: 'Mentor · Database Systems',
+      text: 'Published PeerVault walkthrough on PostgreSQL B-Tree Indexing & EXPLAIN ANALYZE scan evaluation.',
+      tags: ['PeerVault', 'PostgreSQL', 'My Sessions'],
+      date: '📅 27 Aug',
+      comments: 3,
+      attachments: 2,
+      search: 'rahul sharma database systems postgresql btree indexing peervault walkthrough sessions',
     },
     {
       id: 'c1-2',
@@ -42,13 +43,13 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
       avatarBg: '#4FD1C5',
       avatarColor: '#0C1E1B',
       name: 'Meera K',
-      role: '3rd yr · AI & DS',
-      text: 'Helped set up a first Django project end to end',
-      tags: ['Mentor', 'Python', 'Django'],
-      date: '📅 21 Mar',
-      comments: 1,
+      role: 'Mentor · Web Architecture',
+      text: 'Conducted 1:1 live session and PeerVault walkthrough on Next.js 14 Server Actions & streaming SSR.',
+      tags: ['PeerVault', 'Next.js 14', 'React'],
+      date: '📅 26 Aug',
+      comments: 2,
       attachments: 3,
-      search: 'meera k 3rd yr ai ds mentor python django setup project',
+      search: 'meera k web architecture nextjs server actions streaming ssr react peervault',
     },
     {
       id: 'c1-3',
@@ -56,155 +57,205 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
       avatarBg: '#9E92F0',
       avatarColor: '#16122C',
       name: 'Sanjay V',
-      role: '3rd yr · ISE',
-      text: 'Walked a student through Docker basics and containerizing a small app',
-      tags: ['Mentor', 'Docker', 'DevOps'],
-      date: '📅 No due date',
+      role: 'Mentor · Cloud DevOps',
+      text: 'Delivered hands-on containerization walkthrough on Docker Multi-Stage Builds & Kubernetes Pod Orchestration.',
+      tags: ['PeerVault', 'Docker', 'Kubernetes'],
+      date: '📅 25 Aug',
       comments: 4,
-      attachments: 7,
-      search: 'sanjay v 3rd yr ise mentor docker devops containerizing app',
+      attachments: 4,
+      search: 'sanjay v cloud devops docker multistage builds kubernetes pod orchestration devops',
     },
-  ];
+  ]);
 
-  const col2Cards = [
+  // Column 2: Classes learnt so far (from My Sessions learning & PeerVault study tracks)
+  const [col2Cards, setCol2Cards] = useState([
     {
       id: 'c2-1',
-      avatar: 'PS',
-      avatarBg: '#4FD1C5',
-      avatarColor: '#0C1E1B',
-      name: 'Priya S',
-      role: 'Learning: GenAI',
-      text: 'Working through transformers & attention for her GenAI project',
-      progressText: 'No. of classes learnt: 6 / 10',
-      progressPct: 60,
-      date: '📅 09 Mar',
-      comments: 4,
-      attachments: 1,
-      search: 'priya s learning genai transformers attention project classes',
-    },
-    {
-      id: 'c2-2',
-      avatar: 'DK',
-      avatarBg: '#F2665A',
-      avatarColor: '#1F0B09',
-      name: 'Deepak K',
-      role: 'Learning: HTML & CSS',
-      text: 'Cleaning up portfolio layout and flex structure',
-      progressText: 'No. of classes learnt: 2 / 8',
-      progressPct: 25,
-      date: '📅 No due date',
-      comments: 7,
-      attachments: 2,
-      search: 'deepak k learning html css portfolio layout flex structure',
-    },
-    {
-      id: 'c2-3',
       avatar: 'AA',
       avatarBg: '#E8B84B',
       avatarColor: '#1A1204',
-      name: 'Anusha A',
-      role: 'Learning: Kubernetes',
-      text: 'Onboarding onto open-source contribution workflow',
-      progressText: 'No. of classes learnt: 0 / 5',
-      progressPct: 0,
-      date: '📅 23 Apr',
+      name: displayName,
+      role: 'Learning: PostgreSQL & SQL Performance',
+      text: 'Practiced B-Tree index scan diagrams and query plan optimization with Rahul Sharma in My Sessions.',
+      progressText: 'No. of classes learnt: 4 / 5',
+      progressPct: 80,
+      date: '📅 28 Aug',
       comments: 2,
-      attachments: 5,
-      search: 'anusha a learning kubernetes onboarding open source contribution workflow',
+      attachments: 2,
+      search: `${displayName.toLowerCase()} learning postgresql sql performance btree index query plan optimization rahul`,
     },
-  ];
+    {
+      id: 'c2-2',
+      avatar: 'MK',
+      avatarBg: '#4FD1C5',
+      avatarColor: '#0C1E1B',
+      name: 'Meera K',
+      role: 'Learning: Docker & Containerization',
+      text: 'Learned multi-stage Alpine Dockerfile optimization and Minikube pod deployment from Sanjay V.',
+      progressText: 'No. of classes learnt: 3 / 4',
+      progressPct: 75,
+      date: '📅 26 Aug',
+      comments: 3,
+      attachments: 1,
+      search: 'meera k learning docker containerization multistage alpine dockerfile minikube sanjay',
+    },
+    {
+      id: 'c2-3',
+      avatar: 'SV',
+      avatarBg: '#9E92F0',
+      avatarColor: '#16122C',
+      name: 'Sanjay V',
+      role: 'Learning: Next.js 14 Full-Stack',
+      text: 'Studied Next.js 14 App Router layout hierarchies and Suspense boundaries from Meera K.',
+      progressText: 'No. of classes learnt: 2 / 3',
+      progressPct: 67,
+      date: '📅 24 Aug',
+      comments: 1,
+      attachments: 2,
+      search: 'sanjay v learning nextjs 14 fullstack app router layouts suspense meera',
+    },
+  ]);
 
-  const col3Cards = [
+  // Column 3: Feedback exchanged (What OTHER participants have given to THIS participant)
+  const [col3Cards, setCol3Cards] = useState([
     {
       id: 'c3-1',
       avatar: 'RH',
       avatarBg: '#E8B84B',
       avatarColor: '#1A1204',
-      heading: 'Rahul → Sanjay',
-      subheading: 'Session: SQL basics',
-      isHighlight: false,
+      heading: 'Rahul Sharma → You',
+      subheading: 'Peer Feedback on: PostgreSQL Index Optimization',
+      isHighlight: true,
       feedbacks: [
-        { label: 'Mentor feedback', text: 'Picks things up fast, just needs more practice explaining concepts out loud.', rating: '★★★★☆' },
-        { label: 'Student feedback', text: 'Explained everything clearly and answered every question patiently.', rating: '★★★★★' },
+        {
+          label: 'Peer Feedback Received',
+          text: 'Super clear self-made video walkthrough! Solved my query latency issue in seconds.',
+          rating: '★★★★★',
+          sentiment: 'POSITIVE',
+          credits: '+15 Credits Received',
+        },
       ],
-      date: '📅 10 Mar',
-      comments: 1,
-      attachments: 3,
-      search: 'rahul sanjay session sql basics picks things up fast practice explaining clearly answered patiently',
+      date: '📅 Today',
+      comments: 2,
+      attachments: 1,
+      search: 'rahul sharma feedback received postgresql index optimization super clear video latency credits',
     },
     {
       id: 'c3-2',
       avatar: 'MK',
       avatarBg: '#4FD1C5',
       avatarColor: '#0C1E1B',
-      heading: 'Meera → Deepak',
-      subheading: 'Session: Django setup',
-      isHighlight: true,
+      heading: 'Meera K → You',
+      subheading: 'Peer Feedback on: 1:1 UI/UX Design System Session',
+      isHighlight: false,
       feedbacks: [
-        { label: 'Mentor feedback', text: 'Confident and well prepared, ready to mentor others in this topic soon.', rating: '★★★★★' },
+        {
+          label: 'Mentee Feedback Received',
+          text: 'Loved the live auto-layout demo and component token system in Figma. Deserves top leaderboard rank!',
+          rating: '★★★★★',
+          sentiment: 'POSITIVE',
+          credits: '+15 Credits Received',
+        },
       ],
-      date: '📅 16 Apr',
+      date: '📅 Yesterday',
       comments: 1,
-      attachments: 1,
-      search: 'meera deepak session django setup confident well prepared mentor topic soon',
+      attachments: 2,
+      search: 'meera k feedback received ui ux design system figma auto layout leaderboard',
     },
     {
       id: 'c3-3',
       avatar: 'SV',
       avatarBg: '#9E92F0',
       avatarColor: '#16122C',
-      heading: 'Sanjay → Priya',
-      subheading: 'Session: Docker basics',
+      heading: 'Sanjay V → You',
+      subheading: 'Peer Feedback on: Docker Compose Walkthrough',
       isHighlight: false,
-      awaitingText: 'Awaiting feedback from both mentor and student',
-      date: '',
-      comments: 0,
-      attachments: 0,
-      search: 'sanjay priya session docker basics awaiting feedback mentor student',
+      feedbacks: [
+        {
+          label: 'Peer Review Received',
+          text: 'Shrunk our container image from 1.2GB down to 68MB. Phenomenal video guide!',
+          rating: '★★★★★',
+          sentiment: 'POSITIVE',
+          credits: '+15 Credits Received',
+        },
+      ],
+      date: '📅 25 Aug',
+      comments: 3,
+      attachments: 1,
+      search: 'sanjay v feedback received docker compose walkthrough container image shrunk',
     },
-  ];
+  ]);
 
-  const col4Cards = [
+  // Column 4: Feedback given to other participants (What THIS participant has given to others)
+  const [col4Cards, setCol4Cards] = useState([
     {
       id: 'c4-1',
-      avatar: 'PS',
-      avatarBg: '#4FD1C5',
-      avatarColor: '#0C1E1B',
-      name: 'Priya S',
-      role: 'ML mentoring · closed',
-      text: 'Completed 4-session mentoring track on machine learning fundamentals',
-      date: '📅 24 Mar',
-      comments: 2,
-      attachments: 1,
-      search: 'priya s ml mentoring closed completed 4-session track machine learning fundamentals',
-    },
-    {
-      id: 'c4-2',
       avatar: 'RH',
       avatarBg: '#E8B84B',
       avatarColor: '#1A1204',
-      name: 'Rahul',
-      role: 'Git mentoring · closed',
-      text: 'Completed a focused session on Git branching and workflows',
-      date: '📅 05 Apr',
-      comments: 1,
-      attachments: 3,
-      search: 'rahul git mentoring closed completed focused session git branching workflows',
+      name: 'Rahul Sharma',
+      role: 'Feedback given for: PostgreSQL B-Tree Walkthrough',
+      text: 'You gave: "Super clear self-made video walkthrough! Solved my query latency issue in seconds."',
+      rating: '★★★★★',
+      creditImpact: '+15 Credits Awarded to Rahul',
+      date: '📅 28 Aug',
+      comments: 2,
+      attachments: 1,
+      search: 'rahul sharma feedback given postgresql btree walkthrough query latency credits',
     },
     {
-      id: 'c4-3',
+      id: 'c4-2',
       avatar: 'MK',
       avatarBg: '#4FD1C5',
       avatarColor: '#0C1E1B',
       name: 'Meera K',
-      role: 'UI design mentoring · closed',
-      text: 'Completed a UI design walkthrough session with Sanjay',
-      date: '📅 30 Mar',
-      comments: 4,
-      attachments: 7,
-      search: 'meera k ui design mentoring closed completed ui design walkthrough session sanjay',
+      role: 'Feedback given for: Next.js 14 App Router Walkthrough',
+      text: 'You gave: "Awesome live coding recording on parallel routes and streaming SSR components. Great job!"',
+      rating: '★★★★★',
+      creditImpact: '+15 Credits Awarded to Meera',
+      date: '📅 27 Aug',
+      comments: 1,
+      attachments: 2,
+      search: 'meera k feedback given nextjs app router parallel routes streaming ssr credits',
     },
-  ];
+    {
+      id: 'c4-3',
+      avatar: 'SV',
+      avatarBg: '#9E92F0',
+      avatarColor: '#16122C',
+      name: 'Sanjay V',
+      role: 'Feedback given for: Docker Multi-Stage Builds',
+      text: 'You gave: "Shrunk our container image from 1.2GB down to 68MB. Phenomenal video guide!"',
+      rating: '★★★★★',
+      creditImpact: '+15 Credits Awarded to Sanjay',
+      date: '📅 25 Aug',
+      comments: 3,
+      attachments: 1,
+      search: 'sanjay v feedback given docker multistage builds container size guide credits',
+    },
+  ]);
+
+  // Fetch live progress from backend
+  useEffect(() => {
+    const fetchProgress = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/skill-barter/progress?name=${encodeURIComponent(displayName)}`);
+        const data = await res.json();
+        if (res.ok) {
+          if (data.col1) setCol1Cards(data.col1);
+          if (data.col2) setCol2Cards(data.col2);
+          if (data.col3) setCol3Cards(data.col3);
+          if (data.col4) setCol4Cards(data.col4);
+        }
+      } catch (e) {
+        console.warn('Progress fetch fallback to synchronized seed data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProgress();
+  }, [displayName]);
 
   const matchFilter = (item: any) => {
     if (!q) return true;
@@ -276,10 +327,10 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
           </div>
           <div>
             <div className="text-[18px] font-semibold text-[#F1EFE6] bizlink-serif leading-tight">
-              BizLink
+              SkillBarter Progress Hub
             </div>
             <div className="text-[10px] uppercase font-bold tracking-[1.5px] text-[#6E6E77] leading-none">
-              Mentorship Tracker
+              Sessions & PeerVault Live Tracker
             </div>
           </div>
         </div>
@@ -292,7 +343,7 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, mentor, topic, or feedback..."
+            placeholder="Search by topic, mentor, peer, or feedback..."
             className="w-full bg-[#1A1D28] border border-[#2E3241] rounded-xl pl-10 pr-4 py-2 text-xs text-[#F1EFE6] placeholder-[#6E6E77] focus:outline-none focus:border-[#E8B84B] transition-colors"
           />
         </div>
@@ -312,58 +363,51 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
       {/* Main Inner Container */}
       <div className="p-6 lg:p-8 space-y-8">
         
-        {/* 2. Weekly progress stats row (4-column grid: 1.4fr 1.05fr 0.6fr 0.9fr) */}
+        {/* 2. Weekly progress stats row */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pb-8 border-b border-[#22252F]">
           
-          {/* Col 1: Bar Chart (1.4fr equivalent ~ col-span-5) */}
+          {/* Col 1: Bar Chart */}
           <div className="md:col-span-5 bg-[#1A1D28] border border-[#2E3241] rounded-2xl p-5 flex flex-col justify-between">
             <div>
               <h2 className="text-[21px] font-semibold text-[#F1EFE6] bizlink-serif">
                 Weekly growth
               </h2>
-              <p className="text-xs text-[#A9A9AE]">Mentoring sessions run per day</p>
+              <p className="text-xs text-[#A9A9AE]">My Sessions & PeerVault activity per day</p>
             </div>
 
             <div className="mt-6 flex items-end space-x-4 h-32 pt-4">
-              {/* Y-axis */}
               <div className="flex flex-col justify-between h-full text-[10px] text-[#6E6E77] bizlink-mono pr-1">
                 <span>10</span>
                 <span>5</span>
                 <span>0</span>
               </div>
 
-              {/* Bars */}
               <div className="flex-1 flex items-end justify-between h-full border-b border-[#2E3241] pb-1 px-2">
-                {/* Mon */}
                 <div className="flex flex-col items-center space-y-2 flex-1">
                   <div className="w-full max-w-[28px] h-[55%] hatched-bar rounded-t-md" />
                   <span className="text-[10px] text-[#6E6E77] bizlink-mono">Mon</span>
                 </div>
-                {/* Tue */}
                 <div className="flex flex-col items-center space-y-2 flex-1">
                   <div className="w-full max-w-[28px] h-[85%] gold-bar rounded-t-md" />
                   <span className="text-[10px] text-[#6E6E77] bizlink-mono">Tue</span>
                 </div>
-                {/* Wed */}
                 <div className="flex flex-col items-center space-y-2 flex-1">
                   <div className="w-full max-w-[28px] h-[75%] gold-bar rounded-t-md" />
                   <span className="text-[10px] text-[#6E6E77] bizlink-mono">Wed</span>
                 </div>
-                {/* Thu */}
                 <div className="flex flex-col items-center space-y-2 flex-1">
                   <div className="w-full max-w-[28px] h-[35%] hatched-bar rounded-t-md" />
                   <span className="text-[10px] text-[#6E6E77] bizlink-mono">Thu</span>
                 </div>
-                {/* Fri */}
                 <div className="flex flex-col items-center space-y-2 flex-1">
-                  <div className="w-full max-w-[28px] h-[78%] gold-bar rounded-t-md" />
+                  <div className="w-full max-w-[28px] h-[90%] gold-bar rounded-t-md" />
                   <span className="text-[10px] text-[#6E6E77] bizlink-mono">Fri</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Col 2: Dashed Circular Gauge (1.05fr ~ col-span-3) */}
+          {/* Col 2: Dashed Circular Gauge */}
           <div className="md:col-span-3 bg-[#1A1D28] border border-[#2E3241] rounded-2xl p-5 flex flex-col items-center justify-center text-center space-y-3">
             <div className="relative w-28 h-28 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
@@ -384,16 +428,16 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
                 />
               </svg>
               <span className="absolute text-2xl font-bold text-[#F1EFE6] bizlink-mono">
-                68%
+                80%
               </span>
             </div>
-            <span className="text-xs text-[#A9A9AE]">Sessions completed</span>
+            <span className="text-xs text-[#A9A9AE]">Sessions & Videos Completed</span>
           </div>
 
-          {/* Col 3: Stat Block 1 (0.6fr ~ col-span-2) */}
+          {/* Col 3: Stat Block 1 */}
           <div className="md:col-span-2 bg-[#1A1D28] border border-[#2E3241] rounded-2xl p-5 flex flex-col justify-between">
             <div className="text-3xl font-extrabold text-[#F1EFE6] bizlink-mono">
-              53
+              3
             </div>
             <div className="text-xs text-[#A9A9AE] hover:text-[#E8B84B] cursor-pointer transition-colors pt-4 flex items-center gap-1">
               <span>Classes in progress</span>
@@ -401,10 +445,10 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
             </div>
           </div>
 
-          {/* Col 4: Stat Block 2 (0.9fr ~ col-span-2) */}
+          {/* Col 4: Stat Block 2 */}
           <div className="md:col-span-2 bg-[#1A1D28] border border-[#2E3241] rounded-2xl p-5 flex flex-col justify-between">
             <div className="text-3xl font-extrabold text-[#F1EFE6] bizlink-mono flex items-center gap-1">
-              <span>32</span>
+              <span>+45</span>
               <span className="text-xl">💎</span>
             </div>
             <div className="text-xs text-[#A9A9AE] hover:text-[#E8B84B] cursor-pointer transition-colors pt-4 flex items-center gap-1">
@@ -421,7 +465,7 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
           </div>
         )}
 
-        {/* 3. Four-column Board (grid-template-columns: repeat(4, 1fr)) */}
+        {/* 3. Four-column Board */}
         {totalVisible === 0 ? (
           <div id="noResults" className="py-16 text-center text-[#A9A9AE] bizlink-serif text-lg">
             No cards match your search.
@@ -429,11 +473,14 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
             
-            {/* COLUMN 1 */}
+            {/* ============================================================ */}
+            {/* COLUMN 1: Mentoring already delivered                       */}
+            {/* ============================================================ */}
             {filteredCol1.length > 0 && (
               <div className="space-y-4">
-                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1">
-                  Mentoring already delivered
+                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1 flex items-center gap-2">
+                  <Film className="w-4 h-4 text-[#E8B84B]" />
+                  <span>Mentoring already delivered</span>
                 </div>
                 {filteredCol1.map((c) => (
                   <div
@@ -444,22 +491,22 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
                     <div className="card-top flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
                           style={{ background: c.avatarBg, color: c.avatarColor }}
                         >
                           {c.avatar}
                         </div>
                         <div>
-                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight">
+                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight font-sans">
                             {c.name}
                           </div>
-                          <div className="text-[11px] text-[#6E6E77]">{c.role}</div>
+                          <div className="text-[11px] text-[#6E6E77] font-mono">{c.role}</div>
                         </div>
                       </div>
                       <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer" />
                     </div>
 
-                    <p className="text-[12.5px] text-[#6E6E77] bizlink-serif leading-relaxed">
+                    <p className="text-[12.5px] text-slate-300 leading-relaxed font-sans">
                       {c.text}
                     </p>
 
@@ -469,7 +516,7 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
                         {c.tags.map((t) => (
                           <span
                             key={t}
-                            className="px-2 py-0.5 rounded-md bg-[#20242F] border border-[#2E3241] text-[10px] text-[#A9A9AE] bizlink-mono"
+                            className="px-2 py-0.5 rounded-md bg-[#20242F] border border-[#2E3241] text-[10px] text-[#E8B84B] bizlink-mono"
                           >
                             {t}
                           </span>
@@ -478,7 +525,7 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
                     )}
 
                     <div className="card-meta flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
-                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono">
+                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
                         {c.date}
                       </span>
                       <div className="flex items-center space-x-3 text-[#6E6E77] bizlink-mono text-[10px]">
@@ -495,55 +542,59 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
               </div>
             )}
 
-            {/* COLUMN 2 */}
+            {/* ============================================================ */}
+            {/* COLUMN 2: Classes learnt so far                             */}
+            {/* ============================================================ */}
             {filteredCol2.length > 0 && (
               <div className="space-y-4">
-                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1">
-                  Classes learnt so far
+                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1 flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-[#4FD1C5]" />
+                  <span>Classes learnt so far</span>
                 </div>
                 {filteredCol2.map((c) => (
                   <div
                     key={c.id}
                     data-search={c.search}
-                    className="card bg-[#1A1D28] border border-[#2E3241] rounded-[14px] p-[15px_16px_13px] space-y-3 shadow-md hover:border-[#E8B84B]/50 transition-all"
+                    className="card bg-[#1A1D28] border border-[#2E3241] rounded-[14px] p-[15px_16px_13px] space-y-3 shadow-md hover:border-[#4FD1C5]/50 transition-all"
                   >
                     <div className="card-top flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
                           style={{ background: c.avatarBg, color: c.avatarColor }}
                         >
                           {c.avatar}
                         </div>
                         <div>
-                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight">
+                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight font-sans">
                             {c.name}
                           </div>
-                          <div className="text-[11px] text-[#6E6E77]">{c.role}</div>
+                          <div className="text-[11px] text-[#4FD1C5] font-mono">{c.role}</div>
                         </div>
                       </div>
                       <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer" />
                     </div>
 
-                    <p className="text-[12.5px] text-[#6E6E77] bizlink-serif leading-relaxed">
+                    <p className="text-[12.5px] text-slate-300 leading-relaxed font-sans">
                       {c.text}
                     </p>
 
                     {/* Progress Bar */}
                     <div className="space-y-1.5 pt-1">
-                      <div className="text-[10.5px] text-[#A9A9AE] bizlink-mono">
-                        {c.progressText}
+                      <div className="text-[10.5px] text-[#A9A9AE] bizlink-mono flex items-center justify-between">
+                        <span>{c.progressText}</span>
+                        <span className="text-[#4FD1C5] font-bold">{c.progressPct}%</span>
                       </div>
                       <div className="w-full h-1.5 rounded-full bg-[#20242F] overflow-hidden">
                         <div
-                          className="h-full gold-bar rounded-full"
+                          className="h-full bg-gradient-to-r from-[#4FD1C5] to-[#38B2AC] rounded-full"
                           style={{ width: `${c.progressPct}%` }}
                         />
                       </div>
                     </div>
 
                     <div className="card-meta flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
-                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono">
+                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
                         {c.date}
                       </span>
                       <div className="flex items-center space-x-3 text-[#6E6E77] bizlink-mono text-[10px]">
@@ -560,11 +611,14 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
               </div>
             )}
 
-            {/* COLUMN 3 */}
+            {/* ============================================================ */}
+            {/* COLUMN 3: Feedback exchanged (Other Peers gave You)          */}
+            {/* ============================================================ */}
             {filteredCol3.length > 0 && (
               <div className="space-y-4">
-                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1">
-                  Feedback exchanged
+                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1 flex items-center gap-2">
+                  <Star className="w-4 h-4 text-[#E8B84B] fill-[#E8B84B]" />
+                  <span>Feedback exchanged</span>
                 </div>
                 {filteredCol3.map((c) => (
                   <div
@@ -584,47 +638,49 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
                     <div className="card-top flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
                           style={{ background: c.avatarBg, color: c.avatarColor }}
                         >
                           {c.avatar}
                         </div>
                         <div>
-                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight">
+                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight font-sans">
                             {c.heading}
                           </div>
-                          <div className="text-[11px] text-[#6E6E77]">{c.subheading}</div>
+                          <div className="text-[11px] text-[#A9A9AE] font-mono">{c.subheading}</div>
                         </div>
                       </div>
                       <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer" />
                     </div>
 
-                    {c.awaitingText ? (
-                      <p className="text-[12.5px] text-[#6E6E77] bizlink-serif leading-relaxed italic">
-                        {c.awaitingText}
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        {c.feedbacks?.map((f, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-[#12141C]/60 p-2.5 rounded-lg border border-[#2E3241]/60 space-y-1"
-                          >
-                            <div className="flex items-center justify-between text-[10px] text-[#E8B84B] font-bold">
+                    <div className="space-y-2">
+                      {c.feedbacks?.map((f: any, idx: number) => (
+                        <div
+                          key={idx}
+                          className="bg-[#12141C]/70 p-2.5 rounded-lg border border-[#2E3241]/70 space-y-1.5"
+                        >
+                          <div className="flex items-center justify-between text-[10px] text-[#E8B84B] font-bold font-mono">
+                            <span className="flex items-center gap-1">
+                              <ThumbsUp className="w-3 h-3 text-[#E8B84B]" />
                               <span>{f.label}</span>
-                              <span className="bizlink-mono text-[#E8B84B]">{f.rating}</span>
-                            </div>
-                            <p className="text-[11.5px] text-[#A9A9AE] bizlink-serif leading-relaxed">
-                              &quot;{f.text}&quot;
-                            </p>
+                            </span>
+                            <span className="text-[#E8B84B]">{f.rating}</span>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          <p className="text-[11.5px] text-slate-200 leading-relaxed font-sans">
+                            &quot;{f.text}&quot;
+                          </p>
+                          {f.credits && (
+                            <div className="text-[9.5px] font-mono text-emerald-400 font-bold pt-0.5">
+                              {f.credits}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
 
                     {c.date && (
                       <div className="card-meta flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
-                        <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono">
+                        <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
                           {c.date}
                         </span>
                         <div className="flex items-center space-x-3 text-[#6E6E77] bizlink-mono text-[10px]">
@@ -642,42 +698,56 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
               </div>
             )}
 
-            {/* COLUMN 4 */}
+            {/* ============================================================ */}
+            {/* COLUMN 4: Feedback given to other participants              */}
+            {/* ============================================================ */}
             {filteredCol4.length > 0 && (
               <div className="space-y-4">
-                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1">
-                  Mentorship completed
+                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1 flex items-center gap-2">
+                  <CheckCheck className="w-4 h-4 text-[#9E92F0]" />
+                  <span>Feedback given to other participants</span>
                 </div>
                 {filteredCol4.map((c) => (
                   <div
                     key={c.id}
                     data-search={c.search}
-                    className="card bg-[#1A1D28] border border-[#2E3241] rounded-[14px] p-[15px_16px_13px] space-y-3 shadow-md hover:border-[#E8B84B]/50 transition-all"
+                    className="card bg-[#1A1D28] border border-[#2E3241] rounded-[14px] p-[15px_16px_13px] space-y-3 shadow-md hover:border-[#9E92F0]/50 transition-all"
                   >
                     <div className="card-top flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
                           style={{ background: c.avatarBg, color: c.avatarColor }}
                         >
                           {c.avatar}
                         </div>
                         <div>
-                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight">
+                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight font-sans">
                             {c.name}
                           </div>
-                          <div className="text-[11px] text-[#6E6E77]">{c.role}</div>
+                          <div className="text-[11px] text-[#9E92F0] font-mono">{c.role}</div>
                         </div>
                       </div>
                       <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer" />
                     </div>
 
-                    <p className="text-[12.5px] text-[#6E6E77] bizlink-serif leading-relaxed">
-                      {c.text}
-                    </p>
+                    <div className="bg-[#12141C]/70 p-2.5 rounded-lg border border-[#2E3241]/70 space-y-1.5">
+                      <div className="flex items-center justify-between text-[10px] text-amber-400 font-bold font-mono">
+                        <span>Feedback Given by You</span>
+                        <span>{c.rating}</span>
+                      </div>
+                      <p className="text-[11.5px] text-slate-200 leading-relaxed font-sans">
+                        {c.text}
+                      </p>
+                      {c.creditImpact && (
+                        <div className="text-[9.5px] font-mono text-purple-400 font-bold pt-0.5">
+                          {c.creditImpact}
+                        </div>
+                      )}
+                    </div>
 
                     <div className="card-meta flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
-                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono">
+                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
                         {c.date}
                       </span>
                       <div className="flex items-center space-x-3 text-[#6E6E77] bizlink-mono text-[10px]">

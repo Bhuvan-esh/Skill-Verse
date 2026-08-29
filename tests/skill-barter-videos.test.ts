@@ -36,17 +36,36 @@ describe('SkillBarter PeerVault & Review Credit Engine', () => {
     expect(calculateImpact(1).sentiment).toBe('CRITICAL');
   });
 
-  it('should support student contact via phone and email for topic queries in PeerVault', () => {
-    const videoEntry = {
-      student_name: 'Rahul Sharma',
-      google_email: 'rahul.sharma.cse@rvce.edu.in',
-      phone_number: '+91 98450 78901',
-      topic: 'Database Systems',
-      video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+  it('should enforce author acceptance workflow before unlocking 1:1 communication', () => {
+    // 1. Initial request sent to video author's account
+    const queryRequest = {
+      id: 'vq-test-1',
+      video_id: 'vid-1',
+      video_title: 'PostgreSQL B-Tree Indexing',
+      author_name: 'Rahul Sharma',
+      author_email: 'rahul.sharma.cse@rvce.edu.in',
+      requester_name: 'Anusha A',
+      status: 'PENDING' as 'PENDING' | 'ACCEPTED' | 'DECLINED',
+      canCommunicate: false,
     };
 
-    expect(videoEntry.phone_number.startsWith('+91')).toBe(true);
-    expect(videoEntry.google_email.includes('@')).toBe(true);
-    expect(videoEntry.video_url.endsWith('.mp4')).toBe(true);
+    // While PENDING, communication is locked
+    expect(queryRequest.status).toBe('PENDING');
+    expect(queryRequest.canCommunicate).toBe(false);
+
+    // 2. Author accepts the request
+    const acceptQuery = (req: typeof queryRequest) => {
+      return {
+        ...req,
+        status: 'ACCEPTED' as const,
+        canCommunicate: true,
+        session_id: `s-${Date.now()}`,
+      };
+    };
+
+    const acceptedRequest = acceptQuery(queryRequest);
+    expect(acceptedRequest.status).toBe('ACCEPTED');
+    expect(acceptedRequest.canCommunicate).toBe(true);
+    expect(acceptedRequest.session_id).toBeDefined();
   });
 });

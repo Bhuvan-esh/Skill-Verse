@@ -12,7 +12,7 @@ import {
   Download, ExternalLink, X, Link2, FileCode, CheckCheck,
   Smile, MoreVertical, PlaySquare, Phone, Mail, MessageCircle,
   ThumbsUp, ThumbsDown, MessageSquarePlus, Film, UploadCloud,
-  Play, Pause
+  Play, Pause, Clock, UserCheck, UserX, Inbox
 } from 'lucide-react';
 import {
   SKILLBARTER_BADGE_DEFINITIONS,
@@ -40,7 +40,7 @@ interface BarterSession {
   timestamp: string;
   skill: string;
   type: 'TEACHING' | 'LEARNING';
-  status: 'ACTIVE' | 'COMPLETED';
+  status: 'ACTIVE' | 'COMPLETED' | 'PENDING_ACCEPTANCE';
   autoDeleteOnEnd: boolean;
   unreadCount?: number;
   isOnline?: boolean;
@@ -94,6 +94,24 @@ interface LearningVideo {
   views: number;
   created_at: string;
   reviews: VideoReview[];
+}
+
+interface VideoQueryRequest {
+  id: string;
+  video_id: string;
+  video_title: string;
+  topic: string;
+  author_name: string;
+  author_email: string;
+  author_phone?: string;
+  requester_name: string;
+  requester_email: string;
+  requester_phone?: string;
+  query_message: string;
+  status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+  created_at: string;
+  accepted_at?: string;
+  session_id?: string;
 }
 
 const SEED_SESSIONS: BarterSession[] = [
@@ -205,7 +223,7 @@ const SEED_PEERVAULT_VIDEOS: LearningVideo[] = [
     video_filename: 'postgres_indexing_breakdown.mp4',
     video_size: '14.2 MB',
     thumbnail_url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80',
-    description: 'Self-recorded walkthrough demonstrating how PostgreSQL evaluates execution plans, builds B-Tree index scans, and eliminates sequential table scans.',
+    description: 'Self-recorded walkthrough evaluating PostgreSQL query plans, B-Tree indexing scans, and sequential scan elimination.',
     creator_credits: 185,
     leaderboard_points: 340,
     average_rating: 4.9,
@@ -294,6 +312,41 @@ const SEED_PEERVAULT_VIDEOS: LearningVideo[] = [
   },
 ];
 
+const SEED_VIDEO_QUERIES: VideoQueryRequest[] = [
+  {
+    id: 'vq-1',
+    video_id: 'vid-1',
+    video_title: 'PostgreSQL B-Tree Indexing & EXPLAIN ANALYZE Demystified',
+    topic: 'Database Systems & Performance Tuning',
+    author_name: 'Rahul Sharma',
+    author_email: 'rahul.sharma.cse@rvce.edu.in',
+    author_phone: '+91 98450 78901',
+    requester_name: 'Anusha A',
+    requester_email: 'anusha.student@rvce.edu.in',
+    requester_phone: '+91 98450 99887',
+    query_message: 'Watched your video on B-Tree index scan. Wanted to resolve queries on composite index ordering vs filter selectivity.',
+    status: 'ACCEPTED',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    accepted_at: new Date(Date.now() - 1000 * 60 * 60 * 23).toISOString(),
+    session_id: 's-1',
+  },
+  {
+    id: 'vq-2',
+    video_id: 'vid-2',
+    video_title: 'Next.js 14 App Router, Server Actions & Streaming SSR',
+    topic: 'Modern Full-Stack React Architecture',
+    author_name: 'Meera K',
+    author_email: 'meera.k.aiml@rvce.edu.in',
+    author_phone: '+91 98450 65432',
+    requester_name: 'demo L',
+    requester_email: 'demo.student@rvce.edu.in',
+    requester_phone: '+91 98450 12345',
+    query_message: 'Hi Meera! I watched your PeerVault video on Next.js 14. I have queries regarding server action revalidation with optimistic UI.',
+    status: 'PENDING',
+    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+  },
+];
+
 const DOMAIN_CHIP: Record<string, string> = {
   'Web Development': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
   'Artificial Intelligence & ML': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
@@ -323,7 +376,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   ];
 
   /* ------------------------------------------------------------------ */
-  /* State: Requests                                                    */
+  /* State: Requests & Video Query Requests                             */
   /* ------------------------------------------------------------------ */
   const [requests, setRequests] = useState<any[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
@@ -337,6 +390,11 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null);
   const [responseMessage, setResponseMessage] = useState('');
   const [respondingLoading, setRespondingLoading] = useState(false);
+
+  // Video Query Requests State
+  const [videoQueryRequests, setVideoQueryRequests] = useState<VideoQueryRequest[]>(SEED_VIDEO_QUERIES);
+  const [requestsSubFilter, setRequestsSubFilter] = useState<'ALL' | 'GENERAL' | 'VIDEO_QUERIES'>('ALL');
+  const [acceptingQueryId, setAcceptingQueryId] = useState<string | null>(null);
 
   const [msg, setMsg] = useState<string | null>(null);
   const [msgType, setMsgType] = useState<'success' | 'error'>('success');
@@ -358,6 +416,18 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       console.error('Requests fetch error:', e.message);
     } finally {
       setRequestsLoading(false);
+    }
+  };
+
+  const fetchVideoQueries = async () => {
+    try {
+      const res = await fetch('/api/skill-barter/video-queries');
+      const data = await res.json();
+      if (res.ok && data.queries && data.queries.length > 0) {
+        setVideoQueryRequests(data.queries);
+      }
+    } catch {
+      // Keep static seed queries
     }
   };
 
@@ -407,6 +477,67 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
     }
   };
 
+  // Author Accept Video Query Request -> Unlocks Communication & Creates Active Chat Session
+  const handleAcceptVideoQuery = async (query: VideoQueryRequest) => {
+    try {
+      setAcceptingQueryId(query.id);
+      const res = await fetch(`/api/skill-barter/video-queries/${query.id}/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ACCEPT' }),
+      });
+      const data = await res.json();
+
+      const newSessionId = data.session_id || `s-${Date.now()}`;
+
+      // Update query status
+      setVideoQueryRequests((prev) => prev.map((q) => q.id === query.id ? { ...q, status: 'ACCEPTED', session_id: newSessionId } : q));
+
+      // Create / Unlock 1:1 Active Chat Session
+      const newSession: BarterSession = {
+        id: newSessionId,
+        name: query.requester_name,
+        avatar: '👩‍💻',
+        lastMessage: `Accepted request for "${query.video_title}". Communication unlocked!`,
+        timestamp: 'Just now',
+        skill: query.topic,
+        type: 'TEACHING',
+        status: 'ACTIVE',
+        autoDeleteOnEnd: true,
+        unreadCount: 0,
+        isOnline: true,
+        messages: [
+          {
+            id: `m-${Date.now()}-1`,
+            sender: 'them',
+            text: `Hi! ${query.query_message}`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+          {
+            id: `m-${Date.now()}-2`,
+            sender: 'me',
+            text: `Hi ${query.requester_name}! I accepted your query request for "${query.video_title}". Happy to help explain!`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ],
+      };
+
+      setSessions((prev) => [newSession, ...prev]);
+      setActiveSessionId(newSessionId);
+      setActiveTab('sessions');
+      showFeedback(`✓ Accepted query request from ${query.requester_name}! Communication unlocked in My Sessions.`);
+    } catch (e: any) {
+      showFeedback(e.message || 'Failed to accept query request', 'error');
+    } finally {
+      setAcceptingQueryId(null);
+    }
+  };
+
+  const handleDeclineVideoQuery = (queryId: string) => {
+    setVideoQueryRequests((prev) => prev.map((q) => q.id === queryId ? { ...q, status: 'DECLINED' } : q));
+    showFeedback('✓ Video query request declined.');
+  };
+
   /* ------------------------------------------------------------------ */
   /* State: Sessions & WhatsApp-style Chat (NO Voice/Video Call / Mic)  */
   /* ------------------------------------------------------------------ */
@@ -419,16 +550,13 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   const [sendingMsg, setSendingMsg] = useState(false);
   const [completingSession, setCompletingSession] = useState(false);
 
-  // WhatsApp Sidebar State
   const [sidebarFilter, setSidebarFilter] = useState<'ALL' | 'UNREAD' | 'TEACHING' | 'LEARNING'>('ALL');
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
 
-  // WhatsApp Emoji Picker & Attachment Drawer State
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
 
-  // File & Document Attachment State
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const [pendingAttachment, setPendingAttachment] = useState<{
@@ -438,12 +566,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
     dataUrl: string;
   } | null>(null);
 
-  // Meeting Link Generation State & Modal
   const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
   const [meetingPlatform, setMeetingPlatform] = useState<'Google Meet' | 'Zoom' | 'Microsoft Teams' | 'Custom'>('Google Meet');
   const [customMeetingUrl, setCustomMeetingUrl] = useState('');
-
-  // Image Fullscreen Preview Modal
   const [previewImageModal, setPreviewImageModal] = useState<{ name: string; url: string } | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -521,6 +646,12 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
     e.preventDefault();
     if ((!chatInput.trim() && !pendingAttachment) || !activeSession) return;
 
+    // Check if session is pending author acceptance
+    if (activeSession.status === 'PENDING_ACCEPTANCE') {
+      showFeedback('Communication is locked until the video author accepts your request.', 'error');
+      return;
+    }
+
     let payloadText = chatInput.trim();
 
     if (pendingAttachment) {
@@ -584,6 +715,11 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
   const handleSendMeetingLink = async (customUrl?: string, platform = 'Google Meet') => {
     if (!activeSession) return;
+    if (activeSession.status === 'PENDING_ACCEPTANCE') {
+      showFeedback('Communication is locked until the video author accepts your request.', 'error');
+      return;
+    }
+
     const randomCode = `${Math.random().toString(36).substring(2, 5)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 5)}`;
     const url = customUrl?.trim() || (
       platform === 'Google Meet'
@@ -704,6 +840,11 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   const [feedbackText, setFeedbackText] = useState('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
+  // Send Query Request Modal State (Author must accept first before chat unlocks)
+  const [queryTargetVideo, setQueryTargetVideo] = useState<LearningVideo | null>(null);
+  const [queryCustomMessage, setQueryCustomMessage] = useState('');
+  const [sendingQueryRequest, setSendingQueryRequest] = useState(false);
+
   const fetchLearningVideos = async () => {
     try {
       setVideosLoading(true);
@@ -773,7 +914,6 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       setVidDescription('');
       fetchLearningVideos();
     } catch (e: any) {
-      // Local fallback
       const newVid: LearningVideo = {
         id: `vid-${Date.now()}`,
         student_name: vidStudentName,
@@ -886,34 +1026,86 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
     }
   };
 
-  const handleRequestQuerySession = (video: LearningVideo) => {
-    const newSessionId = `s-${Date.now()}`;
-    const newSession: BarterSession = {
-      id: newSessionId,
-      name: video.student_name,
-      avatar: '👨‍💻',
-      lastMessage: `Hi ${video.student_name}! I watched your video on "${video.title}" and would love to solve some queries.`,
-      timestamp: 'Just now',
-      skill: video.topic,
-      type: 'LEARNING',
-      status: 'ACTIVE',
-      autoDeleteOnEnd: true,
-      unreadCount: 0,
-      isOnline: true,
-      messages: [
-        {
-          id: `m-${Date.now()}`,
-          sender: 'me',
-          text: `Hi ${video.student_name}! I watched your PeerVault video on "${video.title}". I have a few queries regarding ${video.topic} that I'd love to solve together in Skillora.`,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ],
-    };
+  // Open modal to send request to the video author's account
+  const handleOpenQueryModal = (video: LearningVideo) => {
+    setQueryTargetVideo(video);
+    setQueryCustomMessage(`Hi ${video.student_name}! I watched your PeerVault video on "${video.title}". I have a few queries regarding ${video.topic} that I'd love to solve together in Skillora.`);
+  };
 
-    setSessions((prev) => [newSession, ...prev]);
-    setActiveSessionId(newSessionId);
-    setActiveTab('sessions');
-    showFeedback(`✓ Session created with ${video.student_name}! Chat opened in My Sessions.`);
+  // Submit request directly to author's account (First accept -> then communication unlocks)
+  const handleSubmitQueryRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!queryTargetVideo || !queryCustomMessage.trim()) return;
+
+    try {
+      setSendingQueryRequest(true);
+      const res = await fetch('/api/skill-barter/video-queries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          video_id: queryTargetVideo.id,
+          video_title: queryTargetVideo.title,
+          topic: queryTargetVideo.topic,
+          author_name: queryTargetVideo.student_name,
+          author_email: queryTargetVideo.google_email,
+          author_phone: queryTargetVideo.phone_number,
+          requester_name: user?.name || 'demo L',
+          requester_email: user?.email || 'demo.student@rvce.edu.in',
+          requester_phone: '+91 98450 12345',
+          query_message: queryCustomMessage.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      const newQuery: VideoQueryRequest = data.query || {
+        id: `vq-${Date.now()}`,
+        video_id: queryTargetVideo.id,
+        video_title: queryTargetVideo.title,
+        topic: queryTargetVideo.topic,
+        author_name: queryTargetVideo.student_name,
+        author_email: queryTargetVideo.google_email,
+        author_phone: queryTargetVideo.phone_number,
+        requester_name: user?.name || 'demo L',
+        requester_email: user?.email || 'demo.student@rvce.edu.in',
+        query_message: queryCustomMessage.trim(),
+        status: 'PENDING',
+        created_at: new Date().toISOString(),
+      };
+
+      setVideoQueryRequests((prev) => [newQuery, ...prev]);
+
+      // Add a session in PENDING_ACCEPTANCE state
+      const pendingSession: BarterSession = {
+        id: `pending-${newQuery.id}`,
+        name: queryTargetVideo.student_name,
+        avatar: '👨‍💻',
+        lastMessage: `⏳ Request sent: "${queryTargetVideo.title}". Waiting for author acceptance...`,
+        timestamp: 'Just now',
+        skill: queryTargetVideo.topic,
+        type: 'LEARNING',
+        status: 'PENDING_ACCEPTANCE',
+        autoDeleteOnEnd: true,
+        unreadCount: 0,
+        isOnline: false,
+        messages: [
+          {
+            id: `m-${Date.now()}`,
+            sender: 'me',
+            text: `[PENDING QUERY REQUEST]: ${queryCustomMessage.trim()}`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ],
+      };
+
+      setSessions((prev) => [pendingSession, ...prev]);
+      showFeedback(`✓ Request successfully sent to ${queryTargetVideo.student_name}'s account! Once accepted, communication will unlock.`);
+      setQueryTargetVideo(null);
+      setQueryCustomMessage('');
+    } catch (e: any) {
+      showFeedback(e.message || 'Failed to send query request', 'error');
+    } finally {
+      setSendingQueryRequest(false);
+    }
   };
 
   const filteredVideos = learningVideos.filter((v) => {
@@ -1016,7 +1208,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   }, [evaluation]);
 
   const ghStats = {
-    prsMerged: 2, // Pull Shark Tier 1 unlocked
+    prsMerged: 2,
     fastResponses: 0,
     acceptedSolutions: 0,
     pairSessions: 0,
@@ -1042,6 +1234,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
     fetchDiscoverPeers();
     fetchAchievements();
     fetchLearningVideos();
+    fetchVideoQueries();
   }, []);
 
   const handleToggleAutoDelete = (sessionId: string) => {
@@ -1063,6 +1256,19 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   });
 
   const renderMessageContent = (rawText: string, isMe: boolean) => {
+    if (rawText.startsWith('[PENDING QUERY REQUEST]:')) {
+      const cleanText = rawText.replace('[PENDING QUERY REQUEST]:', '').trim();
+      return (
+        <div className="space-y-1.5 p-1">
+          <div className="flex items-center gap-1.5 text-amber-300 font-mono text-[10px] font-bold">
+            <Clock className="w-3.5 h-3.5 animate-spin" />
+            <span>Query Request Sent (Awaiting Acceptance)</span>
+          </div>
+          <p className="text-xs text-slate-200 leading-relaxed font-sans">{cleanText}</p>
+        </div>
+      );
+    }
+
     if (rawText.startsWith('[FILE_ATTACHMENT]:')) {
       try {
         const fileData = JSON.parse(rawText.replace('[FILE_ATTACHMENT]:', ''));
@@ -1243,7 +1449,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               Peer Skill Exchange & PeerVault Video Hub
             </h1>
             <p className="text-xs text-slate-400 max-w-xl font-light">
-              Connect 1:1 with verified peer mentors, upload self-recorded video walkthroughs to PeerVault, post reviews, and solve queries together.
+              Connect 1:1 with verified peer mentors, upload self-recorded video walkthroughs to PeerVault, and send requests directly to authors.
             </p>
           </div>
 
@@ -1311,73 +1517,194 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
         )}
 
         {/* ============================================================ */}
-        {/* TAB 1 — PEER REQUESTS                                        */}
+        {/* TAB 1 — PEER REQUESTS & INCOMING VIDEO QUERIES               */}
         {/* ============================================================ */}
         {activeTab === 'requests' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
-                Open Peer Requests ({requests.length})
-              </h2>
-              <button
-                onClick={fetchRequests}
-                className="text-xs text-emerald-400 hover:text-emerald-300 font-mono cursor-pointer"
-              >
-                ↻ Refresh Feed
-              </button>
+          <div className="space-y-5">
+            {/* Header & Sub-filters */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
+              <div>
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                  Peer Requests & Video Query Inbox ({requests.length + videoQueryRequests.length})
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Review and accept requests sent to your account before 1:1 communication unlocks.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                {(['ALL', 'VIDEO_QUERIES', 'GENERAL'] as const).map((filter) => (
+                  <button
+                    key={filter}
+                    onClick={() => setRequestsSubFilter(filter)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                      requestsSubFilter === filter
+                        ? 'bg-emerald-600 text-white shadow-md'
+                        : 'bg-white/[0.03] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {filter === 'ALL' ? 'All Requests' : filter === 'VIDEO_QUERIES' ? 'PeerVault Queries' : 'General Skill Requests'}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {requestsLoading ? (
-              <div className="p-8 text-center text-xs font-mono text-slate-500">Loading requests...</div>
-            ) : requests.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-500 space-y-3 glass-card rounded-2xl border border-white/5">
-                <BookOpen className="w-8 h-8 mx-auto text-slate-600 opacity-40" />
-                <p>No open peer requests found right now.</p>
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs"
-                >
-                  Create the First Request
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {requests.map((req) => (
-                  <div
-                    key={req.id}
-                    className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:border-emerald-500/30 transition-all space-y-3 shadow-lg"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${DOMAIN_CHIP[req.domain] || 'bg-white/10 text-white'}`}>
-                        {req.domain}
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-500">
-                        {new Date(req.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
+            {/* 1. Video Query Requests (Targeted to Author's Account) */}
+            {(requestsSubFilter === 'ALL' || requestsSubFilter === 'VIDEO_QUERIES') && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Film className="w-4 h-4 text-purple-400" />
+                  <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">
+                    PeerVault Video Query Requests ({videoQueryRequests.length})
+                  </h3>
+                </div>
 
-                    <div>
-                      <h3 className="text-base font-bold text-white font-heading">{req.skill}</h3>
-                      <p className="text-xs text-slate-400 font-sans mt-1 line-clamp-2">{req.message}</p>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {videoQueryRequests.map((vq) => {
+                    const isPending = vq.status === 'PENDING';
+                    const isAccepted = vq.status === 'ACCEPTED';
 
-                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xs font-bold">
-                          {req.student?.name?.[0] || 'S'}
-                        </div>
-                        <span className="text-xs text-slate-300 font-mono">{req.student?.name || 'Student'}</span>
-                      </div>
-
-                      <button
-                        onClick={() => setRespondingRequestId(req.id)}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold transition-all cursor-pointer"
+                    return (
+                      <div
+                        key={vq.id}
+                        className={`p-5 rounded-2xl border transition-all space-y-3 shadow-lg ${
+                          isAccepted
+                            ? 'bg-emerald-950/20 border-emerald-500/30'
+                            : isPending
+                            ? 'bg-purple-950/20 border-purple-500/40'
+                            : 'bg-white/[0.02] border-white/5 opacity-60'
+                        }`}
                       >
-                        Offer Mentorship
-                      </button>
-                    </div>
+                        <div className="flex items-center justify-between">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                            <Film className="w-3 h-3" />
+                            <span>{vq.topic}</span>
+                          </span>
+
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                            isAccepted
+                              ? 'bg-emerald-500/20 text-emerald-300'
+                              : isPending
+                              ? 'bg-amber-500/20 text-amber-300 animate-pulse'
+                              : 'bg-slate-700 text-slate-400'
+                          }`}>
+                            {isAccepted ? '✓ ACCEPTED' : isPending ? '⏳ AWAITING ACCEPTANCE' : 'DECLINED'}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-300 font-mono">
+                            Video: <span className="text-white">{vq.video_title}</span>
+                          </h4>
+                          <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed p-3 rounded-xl bg-black/40 border border-white/5">
+                            "{vq.query_message}"
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+                              {vq.requester_name[0] || 'S'}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-white">{vq.requester_name}</p>
+                              <p className="text-[9px] font-mono text-slate-400">{vq.requester_email}</p>
+                            </div>
+                          </div>
+
+                          {isPending ? (
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleDeclineVideoQuery(vq.id)}
+                                className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-mono cursor-pointer"
+                              >
+                                Decline
+                              </button>
+                              <button
+                                onClick={() => handleAcceptVideoQuery(vq)}
+                                disabled={acceptingQueryId === vq.id}
+                                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-mono font-bold shadow-md shadow-emerald-600/30 flex items-center gap-1 cursor-pointer"
+                              >
+                                <UserCheck className="w-3.5 h-3.5" />
+                                <span>{acceptingQueryId === vq.id ? 'Accepting...' : 'Accept & Start Chat'}</span>
+                              </button>
+                            </div>
+                          ) : isAccepted ? (
+                            <button
+                              onClick={() => {
+                                if (vq.session_id) setActiveSessionId(vq.session_id);
+                                setActiveTab('sessions');
+                              }}
+                              className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <span>Open Chat →</span>
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 2. General Public Requests */}
+            {(requestsSubFilter === 'ALL' || requestsSubFilter === 'GENERAL') && (
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">
+                    General Peer Requests ({requests.length})
+                  </h3>
+                </div>
+
+                {requestsLoading ? (
+                  <div className="p-8 text-center text-xs font-mono text-slate-500">Loading requests...</div>
+                ) : requests.length === 0 ? (
+                  <div className="p-12 text-center text-xs text-slate-500 space-y-3 glass-card rounded-2xl border border-white/5">
+                    <BookOpen className="w-8 h-8 mx-auto text-slate-600 opacity-40" />
+                    <p>No open general requests found right now.</p>
                   </div>
-                ))}
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {requests.map((req) => (
+                      <div
+                        key={req.id}
+                        className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:border-emerald-500/30 transition-all space-y-3 shadow-lg"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${DOMAIN_CHIP[req.domain] || 'bg-white/10 text-white'}`}>
+                            {req.domain}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-500">
+                            {new Date(req.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h3 className="text-base font-bold text-white font-heading">{req.skill}</h3>
+                          <p className="text-xs text-slate-400 font-sans mt-1 line-clamp-2">{req.message}</p>
+                        </div>
+
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xs font-bold">
+                              {req.student?.name?.[0] || 'S'}
+                            </div>
+                            <span className="text-xs text-slate-300 font-mono">{req.student?.name || 'Student'}</span>
+                          </div>
+
+                          <button
+                            onClick={() => setRespondingRequestId(req.id)}
+                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold transition-all cursor-pointer"
+                          >
+                            Offer Mentorship
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -1389,7 +1716,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
         {activeTab === 'sessions' && (
           <div className="rounded-3xl border border-white/[0.08] bg-[#0c1317] overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12" style={{ height: '720px' }}>
 
-            {/* WHATSAPP LEFT SIDEBAR (CHATS LIST) — 4 COLS */}
+            {/* WHATSAPP LEFT SIDEBAR */}
             <div className="lg:col-span-4 flex flex-col border-r border-white/[0.08] bg-[#111b21] overflow-hidden">
               <div className="px-4 py-3 bg-[#202c33] flex items-center justify-between border-b border-white/[0.05] shrink-0">
                 <div className="flex items-center gap-2.5">
@@ -1419,7 +1746,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                 </div>
               </div>
 
-              {/* WhatsApp Search Bar */}
+              {/* Search Bar */}
               <div className="p-2.5 bg-[#111b21] border-b border-white/[0.05] space-y-2">
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1457,7 +1784,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                 </div>
               </div>
 
-              {/* WhatsApp Chat Items List */}
+              {/* Chat Items List */}
               <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04]">
                 {filteredSessions.length === 0 && (
                   <div className="p-8 text-center text-xs text-slate-500 space-y-2">
@@ -1472,6 +1799,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   const sessAvatar = sess.avatar || '🧑‍💻';
                   const sessTime = sess.timestamp || (sess.lastMessageAt ? new Date(sess.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '');
                   const hasUnread = (sess.unreadCount || 0) > 0;
+                  const isPendingAccept = sess.status === 'PENDING_ACCEPTANCE';
 
                   return (
                     <div
@@ -1487,7 +1815,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                         <div className="w-12 h-12 rounded-full bg-[#202c33] border border-white/10 flex items-center justify-center text-2xl shadow-inner">
                           {sessAvatar}
                         </div>
-                        {sess.isOnline && (
+                        {sess.isOnline && !isPendingAccept && (
                           <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-[#00a884] border-2 border-[#111b21]" />
                         )}
                       </div>
@@ -1504,14 +1832,18 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-xs text-slate-400 truncate font-sans flex items-center gap-1">
-                            <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb] shrink-0" />
+                            {!isPendingAccept && <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb] shrink-0" />}
                             <span>{sess.lastMessage}</span>
                           </p>
-                          {hasUnread && (
+                          {isPendingAccept ? (
+                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold">
+                              PENDING
+                            </span>
+                          ) : hasUnread ? (
                             <span className="w-5 h-5 rounded-full bg-[#00a884] text-[#111b21] font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
                               {sess.unreadCount}
                             </span>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -1520,18 +1852,18 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               </div>
             </div>
 
-            {/* WHATSAPP RIGHT CHAT PANE — 8 COLS */}
+            {/* WHATSAPP RIGHT CHAT PANE */}
             {activeSession ? (
               <div className="lg:col-span-8 flex flex-col bg-[#0b141a] overflow-hidden relative">
 
-                {/* Header */}
+                {/* Top Header */}
                 <div className="px-4 py-2.5 bg-[#202c33] flex items-center justify-between border-b border-white/[0.05] shrink-0 z-10">
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <div className="w-10 h-10 rounded-full bg-[#111b21] border border-white/10 flex items-center justify-center text-xl shadow-md">
                         {activeSession.avatar || '🧑‍💻'}
                       </div>
-                      {activeSession.isOnline && (
+                      {activeSession.isOnline && activeSession.status === 'ACTIVE' && (
                         <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#00a884] border-2 border-[#202c33]" />
                       )}
                     </div>
@@ -1539,21 +1871,27 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                       <h4 className="text-sm font-bold text-white leading-tight font-sans">
                         {activeSession.name || activeSession.partner?.name || 'Peer'}
                       </h4>
-                      <p className="text-[11px] text-emerald-400 font-mono flex items-center gap-1">
-                        <span>🟢 online</span>
+                      <p className={`text-[11px] font-mono flex items-center gap-1 ${
+                        activeSession.status === 'PENDING_ACCEPTANCE'
+                          ? 'text-amber-300'
+                          : 'text-emerald-400'
+                      }`}>
+                        <span>{activeSession.status === 'PENDING_ACCEPTANCE' ? '⏳ awaiting acceptance' : '🟢 online'}</span>
                         <span className="text-slate-400">• {activeSession.skill}</span>
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-1 sm:gap-2 text-slate-300">
-                    <button
-                      onClick={() => setIsMeetingModalOpen(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-[#00a884]/20 text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/30 transition-all cursor-pointer"
-                    >
-                      <Video className="w-3.5 h-3.5" />
-                      <span>Meet Link</span>
-                    </button>
+                    {activeSession.status === 'ACTIVE' && (
+                      <button
+                        onClick={() => setIsMeetingModalOpen(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-[#00a884]/20 text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/30 transition-all cursor-pointer"
+                      >
+                        <Video className="w-3.5 h-3.5" />
+                        <span>Meet Link</span>
+                      </button>
+                    )}
 
                     <div className="relative">
                       <button
@@ -1565,16 +1903,18 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
                       {isHeaderMenuOpen && (
                         <div className="absolute right-0 top-11 w-48 rounded-2xl bg-[#233138] border border-white/10 shadow-2xl py-1.5 z-50 text-xs font-sans">
-                          <button
-                            onClick={() => {
-                              handleCompleteSession(activeSession.id);
-                              setIsHeaderMenuOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-2 hover:bg-white/10 text-emerald-300 flex items-center gap-2 cursor-pointer"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Mark Complete</span>
-                          </button>
+                          {activeSession.status === 'ACTIVE' && (
+                            <button
+                              onClick={() => {
+                                handleCompleteSession(activeSession.id);
+                                setIsHeaderMenuOpen(false);
+                              }}
+                              className="w-full text-left px-4 py-2 hover:bg-white/10 text-emerald-300 flex items-center gap-2 cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Mark Complete</span>
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               handleToggleAutoDelete(activeSession.id);
@@ -1601,6 +1941,23 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   </div>
                 </div>
 
+                {/* Pending Acceptance Notice Banner */}
+                {activeSession.status === 'PENDING_ACCEPTANCE' && (
+                  <div className="p-3 bg-amber-950/60 border-b border-amber-500/30 px-6 z-20 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Clock className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
+                      <div>
+                        <p className="text-xs font-bold text-amber-200">
+                          Request Sent to {activeSession.name}'s Account
+                        </p>
+                        <p className="text-[10px] text-slate-300 font-mono">
+                          Communication will unlock automatically once {activeSession.name} accepts your request.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Messages Stream */}
                 <div 
                   className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-3 relative"
@@ -1617,7 +1974,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
                   {chatLoading && (
                     <div className="text-center py-4 text-xs font-mono text-slate-400">
-                      Loading WhatsApp messages...
+                      Loading messages...
                     </div>
                   )}
 
@@ -1638,7 +1995,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
                           <div className="flex items-center justify-end gap-1 mt-1 text-[10px] font-mono text-slate-300/80">
                             <span>{timeStr}</span>
-                            {isMe && (
+                            {isMe && activeSession.status === 'ACTIVE' && (
                               <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />
                             )}
                           </div>
@@ -1649,91 +2006,13 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Attachment Bar */}
-                {pendingAttachment && (
-                  <div className="px-4 py-2.5 bg-[#202c33] border-t border-white/10 flex items-center justify-between gap-3 z-10">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {pendingAttachment.type.startsWith('image/') ? (
-                        <img
-                          src={pendingAttachment.dataUrl}
-                          alt="preview"
-                          className="w-10 h-10 rounded-lg object-cover border border-white/10"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-emerald-300" />
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-white truncate">{pendingAttachment.name}</p>
-                        <p className="text-[10px] font-mono text-emerald-400">{pendingAttachment.size} • Ready to send</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setPendingAttachment(null)}
-                      className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white cursor-pointer"
-                      title="Remove attachment"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Emoji Drawer */}
-                {showEmojiPicker && (
-                  <div className="p-3 bg-[#202c33] border-t border-white/10 flex items-center gap-2 flex-wrap z-10">
-                    {['😀', '😂', '🔥', '👍', '❤️', '👏', '🚀', '💡', '🎉', '🧑‍💻', '💻', '⚡', '💯', '🤝', '🙌', '⭐'].map((emoji) => (
-                      <button
-                        key={emoji}
-                        type="button"
-                        onClick={() => setChatInput((prev) => prev + emoji)}
-                        className="text-xl p-1.5 rounded-lg hover:bg-white/10 transition-transform hover:scale-125 cursor-pointer"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* Attachment Menu */}
-                {showAttachMenu && (
-                  <div className="absolute bottom-16 left-12 bg-[#233138] border border-white/10 shadow-2xl rounded-2xl p-2 z-50 flex flex-col gap-1 min-w-[170px] animate-in slide-in-from-bottom-2 font-sans text-xs">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 text-slate-200 text-left cursor-pointer"
-                    >
-                      <ImageIcon className="w-4 h-4 text-purple-400" />
-                      <span>Photos & Images</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => docInputRef.current?.click()}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 text-slate-200 text-left cursor-pointer"
-                    >
-                      <FileText className="w-4 h-4 text-cyan-400" />
-                      <span>Document (PDF/Doc)</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMeetingModalOpen(true);
-                        setShowAttachMenu(false);
-                      }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-white/10 text-slate-200 text-left cursor-pointer"
-                    >
-                      <Video className="w-4 h-4 text-emerald-400" />
-                      <span>Video Meeting Link</span>
-                    </button>
-                  </div>
-                )}
-
                 {/* Input Bar */}
                 <form onSubmit={handleSendMessage} className="p-3 bg-[#202c33] flex items-center gap-2 border-t border-white/[0.05] z-10">
                   <button
                     type="button"
+                    disabled={activeSession.status === 'PENDING_ACCEPTANCE'}
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer"
+                    className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer disabled:opacity-30"
                     title="Emojis"
                   >
                     <Smile className="w-5 h-5" />
@@ -1741,8 +2020,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
                   <button
                     type="button"
+                    disabled={activeSession.status === 'PENDING_ACCEPTANCE'}
                     onClick={() => setShowAttachMenu(!showAttachMenu)}
-                    className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                    className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer disabled:opacity-30"
                     title="Attach File, Image or Meeting"
                   >
                     <Paperclip className="w-5 h-5" />
@@ -1753,18 +2033,20 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder={
-                      pendingAttachment
+                      activeSession.status === 'PENDING_ACCEPTANCE'
+                        ? `🔒 Waiting for ${activeSession.name} to accept your request before communication unlocks...`
+                        : pendingAttachment
                         ? `Add caption for ${pendingAttachment.name}...`
                         : "Type a message or paste a meeting link..."
                     }
-                    disabled={sendingMsg}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-[#2a3942] border-none text-xs text-white placeholder-slate-400 focus:outline-none font-sans"
+                    disabled={sendingMsg || activeSession.status === 'PENDING_ACCEPTANCE'}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-[#2a3942] border-none text-xs text-white placeholder-slate-400 focus:outline-none font-sans disabled:opacity-50"
                   />
 
                   <button
                     type="submit"
-                    disabled={sendingMsg || (!chatInput.trim() && !pendingAttachment)}
-                    className="p-2.5 rounded-full bg-[#00a884] hover:bg-[#008f72] text-[#111b21] transition-all cursor-pointer shadow-lg shadow-emerald-500/20 shrink-0 disabled:opacity-40"
+                    disabled={sendingMsg || (!chatInput.trim() && !pendingAttachment) || activeSession.status === 'PENDING_ACCEPTANCE'}
+                    className="p-2.5 rounded-full bg-[#00a884] hover:bg-[#008f72] text-[#111b21] transition-all cursor-pointer shadow-lg shadow-emerald-500/20 shrink-0 disabled:opacity-30"
                     title="Send message"
                   >
                     <Send className="w-4 h-4" />
@@ -1887,7 +2169,6 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
         {/* ============================================================ */}
         {activeTab === 'videos' && (
           <div className="space-y-6">
-            {/* Header with Search and Domain Filters */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -1901,7 +2182,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   <span>PeerVault — Self-Made Learning Videos</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Upload self-recorded tech walkthroughs directly from your device, review peers to adjust creator credits, and request 1:1 sessions to resolve queries.
+                  Upload self-recorded tech walkthroughs directly from your device, review peers to adjust creator credits, and send query requests to author accounts.
                 </p>
               </div>
 
@@ -1966,7 +2247,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     key={vid.id}
                     className="rounded-3xl border border-white/[0.08] bg-[#0d0f1a] overflow-hidden shadow-2xl flex flex-col justify-between group hover:border-purple-500/40 transition-all"
                   >
-                    {/* HTML5 Direct Video Player (Self-made Video File) */}
+                    {/* HTML5 Direct Video Player */}
                     <div className="relative w-full aspect-video bg-black overflow-hidden border-b border-white/10">
                       <video
                         controls
@@ -2049,7 +2330,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                         </div>
                       </div>
 
-                      {/* Reviews Summary & Feedback List */}
+                      {/* Reviews Summary */}
                       <div className="space-y-2.5 pt-2 border-t border-white/10">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-slate-300 font-mono flex items-center gap-1.5">
@@ -2097,14 +2378,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                         )}
                       </div>
 
-                      {/* Main Action: Request 1:1 Query Session on this Topic */}
+                      {/* Main Action: Send Query Request to Author's Account */}
                       <div className="pt-2">
                         <button
-                          onClick={() => handleRequestQuerySession(vid)}
+                          onClick={() => handleOpenQueryModal(vid)}
                           className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:opacity-95 text-white font-mono text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
                         >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Request 1:1 Query Session on this Topic →</span>
+                          <Inbox className="w-3.5 h-3.5" />
+                          <span>Send Query Request to {vid.student_name}'s Account →</span>
                         </button>
                       </div>
                     </div>
@@ -2330,13 +2611,79 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       </div>
 
       {/* ============================================================ */}
-      {/* MODAL 1: UPLOAD DIRECT VIDEO TO PEERVAULT                    */}
+      {/* MODAL 1: SEND QUERY REQUEST TO AUTHOR'S ACCOUNT              */}
+      {/* ============================================================ */}
+      {queryTargetVideo && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <form onSubmit={handleSubmitQueryRequest} className="relative w-full max-w-lg glass-panel p-6 rounded-3xl border border-emerald-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <Inbox className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-base font-bold text-white font-heading">
+                  Request Query Session with {queryTargetVideo.student_name}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQueryTargetVideo(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1 text-xs">
+              <p className="font-bold text-white">Video: {queryTargetVideo.title}</p>
+              <p className="text-[11px] font-mono text-emerald-300">Topic: {queryTargetVideo.topic} • Author: {queryTargetVideo.student_name}</p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs font-mono text-amber-300 flex items-start gap-2">
+              <Lock className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>
+                This request will be sent to <strong>{queryTargetVideo.student_name}'s</strong> account. 1:1 communication will unlock only after they review and accept your request.
+              </span>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Your Query / Introduction Note</label>
+              <textarea
+                required
+                rows={4}
+                value={queryCustomMessage}
+                onChange={(e) => setQueryCustomMessage(e.target.value)}
+                placeholder="Explain what queries you have regarding the topic..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-sans"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setQueryTargetVideo(null)}
+                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={sendingQueryRequest || !queryCustomMessage.trim()}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-mono font-bold shadow-lg shadow-emerald-600/30 cursor-pointer flex items-center gap-1.5"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{sendingQueryRequest ? 'Sending to Account...' : 'Send Request to Author →'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL 2: UPLOAD DIRECT VIDEO TO PEERVAULT                    */}
       {/* ============================================================ */}
       {isUploadVideoModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <form onSubmit={handleUploadVideo} className="relative w-full max-w-lg glass-panel p-6 rounded-3xl border border-purple-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
             
-            {/* Hidden Video Input */}
             <input
               type="file"
               ref={videoFileInputRef}
@@ -2362,10 +2709,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Upload your own recorded video walkthrough. Peers can watch it, post reviews that directly affect your credits & leaderboard ranking, and contact you for query sessions.
+              Upload your own recorded video walkthrough. Peers can watch it, post reviews that directly affect your credits & leaderboard ranking, and send query requests to your account.
             </p>
 
-            {/* Video File Drop / Upload Box */}
             <div
               onClick={() => videoFileInputRef.current?.click()}
               className={`p-4 rounded-2xl border-2 border-dashed transition-all cursor-pointer text-center space-y-2 ${
@@ -2510,7 +2856,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 2: ADD REVIEW & FEEDBACK (IMPACTS LEADERBOARD/CREDITS) */}
+      {/* MODAL 3: ADD REVIEW & FEEDBACK (IMPACTS LEADERBOARD/CREDITS) */}
       {/* ============================================================ */}
       {feedbackVideoTarget && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -2586,7 +2932,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 3: SEND MEETING LINK MODAL                             */}
+      {/* MODAL 4: SEND MEETING LINK MODAL                             */}
       {/* ============================================================ */}
       {isMeetingModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -2676,7 +3022,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 4: FULLSCREEN IMAGE PREVIEW                           */}
+      {/* MODAL 5: FULLSCREEN IMAGE PREVIEW                           */}
       {/* ============================================================ */}
       {previewImageModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
@@ -2714,7 +3060,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 5: CREATE SKILL REQUEST                                */}
+      {/* MODAL 6: CREATE SKILL REQUEST                                */}
       {/* ============================================================ */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -2793,7 +3139,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 6: OFFER MENTORSHIP RESPONSE                          */}
+      {/* MODAL 7: OFFER MENTORSHIP RESPONSE                          */}
       {/* ============================================================ */}
       {respondingRequestId && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -2842,7 +3188,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 7: BADGE INSPECT MODAL                                 */}
+      {/* MODAL 8: BADGE INSPECT MODAL                                 */}
       {/* ============================================================ */}
       {selectedBadgeDetail && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -2901,7 +3247,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 8: GRAND MASTER BADGE INSPECT MODAL                    */}
+      {/* MODAL 9: GRAND MASTER BADGE INSPECT MODAL                    */}
       {/* ============================================================ */}
       {selectedGhBadgeDetail && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
