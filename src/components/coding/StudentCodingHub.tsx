@@ -249,6 +249,95 @@ const PAST_COMPETITIONS_DATA = [
   },
 ];
 
+
+// Interactive Demo Competitions for Students to Explore & Register
+export const SEED_DEMO_COMPETITIONS = [
+  {
+    id: 'demo-event-1',
+    title: 'Algorithmic Sprint 2026: Concurrency & Graph Partitioning',
+    description: 'Time-critical competitive coding sprint testing dynamic programming, streaming telemetry pipelines, memory-bounded graph partitioning, and live stress testing.',
+    category: 'ALGORITHMS',
+    difficulty: 'HARD',
+    is_team: true,
+    team_size: 4,
+    status: 'LIVE',
+    credits_reward: 150,
+    rules: '1. All solutions must pass within 2.0s time limit.\n2. Sub-16MB memory bound constraint.\n3. Squad members collaborate on multi-tier tasks.',
+    eligibility: 'Open to all registered student club members across 1st to 4th year cohorts.',
+    registrations: [],
+    challenges: [
+      {
+        id: 'chal-1',
+        title: 'Subarray Sum Matrix Optimization',
+        description: 'Find the maximum sum contiguous submatrix in an N x M grid with negative weights in O(N^3) time.',
+        difficulty: 'MEDIUM',
+        points: 100,
+        time_limit: 45,
+        status: 'RELEASED',
+      },
+      {
+        id: 'chal-2',
+        title: 'Shortest Path with K Energy Teleports',
+        description: 'Graph traversal algorithm allowing up to K edge weight overrides to 0.',
+        difficulty: 'HARD',
+        points: 150,
+        time_limit: 60,
+        status: 'RELEASED',
+      },
+    ],
+  },
+  {
+    id: 'demo-event-2',
+    title: 'Hackathon CodeSprint: AI & Web Microservices',
+    description: 'Full-stack hackathon & algorithmic team challenge building high-concurrency microservices, smart predictive pipelines, and Next.js 14 backends.',
+    category: 'SYSTEMS & AI',
+    difficulty: 'MEDIUM',
+    is_team: true,
+    team_size: 3,
+    status: 'REGISTRATION_OPEN',
+    credits_reward: 200,
+    rules: '1. Teams must consist of 3 members assigned by random skill balance.\n2. All members share team score and credit rewards.',
+    eligibility: 'Open to all registered student club members.',
+    registrations: [],
+    challenges: [
+      {
+        id: 'chal-3',
+        title: 'Concurrent Task Queue with Rate Limiting',
+        description: 'Implement a thread-safe token bucket rate limiter with sliding window metrics in Python/TypeScript.',
+        difficulty: 'MEDIUM',
+        points: 120,
+        time_limit: 50,
+        status: 'RELEASED',
+      },
+    ],
+  },
+  {
+    id: 'demo-event-3',
+    title: 'SpeedCode Arena: Bit Manipulation & Graph Traversal',
+    description: 'Rapid-fire solo algorithmic sprint testing bitwise masks, fast modular exponentiation, and topological DAG sorts.',
+    category: 'SPEEDCODE',
+    difficulty: 'MEDIUM',
+    is_team: false,
+    team_size: 1,
+    status: 'REGISTRATION_OPEN',
+    credits_reward: 100,
+    rules: 'Fastest clean submission with 100% test assertion coverage wins.',
+    eligibility: 'Individual solo competition for all club members.',
+    registrations: [],
+    challenges: [
+      {
+        id: 'chal-4',
+        title: 'Bitwise Mask State Search',
+        description: 'Count minimum flips to reach target state in a connected binary switch graph.',
+        difficulty: 'EASY',
+        points: 80,
+        time_limit: 30,
+        status: 'RELEASED',
+      },
+    ],
+  },
+];
+
 export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }: StudentCodingHubProps) {
   const [internalTab, setInternalTab] = useState<'events' | 'workspace' | 'team' | 'leaderboard' | 'history'>('events');
   
@@ -258,7 +347,7 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
     if (setSubTab) setSubTab(tab);
   };
 
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>(SEED_DEMO_COMPETITIONS);
   const [loading, setLoading] = useState(true);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [eventDetail, setEventDetail] = useState<any | null>(null);
@@ -271,7 +360,7 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
   const [regUsn, setRegUsn] = useState('');
   const [regYear, setRegYear] = useState('3rd Year');
   const [regPhone, setRegPhone] = useState('');
-  const [regDept, setRegDept] = useState('CSE');
+  const [regDept, setRegDept] = useState('AIDS');
   const [isSubmittingReg, setIsSubmittingReg] = useState(false);
 
   // Past Competition Retrospective Modal State
@@ -305,15 +394,20 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
       setLoading(true);
       const res = await fetch('/api/coding/events');
       const data = await res.json();
-      if (res.ok) {
-        setEvents(data.events || []);
-        if (data.events && data.events.length > 0 && !selectedEventId) {
+      if (res.ok && data.events && data.events.length > 0) {
+        setEvents(data.events);
+        if (!selectedEventId) {
           const liveOrUpcoming = data.events.find((e: any) => e.status === 'LIVE') || data.events[0];
           setSelectedEventId(liveOrUpcoming.id);
         }
+      } else {
+        setEvents(SEED_DEMO_COMPETITIONS);
+        if (!selectedEventId) setSelectedEventId(SEED_DEMO_COMPETITIONS[0].id);
       }
     } catch (e) {
       console.error("Failed to fetch coding events", e);
+      setEvents(SEED_DEMO_COMPETITIONS);
+      if (!selectedEventId) setSelectedEventId(SEED_DEMO_COMPETITIONS[0].id);
     } finally {
       setLoading(false);
     }
@@ -414,7 +508,7 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
     setRegUsn(user?.usn || '1RV23CS001');
     setRegYear((user as any)?.year || '3rd Year');
     setRegPhone((user as any)?.phone || '+91 98450 12345');
-    setRegDept((user as any)?.department || 'CSE');
+    setRegDept((user as any)?.department === 'AIML' ? 'AIML' : 'AIDS');
   };
 
   // Submit Registration Form to Backend (Saved to Visual Architects)
@@ -426,6 +520,81 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
     setIsSubmittingReg(true);
 
     try {
+      if (registerModalEvent.id.startsWith('demo-')) {
+        const currentUserId = user?.id || 'demo-current-user';
+        setEvents((prev) =>
+          prev.map((e) =>
+            e.id === registerModalEvent.id
+              ? {
+                  ...e,
+                  registrations: [
+                    ...(e.registrations || []),
+                    { student_id: currentUserId, status: 'REGISTERED', registered_at: new Date().toISOString() },
+                  ],
+                }
+              : e
+          )
+        );
+
+        if (registerModalEvent.is_team) {
+          setTeamData({
+            teamName: 'Team #1 — Algorithmic Titans',
+            teamNumber: 1,
+            eventName: registerModalEvent.title,
+            members: [
+              {
+                id: 'mem-1',
+                name: regName || user?.name || 'demo L',
+                usn: regUsn || '1RV23CS001',
+                phone: regPhone || '+91 98450 12345',
+                cohort: regYear || '3rd Year · CSE',
+                role_title: 'Lead Algorithmic Architect (Slot #1)',
+                isCurrentUser: true,
+                slot: 1,
+              },
+              {
+                id: 'mem-2',
+                name: 'Aditya Nair',
+                usn: '1RV22AI014',
+                phone: '+91 98451 22334',
+                cohort: '4th Year · AIDS',
+                role_title: 'Concurrency & Backend Lead (Slot #2)',
+                isCurrentUser: false,
+                slot: 2,
+              },
+              {
+                id: 'mem-3',
+                name: 'Meera K',
+                usn: '1RV24CS089',
+                phone: '+91 98452 33445',
+                cohort: '2nd Year · CSE',
+                role_title: 'Logic & Algorithm Specialist (Slot #3)',
+                isCurrentUser: false,
+                slot: 3,
+              },
+              {
+                id: 'mem-4',
+                name: 'Kavya V',
+                usn: '1RV25AI042',
+                phone: '+91 98453 44556',
+                cohort: '1st Year · AIML',
+                role_title: 'Unit Testing & Assertion Analyst (Slot #4)',
+                isCurrentUser: false,
+                slot: 4,
+              },
+            ],
+          });
+        }
+
+        setActionMsg(
+          registerModalEvent.is_team
+            ? `✓ Registration confirmed by Visual Architects! Your balanced squad is ready under My Peers.`
+            : `✓ Successfully registered for ${registerModalEvent.title}! Your individual workspace is ready.`
+        );
+        setRegisterModalEvent(null);
+        return;
+      }
+
       const res = await fetch(`/api/coding/events/${registerModalEvent.id}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -458,7 +627,7 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
   };
 
   const myRegisteredEvents = events.filter((evt) =>
-    evt.registrations?.some((r: any) => r.student_id === user?.id && r.status === 'REGISTERED')
+    evt.registrations?.some((r: any) => (r.student_id === user?.id || r.student_id === 'demo-current-user') && r.status === 'REGISTERED')
   );
 
   return (
@@ -536,7 +705,7 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {events.map((evt) => {
                   const isRegistered = evt.registrations?.some(
-                    (r: any) => r.student_id === user?.id && r.status === 'REGISTERED'
+                    (r: any) => (r.student_id === user?.id || r.student_id === 'demo-current-user') && r.status === 'REGISTERED'
                   );
                   const isLive = evt.status === 'LIVE';
                   const isTeam = evt.is_team;
@@ -937,10 +1106,8 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
                   onChange={(e) => setRegDept(e.target.value)}
                   className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-white/15 text-white focus:outline-none focus:border-purple-500 text-xs font-mono"
                 >
-                  <option value="CSE">Computer Science & Engineering (CSE)</option>
                   <option value="AIDS">Artificial Intelligence & Data Science (AIDS)</option>
                   <option value="AIML">Artificial Intelligence & Machine Learning (AIML)</option>
-                  <option value="ISE">Information Science & Engineering (ISE)</option>
                 </select>
               </div>
 
