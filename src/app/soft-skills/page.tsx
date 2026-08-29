@@ -70,6 +70,59 @@ export default function SoftSkillsArenaPage() {
     contentLogic: 9,
   })
 
+  const [isExtractingProfile, setIsExtractingProfile] = useState(false);
+  const [extractMsg, setExtractMsg] = useState<string | null>(null);
+
+  const handleExtractFromSkillBarter = async () => {
+    try {
+      setIsExtractingProfile(true);
+      const res = await fetch('/api/skill-barter/profile?userId=default');
+      const data = await res.json();
+      
+      const rawName = data?.profile?.name;
+      const rawYearBranch = data?.profile?.yearBranch;
+      
+      const finalName = rawName && rawName.trim() ? rawName.trim() : 'Name not added yet';
+      
+      let yearNum = 1;
+      if (rawYearBranch) {
+        if (rawYearBranch.includes('2')) yearNum = 2;
+        else if (rawYearBranch.includes('3')) yearNum = 3;
+        else if (rawYearBranch.includes('4')) yearNum = 4;
+      }
+      
+      let branchName = 'Department not added yet';
+      if (rawYearBranch && rawYearBranch.trim()) {
+        if (rawYearBranch.includes('AIDS')) branchName = 'Artificial Intelligence & Data Science (AIDS)';
+        else if (rawYearBranch.includes('AIML')) branchName = 'Artificial Intelligence & Machine Learning (AIML)';
+        else if (rawYearBranch.includes('CSE')) branchName = 'Computer Science & Engineering (CSE)';
+        else branchName = rawYearBranch.trim();
+      }
+
+      setRegForm((prev) => ({
+        ...prev,
+        student_name: finalName,
+        year: yearNum,
+        branch: branchName,
+        email: prev.email || 'Email not added yet',
+        usn: prev.usn || 'USN not added yet',
+      }));
+
+      const isMissing = !rawName || !rawYearBranch;
+      if (isMissing) {
+        setExtractMsg("ℹ️ Extracted from Skill Barter: Fields not given in Skill Barter are marked as 'Not added yet'.");
+      } else {
+        setExtractMsg('✓ Successfully extracted student profile details from Skill Barter!');
+      }
+      setTimeout(() => setExtractMsg(null), 4000);
+    } catch (e: any) {
+      setExtractMsg('Error extracting profile: ' + (e.message || 'Network error'));
+      setTimeout(() => setExtractMsg(null), 4000);
+    } finally {
+      setIsExtractingProfile(false);
+    }
+  };
+
   const fetchEvents = async () => {
     try {
       const res = await fetch('/api/soft-skills/events')

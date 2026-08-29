@@ -161,6 +161,57 @@ export default function StudentCodingProfileView({
     fetchProfile();
   }, [user?.id]);
 
+  const [isExtracting, setIsExtracting] = useState(false);
+
+  const handleExtractFromSkillBarter = async () => {
+    try {
+      setIsExtracting(true);
+      const res = await fetch(`/api/skill-barter/profile?userId=${encodeURIComponent(user?.id || 'default')}`);
+      const data = await res.json();
+      
+      const rawName = data?.profile?.name;
+      const rawYearBranch = data?.profile?.yearBranch;
+      const rawBio = data?.profile?.bio;
+
+      const extractedName = rawName && rawName.trim() ? rawName.trim() : 'Name not added yet';
+      const extractedYearBranch = rawYearBranch && rawYearBranch.trim() ? rawYearBranch.trim() : 'Branch & Year not added yet';
+      const extractedBio = rawBio && rawBio.trim() ? rawBio.trim() : 'Bio not added yet';
+
+      setProfileName(extractedName);
+      setProfileYearBranch(extractedYearBranch);
+      setProfileBio(extractedBio);
+      setEditName(extractedName);
+      setEditYearBranch(extractedYearBranch);
+      setEditBio(extractedBio);
+
+      // Auto-persist synced data to backend
+      await fetch('/api/skill-barter/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id || 'default',
+          name: extractedName,
+          yearBranch: extractedYearBranch,
+          bio: extractedBio,
+        }),
+      });
+
+      const isPartiallyEmpty = !rawName || !rawYearBranch || !rawBio;
+      if (isPartiallyEmpty) {
+        setFeedbackMsg("ℹ️ Extracted from Skill Barter: Fields not given in Skill Barter are marked as 'Not added yet'.");
+      } else {
+        setFeedbackMsg("✓ Successfully extracted and synchronized profile details from Skill Barter!");
+      }
+      setTimeout(() => setFeedbackMsg(null), 4500);
+      if (onRefresh) onRefresh();
+    } catch (e: any) {
+      setFeedbackMsg('Error extracting profile: ' + (e.message || 'Network error'));
+      setTimeout(() => setFeedbackMsg(null), 4000);
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
   const handleOpenProfileInfoModal = () => {
     setEditName(profileName || user?.name || '');
     setEditYearBranch(profileYearBranch || '');
@@ -311,25 +362,30 @@ export default function StudentCodingProfileView({
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
+                onClick={handleExtractFromSkillBarter}
+                disabled={isExtracting}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600/20 via-teal-600/20 to-emerald-600/20 hover:from-emerald-600/30 hover:to-teal-600/30 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer disabled:opacity-50"
+                title="Extract name, year/branch, and bio from Skill Barter Profile"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isExtracting ? 'Extracting...' : 'Extract from Skill Barter'}</span>
+              </button>
+
+              <button
                 onClick={handleOpenProfileInfoModal}
                 className="px-3.5 py-1.5 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Edit Profile Info</span>
               </button>
-
-              <span className="px-3.5 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-mono font-bold flex items-center gap-1.5 shadow-md">
-                <CalendarIcon className="w-3.5 h-3.5 text-purple-400" />
-                <span>Consistent Helper · Verified Builder</span>
-              </span>
             </div>
           </div>
 
-          {/* Header Texts (Empty defaults with friendly placeholders) */}
+          {/* Header Texts (Defaulting to 'Not added yet' if missing) */}
           <div className="group relative">
             <div className="flex items-center gap-2.5">
               <h2 className="text-2xl font-bold text-white tracking-tight font-heading">
-                {profileName || user?.name || 'New Participant'}
+                {profileName || 'Name not added yet'}
               </h2>
               <button
                 onClick={handleOpenProfileInfoModal}
@@ -341,12 +397,12 @@ export default function StudentCodingProfileView({
             </div>
             <p className="text-xs text-slate-400 font-mono mt-1">
               {profileYearBranch || (
-                <span className="text-slate-500 italic">Branch & Year not specified · Tap Edit Profile Info</span>
+                <span className="text-slate-500 italic">Branch & Year not added yet</span>
               )}
             </p>
             <p className="text-xs text-slate-400 mt-2 font-light max-w-2xl leading-relaxed">
               {profileBio || (
-                <span className="text-slate-500 italic">No bio added yet. Tap &quot;Edit Profile Info&quot; to describe your focus and skills.</span>
+                <span className="text-slate-500 italic">Bio not added yet</span>
               )}
             </p>
           </div>
@@ -760,9 +816,21 @@ export default function StudentCodingProfileView({
                 <Edit3 className="w-4 h-4 text-purple-400" />
                 <span>Edit Profile Info</span>
               </h3>
-              <button onClick={() => setIsProfileInfoModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExtractFromSkillBarter}
+                  disabled={isExtracting}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-mono font-bold flex items-center gap-1 transition-all cursor-pointer"
+                  title="Auto-fill form from your Skill Barter profile"
+                >
+                  <Sparkles className="w-3 h-3 text-emerald-400" />
+                  <span>{isExtracting ? 'Extracting...' : 'Auto-Fill from Skill Barter'}</span>
+                </button>
+                <button onClick={() => setIsProfileInfoModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">

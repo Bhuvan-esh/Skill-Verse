@@ -511,6 +511,29 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
     setRegDept((user as any)?.department === 'AIML' ? 'AIML' : 'AIDS');
   };
 
+  const handleExtractRegFromSkillBarter = async () => {
+    try {
+      const res = await fetch(`/api/skill-barter/profile?userId=${encodeURIComponent(user?.id || 'default')}`);
+      const data = await res.json();
+      if (res.ok && data.profile) {
+        if (data.profile.name) setRegName(data.profile.name);
+        if (data.profile.yearBranch) {
+          if (data.profile.yearBranch.includes('1st')) setRegYear('1st Year');
+          else if (data.profile.yearBranch.includes('2nd')) setRegYear('2nd Year');
+          else if (data.profile.yearBranch.includes('3rd')) setRegYear('3rd Year');
+          else if (data.profile.yearBranch.includes('4th')) setRegYear('4th Year');
+
+          if (data.profile.yearBranch.includes('AIML')) setRegDept('AIML');
+          else if (data.profile.yearBranch.includes('AIDS')) setRegDept('AIDS');
+        }
+        setActionMsg('✓ Auto-filled registration fields from your Skill Barter profile!');
+        setTimeout(() => setActionMsg(''), 4000);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
   // Submit Registration Form to Backend (Saved to Visual Architects)
   const handleSubmitRegistrationForm = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -992,12 +1015,23 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
                   <span className="text-[10px] font-mono text-purple-300">{registerModalEvent.title}</span>
                 </div>
               </div>
-              <button
-                onClick={() => setRegisterModalEvent(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={handleExtractRegFromSkillBarter}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold flex items-center space-x-1 cursor-pointer transition-all"
+                  title="Auto-fill name, year, and department from Skill Barter Profile"
+                >
+                  <Sparkles className="w-3 h-3 text-emerald-400" />
+                  <span>Extract from Skill Barter</span>
+                </button>
+                <button
+                  onClick={() => setRegisterModalEvent(null)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Event Summary Notice */}
