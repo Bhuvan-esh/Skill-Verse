@@ -70,7 +70,7 @@ export async function GET(req: Request) {
   try {
     let session: any = null;
     try {
-      session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER', 'MENTOR']);
+      session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER']);
     } catch {
       session = null;
     }
@@ -109,7 +109,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER', 'MENTOR']);
+    const session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER']);
     const body = await req.json();
     const isVisualArchitect =
       session.role === 'FOUNDER' ||

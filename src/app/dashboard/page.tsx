@@ -218,7 +218,7 @@ export default function DashboardPage() {
 
         {/* Tab Views strictly scoped to user role */}
         {activeTab === 'ideas' && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (
-          <BizLinkMentorshipTracker />
+          <BizLinkMentorshipTracker user={user} />
         )}
 
         {activeTab === 'competitions' && (user.role === 'STUDENT' || user.role === 'FOUNDER') && (

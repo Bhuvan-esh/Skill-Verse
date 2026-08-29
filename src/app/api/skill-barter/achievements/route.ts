@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   try {
     let session: any = null;
     try {
-      session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER', 'MENTOR']);
+      session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER']);
     } catch {
       session = null;
     }
@@ -27,18 +27,18 @@ export async function GET(req: Request) {
         const [chatsMentored, chatsRequested] = await Promise.all([
           db.skillChat.findMany({
             where: { mentor_id: userId, status: 'ACCEPTED' },
-            select: { id: true, skill: true, created_at: true },
+            include: { request: { select: { skill: true } } },
           }),
           db.skillChat.findMany({
             where: { requester_id: userId, status: 'ACCEPTED' },
-            select: { id: true, skill: true, created_at: true },
+            include: { request: { select: { skill: true } } },
           }),
         ]);
 
         totalSessionsCompleted = Math.max(chatsMentored.length + chatsRequested.length, 8);
         teachingSessionsCompleted = Math.max(chatsMentored.length, 6);
         studentsHelped = Math.max(chatsMentored.length, 6);
-        const distinctSkills = new Set(chatsMentored.map((c) => c.skill).filter(Boolean));
+        const distinctSkills = new Set(chatsMentored.map((c: any) => c.request?.skill).filter(Boolean));
         distinctSkillsTaught = Math.max(distinctSkills.size, 4);
       }
     } catch (dbErr) {
@@ -80,7 +80,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER', 'MENTOR']);
+    const session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER']);
     const body = await req.json().catch(() => ({}));
 
     // Triggered on events: SESSION_COMPLETED, TEACHING_SESSION_COMPLETED, STUDENT_HELPED, SKILL_TAUGHT, RATING_RECEIVED

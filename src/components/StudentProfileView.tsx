@@ -13,12 +13,15 @@ import {
   Check,
   Sparkles,
   XCircle,
+  GitPullRequest,
 } from 'lucide-react';
 
 import {
   evaluateStudentAchievements,
   StudentActivityMetrics,
   EvaluatedBadge,
+  evaluateGitHubAchievements,
+  EvaluatedGitHubBadge,
 } from '@/lib/skillBarterAchievementEngine';
 
 interface StudentProfileViewProps {
@@ -28,6 +31,8 @@ interface StudentProfileViewProps {
 
 export default function StudentProfileView({ user }: StudentProfileViewProps) {
   const [selectedBadgeDetail, setSelectedBadgeDetail] = useState<EvaluatedBadge | null>(null);
+  const [selectedGhBadgeDetail, setSelectedGhBadgeDetail] = useState<EvaluatedGitHubBadge | null>(null);
+  const [profileBadgeFilter, setProfileBadgeFilter] = useState<'all' | 'skillbarter' | 'github'>('all');
 
   const metrics: StudentActivityMetrics = {
     totalSessionsCompleted: 8,
@@ -49,10 +54,14 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
     'sb-badge-9': 'Earned 25 Aug 2026',
   });
 
+  const ghEvaluation = evaluateGitHubAchievements();
   const evaluatedBadges = evaluation.badges;
+  const evaluatedGhBadges = ghEvaluation.badges;
   const unlockedBadges = evaluatedBadges.filter((b) => b.isUnlocked);
-  const unlockedCount = evaluation.unlockedCount;
-  const totalBadgesCount = evaluation.totalCount;
+  const unlockedGhBadges = evaluatedGhBadges.filter((b) => b.isUnlocked);
+
+  const unlockedCount = evaluation.unlockedCount + ghEvaluation.unlockedCount;
+  const totalBadgesCount = evaluation.totalCount + ghEvaluation.totalCount;
   const highestBadge = evaluation.highestBadge;
   const earnedReputationMark = highestBadge ? highestBadge.icon : '🧑‍🏫';
 
@@ -146,11 +155,18 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
             <span>Earned Reputation Badges</span>
           </h4>
           <div className="flex flex-wrap gap-2.5">
-            {unlockedBadges.map((b) => (
+            {unlockedBadges.slice(0, 4).map((b) => (
               <div key={b.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-xs shadow-sm hover:border-violet-500/30 transition-all">
                 <span className="text-base">{b.icon}</span>
                 <span className="text-slate-200 font-medium">{b.name}</span>
                 <span className="text-[10px] font-mono text-emerald-400 font-bold">✓ {b.reputationMark}</span>
+              </div>
+            ))}
+            {unlockedGhBadges.slice(0, 3).map((gh) => (
+              <div key={gh.id} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs shadow-sm hover:border-cyan-500/40 transition-all">
+                <span className="text-base">{gh.icon}</span>
+                <span className="text-slate-200 font-medium">{gh.name}</span>
+                <span className="text-[10px] font-mono text-cyan-300 font-bold">x{gh.currentLevel}</span>
               </div>
             ))}
           </div>
@@ -158,23 +174,23 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
       </div>
 
       {/* =================================================================== */}
-      {/* 20-SLOT SKILLBARTER ACHIEVEMENTS SHOWCASE                           */}
+      {/* ALL ACHIEVEMENTS SHOWCASE (SkillBarter + GitHub-Style)             */}
       {/* =================================================================== */}
       <div className="rounded-2xl border border-white/[0.08] bg-[#0d0e1a] p-6 space-y-6 shadow-2xl">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <p className="text-[10px] font-mono text-violet-400 uppercase tracking-widest">SkillBarter Achievement Journey</p>
+              <p className="text-[10px] font-mono text-violet-400 uppercase tracking-widest">Achievement & GitHub Badge Journey</p>
             </div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <span>All 20 SkillBarter Achievements</span>
+              <span>All Achievement Badges</span>
               <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-violet-500/15 border border-violet-500/25 text-violet-300">
-                20 Slots
+                {totalBadgesCount} Badges
               </span>
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Complete SkillBarter activities to automatically unlock badges and elevate your campus reputation.
+              Badges unlock automatically across SkillBarter activities and GitHub-style milestones.
             </p>
           </div>
 
@@ -198,123 +214,269 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
           </div>
         </div>
 
-        {/* 20-Badge Responsive Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
-          {evaluatedBadges.map((badge) => {
-            const pct = Math.min(100, Math.round((badge.currentProgress / badge.requirementValue) * 100));
-
-            return (
-              <button
-                key={badge.id}
-                onClick={() => setSelectedBadgeDetail(badge)}
-                className={`text-left p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 relative overflow-hidden group ${
-                  badge.isUnlocked
-                    ? 'border-white/[0.09] bg-white/[0.03] hover:border-violet-500/40 hover:bg-white/[0.05] shadow-lg'
-                    : badge.isNextAchievable
-                    ? 'border-amber-400/40 bg-amber-500/[0.03] ring-1 ring-amber-400/20 shadow-lg shadow-amber-500/5'
-                    : 'border-white/[0.04] bg-white/[0.01] opacity-65 hover:opacity-85'
-                }`}
-                style={badge.isUnlocked ? { boxShadow: `0 0 30px -10px ${badge.glowColor}` } : undefined}
-              >
-                {badge.isUnlocked && (
-                  <div className={`absolute inset-0 bg-gradient-to-br ${badge.color} opacity-[0.05] pointer-events-none`} />
-                )}
-
-                {/* Card Header */}
-                <div className="flex items-start justify-between gap-1 relative">
-                  <span className="text-[10px] font-mono font-bold text-slate-500">
-                    #{badge.badgeNumber}
-                  </span>
-
-                  {badge.isUnlocked ? (
-                    <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 flex items-center gap-1">
-                      <Check className="w-2.5 h-2.5" />
-                      <span>EARNED</span>
-                    </span>
-                  ) : badge.isNextAchievable ? (
-                    <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center gap-1 animate-pulse">
-                      <Sparkles className="w-2.5 h-2.5" />
-                      <span>NEXT UP</span>
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.07] text-slate-500 flex items-center gap-1">
-                      <Lock className="w-2.5 h-2.5" />
-                      <span>LOCKED</span>
-                    </span>
-                  )}
-                </div>
-
-                {/* Badge Artwork */}
-                <div className="flex flex-col items-center justify-center text-center py-2 relative">
-                  <div
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-300 group-hover:scale-105 ${
-                      badge.isUnlocked
-                        ? `bg-gradient-to-br ${badge.color} shadow-lg ring-2 ring-white/[0.1]`
-                        : badge.isNextAchievable
-                        ? 'bg-white/[0.06] border border-amber-400/30 text-slate-300'
-                        : 'bg-white/[0.04] border border-white/[0.06] text-slate-600'
-                    }`}
-                  >
-                    {badge.isUnlocked ? (
-                      badge.icon
-                    ) : (
-                      <div className="relative">
-                        <span className="opacity-30 grayscale">{badge.icon}</span>
-                        <Lock className="w-4 h-4 text-slate-400 absolute inset-0 m-auto" />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-2.5 space-y-0.5">
-                    <h4 className="text-xs font-bold text-slate-100 group-hover:text-violet-300 transition-colors leading-snug">
-                      {badge.name}
-                    </h4>
-                    <span className="text-[9px] text-slate-500 font-mono block">
-                      {badge.category}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Requirement & Progress */}
-                <div className="space-y-2 pt-2 border-t border-white/[0.05] relative">
-                  <p className="text-[10px] text-slate-400 leading-tight line-clamp-2 min-h-[24px]">
-                    &ldquo;{badge.requirement}&rdquo;
-                  </p>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[9px] font-mono">
-                      <span className="text-slate-500">Progress</span>
-                      <span className={badge.isUnlocked ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
-                        {badge.currentProgress}/{badge.requirementValue} {badge.unit}
-                      </span>
-                    </div>
-                    <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-700 ${
-                          badge.isUnlocked
-                            ? `bg-gradient-to-r ${badge.color}`
-                            : badge.isNextAchievable
-                            ? 'bg-amber-400'
-                            : 'bg-white/[0.2]'
-                        }`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {badge.isUnlocked && badge.unlockedAt && (
-                    <span className="text-[9px] font-mono text-emerald-400/80 block text-right">
-                      {badge.unlockedAt}
-                    </span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+        {/* Filter Switcher */}
+        <div className="flex items-center gap-2 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl">
+          <button
+            onClick={() => setProfileBadgeFilter('all')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              profileBadgeFilter === 'all'
+                ? 'bg-violet-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            All Badges ({totalBadgesCount})
+          </button>
+          <button
+            onClick={() => setProfileBadgeFilter('github')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              profileBadgeFilter === 'github'
+                ? 'bg-cyan-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <GitPullRequest className="w-3.5 h-3.5 text-cyan-400" />
+            <span>GitHub-Style ({ghEvaluation.totalCount})</span>
+          </button>
+          <button
+            onClick={() => setProfileBadgeFilter('skillbarter')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              profileBadgeFilter === 'skillbarter'
+                ? 'bg-violet-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            SkillBarter (20)
+          </button>
         </div>
+
+        {/* 1. GitHub-Style Badges Grid */}
+        {(profileBadgeFilter === 'all' || profileBadgeFilter === 'github') && (
+          <div className="space-y-3 pt-2">
+            <h4 className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-2">
+              <GitPullRequest className="w-4 h-4 text-cyan-400" />
+              <span>GitHub-Style Developer Badges ({ghEvaluation.totalCount})</span>
+            </h4>
+
+            <div className="p-5 rounded-3xl bg-[#090b17]/80 border border-white/[0.08] shadow-xl backdrop-blur-xl">
+              <div className="flex flex-wrap items-center justify-start gap-4 sm:gap-5">
+                {evaluatedGhBadges.map((badge) => {
+                  const isUnlocked = badge.isUnlocked;
+                  const level = badge.currentLevel;
+
+                  return (
+                    <button
+                      key={badge.id}
+                      onClick={() => setSelectedGhBadgeDetail(badge)}
+                      title={`${badge.name} — ${badge.category} (Tap to inspect)`}
+                      className={`relative group p-2 rounded-2xl border transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 cursor-pointer flex items-center justify-center ${
+                        isUnlocked
+                          ? 'bg-gradient-to-b from-[#13162c] to-[#0d0f22] border-white/[0.15] hover:border-cyan-400 shadow-md'
+                          : 'bg-white/[0.02] border-white/[0.05] opacity-50 hover:opacity-80'
+                      }`}
+                      style={isUnlocked ? { boxShadow: `0 0 20px -8px ${badge.accentColor}` } : undefined}
+                    >
+                      {/* Badge Icon Emblem Only */}
+                      <div
+                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-300 relative ${
+                          isUnlocked
+                            ? 'bg-gradient-to-br from-slate-900 to-slate-950 ring-1 ring-white/10'
+                            : 'bg-white/[0.02] text-slate-600'
+                        }`}
+                        style={isUnlocked ? { borderColor: badge.accentColor } : undefined}
+                      >
+                        {isUnlocked ? (
+                          <>
+                            <span className="drop-shadow-lg select-none">{badge.icon}</span>
+                            {/* Level multiplication indicator */}
+                            <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-md bg-slate-900 border border-white/20 text-[8px] font-mono font-bold text-white shadow-md">
+                              x{level}
+                            </span>
+                          </>
+                        ) : (
+                          <div className="relative flex items-center justify-center">
+                            <span className="opacity-25 grayscale text-xl select-none">{badge.icon}</span>
+                            <Lock className="w-3.5 h-3.5 text-slate-400 absolute inset-0 m-auto" />
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. SkillBarter Badges Grid */}
+        {(profileBadgeFilter === 'all' || profileBadgeFilter === 'skillbarter') && (
+          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+            <h4 className="text-xs font-bold text-violet-300 uppercase tracking-wider flex items-center gap-2">
+              <Award className="w-4 h-4 text-violet-400" />
+              <span>SkillBarter Milestones (20 Badges)</span>
+            </h4>
+
+            <div className="p-5 rounded-3xl bg-[#090b17]/80 border border-white/[0.08] shadow-xl backdrop-blur-xl">
+              <div className="flex flex-wrap items-center justify-start gap-4 sm:gap-5">
+                {evaluatedBadges.map((badge) => {
+                  return (
+                    <button
+                      key={badge.id}
+                      onClick={() => setSelectedBadgeDetail(badge)}
+                      title={`#${badge.badgeNumber} ${badge.name} — ${badge.category} (Tap to inspect)`}
+                      className={`relative group p-2 rounded-2xl border transition-all duration-300 transform hover:-translate-y-1 hover:scale-105 cursor-pointer flex items-center justify-center ${
+                        badge.isUnlocked
+                          ? 'bg-gradient-to-b from-[#13162c] to-[#0d0f22] border-white/[0.15] hover:border-violet-400 shadow-md'
+                          : badge.isNextAchievable
+                          ? 'bg-amber-500/[0.05] border-amber-400/40 ring-1 ring-amber-400/20 shadow-sm hover:border-amber-400'
+                          : 'bg-white/[0.02] border-white/[0.05] opacity-50 hover:opacity-80'
+                      }`}
+                      style={badge.isUnlocked ? { boxShadow: `0 0 20px -8px ${badge.glowColor}` } : undefined}
+                    >
+                      {/* Badge Icon Emblem Only */}
+                      <div
+                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-300 relative ${
+                          badge.isUnlocked
+                            ? `bg-gradient-to-br ${badge.color} ring-1 ring-white/15 shadow-md`
+                            : badge.isNextAchievable
+                            ? 'bg-white/[0.06] border border-amber-400/30 text-slate-300'
+                            : 'bg-white/[0.02] text-slate-600'
+                        }`}
+                      >
+                        {badge.isUnlocked ? (
+                          <>
+                            <span className="drop-shadow-lg select-none">{badge.icon}</span>
+                            {/* Small Slot # pill */}
+                            <span className="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-md bg-slate-900 border border-white/20 text-[8px] font-mono font-bold text-white shadow-md">
+                              #{badge.badgeNumber}
+                            </span>
+                          </>
+                        ) : (
+                          <div className="relative flex items-center justify-center">
+                            <span className="opacity-25 grayscale text-xl select-none">{badge.icon}</span>
+                            <Lock className="w-3.5 h-3.5 text-slate-400 absolute inset-0 m-auto" />
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── BADGE DETAIL MODAL ───────────────────────────────────────────── */}
+      {/* ── GITHUB BADGE INSPECTOR MODAL ──────────────────────────────── */}
+      {selectedGhBadgeDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl border border-cyan-500/30 bg-[#0d0f22] p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+              <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
+                <GitPullRequest className="w-3.5 h-3.5" />
+                <span>GitHub-Style Achievement · {selectedGhBadgeDetail.category}</span>
+              </span>
+              <button onClick={() => setSelectedGhBadgeDetail(null)} className="text-slate-500 hover:text-white cursor-pointer">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col items-center text-center gap-3 py-2">
+              <div
+                className={`w-20 h-20 rounded-3xl flex items-center justify-center text-4xl shadow-2xl relative ${
+                  selectedGhBadgeDetail.isUnlocked
+                    ? 'bg-gradient-to-br from-slate-900 to-slate-950 ring-4 ring-cyan-400/20 border-2'
+                    : 'bg-white/[0.05] border border-white/[0.08]'
+                }`}
+                style={selectedGhBadgeDetail.isUnlocked ? { borderColor: selectedGhBadgeDetail.accentColor } : undefined}
+              >
+                {selectedGhBadgeDetail.isUnlocked ? (
+                  <>
+                    <span className="drop-shadow-xl">{selectedGhBadgeDetail.icon}</span>
+                    <span className="absolute -bottom-1.5 -right-1.5 px-2 py-0.5 rounded-md bg-slate-900 border border-white/20 text-[10px] font-mono font-bold text-white shadow-lg">
+                      x{selectedGhBadgeDetail.currentLevel}
+                    </span>
+                  </>
+                ) : (
+                  <div className="relative">
+                    <span className="opacity-30 grayscale">{selectedGhBadgeDetail.icon}</span>
+                    <Lock className="w-6 h-6 text-slate-400 absolute inset-0 m-auto" />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center justify-center gap-2">
+                  <span>{selectedGhBadgeDetail.name}</span>
+                  {selectedGhBadgeDetail.isUnlocked && selectedGhBadgeDetail.currentTier && (
+                    <span className="text-xs px-2 py-0.2 rounded-md bg-cyan-500/20 text-cyan-300 font-mono">
+                      {selectedGhBadgeDetail.currentTier.tierName}
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs text-cyan-200/90 font-mono mt-1">&ldquo;{selectedGhBadgeDetail.tagline}&rdquo;</p>
+                <p className="text-xs text-slate-400 font-light mt-2 max-w-sm mx-auto leading-relaxed">
+                  {selectedGhBadgeDetail.description}
+                </p>
+              </div>
+            </div>
+
+            {/* Tier Level Progression Ladder */}
+            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-3">
+              <p className="text-[10px] font-mono uppercase text-slate-400 tracking-wider">
+                Badge Tier Ladder
+              </p>
+              <div className="grid grid-cols-4 gap-2">
+                {selectedGhBadgeDetail.tiers.map((t) => {
+                  const isTierUnlocked = selectedGhBadgeDetail.currentValue >= t.reqValue;
+                  return (
+                    <div
+                      key={t.level}
+                      className={`p-2.5 rounded-xl text-center border space-y-1 ${
+                        isTierUnlocked
+                          ? 'bg-cyan-500/10 border-cyan-500/30 text-white'
+                          : 'bg-white/[0.02] border-white/[0.04] text-slate-600 opacity-60'
+                      }`}
+                    >
+                      <span className="text-[10px] font-bold block">{t.tierName}</span>
+                      <span className="text-[9px] font-mono block text-slate-400">
+                        {t.reqValue} {selectedGhBadgeDetail.unit}
+                      </span>
+                      <span className="text-[9px] font-mono font-bold block text-cyan-300">
+                        {isTierUnlocked ? '✓ x' + t.level : 'LOCKED'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="space-y-1.5 pt-1">
+                <div className="flex justify-between text-xs font-mono">
+                  <span className="text-slate-400">Current Activity Score</span>
+                  <span className="text-cyan-300 font-bold">
+                    {selectedGhBadgeDetail.currentValue} {selectedGhBadgeDetail.unit}
+                  </span>
+                </div>
+                {selectedGhBadgeDetail.isUnlocked && selectedGhBadgeDetail.unlockedAt && (
+                  <p className="text-[10px] text-emerald-400 font-mono text-center pt-1">
+                    ✓ {selectedGhBadgeDetail.unlockedAt}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => setSelectedGhBadgeDetail(null)}
+                className="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SKILLBARTER BADGE INSPECTOR MODAL ─────────────────────────── */}
       {selectedBadgeDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
           <div className="w-full max-w-sm rounded-3xl border border-white/[0.08] bg-[#0d0e1c] p-6 shadow-2xl space-y-4">
@@ -395,4 +557,3 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
     </div>
   );
 }
-

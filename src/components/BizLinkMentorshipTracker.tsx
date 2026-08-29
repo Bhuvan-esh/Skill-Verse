@@ -3,8 +3,20 @@
 import React, { useState } from 'react';
 import { Search, MessageSquare, Paperclip, MoreVertical } from 'lucide-react';
 
-export default function BizLinkMentorshipTracker() {
+interface BizLinkMentorshipTrackerProps {
+  user?: any;
+}
+
+export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrackerProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
+
+  const displayName = user?.name || 'Anusha A';
+  const displayInitials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase() || 'AA';
 
   const q = searchQuery.trim().toLowerCase();
 
@@ -291,9 +303,9 @@ export default function BizLinkMentorshipTracker() {
             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
             style={{ background: '#9E92F0', color: '#16122C' }}
           >
-            IR
+            {displayInitials}
           </div>
-          <span className="text-xs font-semibold text-[#F1EFE6]">Iona Rollins</span>
+          <span className="text-xs font-semibold text-[#F1EFE6]">{displayName}</span>
         </div>
       </header>
 

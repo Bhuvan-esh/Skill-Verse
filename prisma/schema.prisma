@@ -25,6 +25,10 @@ model User {
   last_login_at              DateTime?
   last_login_device          String?
   last_login_ip              String?
+  // Optional profile fields (filled during registration for coding challenge)
+  phone                      String?
+  year_of_study              Int?    // 1, 2, 3, 4
+  department                 String? // CSE, AIDS, AIML, ISE, ECE, etc.
   created_at                 DateTime              @default(now())
   updated_at                 DateTime              @updatedAt
   student_credits            StudentCredit?
@@ -383,6 +387,10 @@ model CodingEvent {
   eligibility           String                    @default("Open to all registered student club participants.")
   winner_count          Int                       @default(3)
   support_contact       String                    @default("coding-support@club.edu")
+  // Visual Architects Team Release Control
+  team_release_status   String                    @default("PENDING") // PENDING | RELEASED
+  team_release_time     DateTime?
+  team_department       String                    @default("ALL")    // ALL | AIDS_AIML
   created_at            DateTime                  @default(now())
   updated_at            DateTime                  @updatedAt
 
@@ -394,6 +402,7 @@ model CodingEvent {
 
   @@index([status])
 }
+
 
 model CodingEventRegistration {
   id            String      @id @default(uuid())

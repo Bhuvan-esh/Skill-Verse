@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -27,7 +27,15 @@ import {
   UserCheck,
   Flame,
   ArrowUpRight,
-  Filter
+  Filter,
+  Plus,
+  BookOpen,
+  Phone,
+  GraduationCap,
+  Bot,
+  ShieldCheck,
+  Layers,
+  Info
 } from 'lucide-react';
 import PillarCodingDashboard from './PillarCodingDashboard';
 
@@ -78,8 +86,41 @@ if __name__ == "__main__":
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Student Profile & Innovation Hub Leaderboard state
+  const [showConceptModal, setShowConceptModal] = useState(false);
+  const [conceptTitle, setConceptTitle] = useState('');
+  const [conceptDescription, setConceptDescription] = useState('');
+  const [conceptCategory, setCategory] = useState('Coding Challenge');
+  const [conceptLectureId, setLectureId] = useState('CS-Lec-1');
+  const [conceptSubmitError, setConceptSubmitError] = useState('');
+  const [conceptSubmitSuccess, setConceptSubmitSuccess] = useState('');
+
+  // Lecture Headcount Tallies & Activity Metrics state
+  const [tallies, setTallies] = useState({
+    submissions: 5,
+    sessionAttended: 12,
+    sessionConducted: 3,
+  });
+
+  // Embedded Active Leaderboard Standings Table Data
+  const [profileLeaderboardData] = useState([
+    { rank: 1, name: 'Alex Johnson', usn: '1RV23CS001', s1: 45, s2: 38, s3: 50, s4: 60, total: 193 },
+    { rank: 2, name: 'Rahul Sharma', usn: '1RV23CS042', s1: 40, s2: 35, s3: 45, s4: 55, total: 175 },
+    { rank: 3, name: 'Meera K', usn: '1RV23AI018', s1: 38, s2: 42, s3: 40, s4: 50, total: 170 },
+    { rank: 4, name: 'Sanjay V', usn: '1RV23IS089', s1: 30, s2: 30, s3: 35, s4: 45, total: 140 },
+    { rank: 5, name: 'Priya S', usn: '1RV23AI055', s1: 25, s2: 32, s3: 38, s4: 40, total: 135 },
+  ]);
+
   // Student history state
   const [studentHistory, setStudentHistory] = useState<any | null>(null);
+
+  // Live Visual Architect Clock & Team API State (AIDS & AIML Exclusive)
+  const [currentTime, setCurrentTime] = useState<string>('');
+  const [teamData, setTeamData] = useState<any | null>(null);
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [teamError, setTeamError] = useState<string | null>(null);
+  const releaseScheduleTime = '02:00:00 PM IST';
+
 
   const fetchEvents = async () => {
     try {
@@ -142,13 +183,44 @@ if __name__ == "__main__":
     fetchEvents();
     fetchLeaderboard();
     fetchStudentHistory();
+
+    const updateLiveClock = () => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
+    };
+    updateLiveClock();
+    const interval = setInterval(updateLiveClock, 1000);
+    return () => clearInterval(interval);
   }, []);
+
+  // Fetch real team data from API when My Team tab is active
+  const fetchMyTeam = async () => {
+    try {
+      setTeamLoading(true);
+      setTeamError(null);
+      const res = await fetch('/api/coding/my-team');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load team');
+      setTeamData(data);
+    } catch (e: any) {
+      setTeamError(e.message || 'Could not load team data');
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'team') {
+      fetchMyTeam();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (selectedEventId) {
       fetchEventDetail(selectedEventId);
     }
   }, [selectedEventId]);
+
 
   const handleRegister = async (eventId: string) => {
     setActionMsg('');
@@ -220,6 +292,35 @@ if __name__ == "__main__":
       setActionErr(err.message);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSubmitConcept = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setConceptSubmitError('');
+    setConceptSubmitSuccess('');
+    try {
+      const res = await fetch('/api/ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: conceptTitle,
+          description: conceptDescription,
+          category: conceptCategory || 'Coding Challenge',
+          lecture_id: conceptLectureId || 'CS-Lec-1',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setConceptSubmitSuccess('Concept submitted successfully!');
+      setConceptTitle('');
+      setConceptDescription('');
+      setTallies((prev) => ({ ...prev, submissions: prev.submissions + 1 }));
+      onRefresh();
+      setTimeout(() => setShowConceptModal(false), 1500);
+    } catch (err: any) {
+      setConceptSubmitError(err.message);
     }
   };
 
@@ -317,10 +418,10 @@ if __name__ == "__main__":
             <div className="flex flex-wrap gap-1.5">
               {[
                 { id: 'all', label: 'All Contests' },
-                { id: 'live', label: '⚡ Live Now' },
-                { id: 'upcoming', label: '📅 Upcoming' },
-                { id: 'past', label: '🏆 Past / Completed' },
-                { id: 'practice', label: '💻 Practice Problems' },
+                { id: 'live', label: 'âš¡ Live Now' },
+                { id: 'upcoming', label: 'ðŸ“… Upcoming' },
+                { id: 'past', label: 'ðŸ† Past / Completed' },
+                { id: 'practice', label: 'ðŸ’» Practice Problems' },
               ].map((chip) => (
                 <button
                   key={chip.id}
@@ -369,7 +470,7 @@ if __name__ == "__main__":
                   }}
                   className="w-full py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-mono font-bold text-xs shadow-md shadow-purple-600/30"
                 >
-                  Enter Live Arena →
+                  Enter Live Arena â†’
                 </button>
               </div>
             </div>
@@ -491,7 +592,7 @@ if __name__ == "__main__":
                               }}
                               className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-mono font-bold"
                             >
-                              Enter Workspace →
+                              Enter Workspace â†’
                             </button>
                             <button
                               onClick={() => setCancelModalEvent(evt)}
@@ -573,7 +674,7 @@ if __name__ == "__main__":
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <div>
                     <span className="text-[10px] font-mono font-bold text-purple-400 uppercase">
-                      {eventDetail.event.category} • {eventDetail.event.difficulty}
+                      {eventDetail.event.category} â€¢ {eventDetail.event.difficulty}
                     </span>
                     <h3 className="text-lg font-extrabold text-white font-heading">{eventDetail.event.title}</h3>
                   </div>
@@ -599,7 +700,7 @@ if __name__ == "__main__":
                         >
                           <div>
                             <span className="text-xs font-bold block">{chal.title}</span>
-                            <span className="text-[10px] font-mono text-slate-400">{chal.difficulty} • Time Limit: {chal.time_limit}m</span>
+                            <span className="text-[10px] font-mono text-slate-400">{chal.difficulty} â€¢ Time Limit: {chal.time_limit}m</span>
                           </div>
                           <span className="text-xs font-mono font-bold text-amber-300">+{chal.points} pts</span>
                         </button>
@@ -707,114 +808,458 @@ if __name__ == "__main__":
 
       {/* TAB 3: MY TEAM */}
       {activeTab === 'team' && (
-        <div className="glass-card p-6 rounded-3xl border border-white/10 space-y-6">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <div>
-              <h3 className="text-lg font-extrabold text-white font-heading">Team Allocation & Roster</h3>
-              <p className="text-xs text-slate-400 font-sans">View your assigned team members for team-format competitions.</p>
+        <div className="space-y-6 font-sans">
+
+          {/* Real-time Clock & Visual Architect Release Bar */}
+          <div className="glass-panel p-4 rounded-2xl border border-purple-500/30 bg-black/60 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <span className="text-[10px] font-mono uppercase text-slate-400 block font-bold">Visual Architects Live Release Clock</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-extrabold text-amber-300 font-mono tracking-wider">
+                    â° {currentTime || '12:00:00 PM'}
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Live Timing Synced
+                  </span>
+                </div>
+              </div>
             </div>
-            {eventDetail?.userTeam && (
-              <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 font-mono font-bold text-xs">
-                {eventDetail.userTeam.team_name}
+            <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+              <span className="px-3 py-1 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">
+                ðŸŽ“ AIDS &amp; AIML Department Track
               </span>
-            )}
+              <span className="px-3 py-1 rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">
+                Release Slot: {teamData?.event?.releaseTime
+                  ? new Date(teamData.event.releaseTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+                  : releaseScheduleTime}
+              </span>
+              <button
+                onClick={fetchMyTeam}
+                disabled={teamLoading}
+                className="px-3 py-1 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all font-mono text-[10px] flex items-center space-x-1"
+              >
+                <RefreshCw className={`w-3 h-3 ${teamLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
           </div>
 
-          {eventDetail?.userTeam ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {eventDetail.userTeam.members.map((m: any, idx: number) => (
-                <div key={m.id} className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center font-mono font-bold text-purple-300 text-sm">
-                    #{idx + 1}
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white">{m.student?.name}</h4>
-                    <span className="text-[10px] font-mono text-slate-400">{m.student?.usn || 'Club Member'}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-10 text-slate-400 text-xs font-mono">
-              Register for a Team Competition to be assigned to an algorithmic team!
+          {/* Loading State */}
+          {teamLoading && (
+            <div className="glass-panel p-12 rounded-3xl border border-white/10 bg-slate-950/60 flex flex-col items-center justify-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center animate-pulse">
+                <Bot className="w-6 h-6 text-purple-400" />
+              </div>
+              <p className="text-slate-400 font-mono text-sm">Syncing with Visual Architects...</p>
             </div>
           )}
+
+          {/* Error State */}
+          {!teamLoading && teamError && (
+            <div className="glass-panel p-6 rounded-3xl border border-red-500/20 bg-red-950/20 flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-red-300 font-semibold text-sm font-heading">Team data could not be loaded</p>
+                <p className="text-red-400/70 text-xs font-mono mt-1">{teamError}</p>
+                <button onClick={fetchMyTeam} className="mt-3 px-4 py-1.5 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-mono hover:bg-red-500/30 transition-all">
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* PENDING STATE â€” Team Not Yet Released */}
+          {!teamLoading && !teamError && teamData && !teamData.released && (
+            <div className="space-y-4">
+              {/* Banner */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-purple-500/20 bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-900 shadow-xl">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold mb-1">
+                    <Bot className="w-3.5 h-3.5 text-purple-400" />
+                    <span>AI Team Synthesis &amp; Architect Verification</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-white font-heading">Team Allocation &amp; Roster</h2>
+                  <p className="text-xs sm:text-sm text-slate-400 font-sans leading-relaxed max-w-2xl">
+                    Teams are generated by AI to balance students across 1st, 2nd, 3rd, and 4th years, then reviewed and released by Visual Architects.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <span className="px-4 py-2 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-200 font-mono font-bold text-xs tracking-wide">
+                    â³ Awaiting Release
+                  </span>
+                </div>
+              </div>
+
+              {/* Pending info card */}
+              <div className="glass-card p-8 rounded-3xl border border-amber-500/20 bg-amber-950/10 flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 rounded-3xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
+                  <ShieldCheck className="w-8 h-8 text-amber-400" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-amber-200 font-heading">
+                    Visual Architects Are Reviewing Your Team
+                  </h3>
+                  <p className="text-sm text-slate-400 font-sans max-w-lg leading-relaxed">
+                    {teamData.message || 'Your team has been generated by the AI balancing system. Visual Architects will validate and release your team credentials shortly.'}
+                  </p>
+                  {teamData.releaseTime && (
+                    <div className="mt-3 px-4 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 inline-flex items-center space-x-2 text-amber-300 font-mono text-sm">
+                      <Clock className="w-4 h-4 text-amber-400" />
+                      <span>
+                        Scheduled Release:{' '}
+                        {new Date(teamData.releaseTime).toLocaleString('en-US', {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center text-xs font-mono">
+                  <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    ðŸ¤– AI Multi-Year Balanced Formation
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                    ðŸŽ“ AIDS &amp; AIML Department Exclusive
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* RELEASED STATE â€” Show Real Team Roster */}
+          {!teamLoading && !teamError && teamData && teamData.released && (
+            <div className="space-y-6">
+
+              {/* Banner */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-purple-500/20 bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-900 shadow-xl">
+                <div className="space-y-1.5">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold mb-1">
+                    <Bot className="w-3.5 h-3.5 text-purple-400" />
+                    <span>AI Team Synthesis &amp; Architect Verification</span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-white font-heading flex flex-wrap items-center gap-3">
+                    <span>Team Allocation &amp; Roster</span>
+                    <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Visual Architects Release Approved</span>
+                    </span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-400 font-sans leading-relaxed max-w-2xl">
+                    Teams are generated by AI to balance students across 1st, 2nd, 3rd, and 4th years, then reviewed and released by Visual Architects.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <span className="px-4 py-2 rounded-2xl bg-purple-500/20 border border-purple-500/40 text-purple-200 font-mono font-bold text-xs tracking-wide">
+                    {teamData.team?.name ? `Team #${teamData.team.team_number} â€” ${teamData.team.name}` : 'Team #1 â€” Algorithmic Titans'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Approved + Info cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="glass-card p-5 rounded-2xl border border-purple-500/30 bg-purple-950/20 space-y-2 shadow-lg">
+                  <div className="flex items-center space-x-2 text-purple-300 font-bold text-xs font-mono uppercase">
+                    <Bot className="w-4 h-4 text-purple-400" />
+                    <span>AI Multi-Year Balanced Formation</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                    Our AI algorithm automatically balances students across <strong>1st, 2nd, 3rd, and 4th year cohorts</strong> exclusively for <strong>AIDS &amp; AIML departments</strong>, blending algorithmic problem solving, machine learning model logic, and competitive coding efficiency.
+                  </p>
+                </div>
+                <div className="glass-card p-5 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 space-y-2 shadow-lg">
+                  <div className="flex items-center space-x-2 text-emerald-300 font-bold text-xs font-mono uppercase">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span>Visual Architects Release Approved</span>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                    <strong>You have got your team!</strong> Visual Architects have officially validated your team roster and released participant credentials. Connect with your team members using their verified USN and contact numbers below.
+                  </p>
+                </div>
+              </div>
+
+              {/* Verified Team Roster Grid */}
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-base font-bold text-white font-heading flex items-center space-x-2">
+                    <Users className="w-4 h-4 text-purple-400" />
+                    <span>Verified Team Roster</span>
+                  </h3>
+                  <span className="text-xs font-mono text-slate-400">
+                    Registered Credentials (Name, USN, Phone Number, Year)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {(teamData.team?.members || []).map((m: any, idx: number) => (
+                    <div
+                      key={m.id || idx}
+                      className={`glass-card p-5 rounded-3xl border flex flex-col justify-between space-y-4 transition-all ${
+                        m.isCurrentUser
+                          ? 'border-purple-500/60 bg-purple-950/30 shadow-lg shadow-purple-500/10 ring-1 ring-purple-500/30'
+                          : 'border-white/10 hover:border-purple-500/30 bg-slate-950/40'
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center font-mono font-extrabold text-xs text-purple-300">
+                            #{m.slot || idx + 1}
+                          </span>
+                          {m.isCurrentUser ? (
+                            <span className="px-2.5 py-0.5 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/40 text-[10px] font-mono font-bold">YOU</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[10px] font-mono">Verified Member</span>
+                          )}
+                        </div>
+
+                        <h4 className="text-base font-bold text-white font-heading leading-tight mb-1">{m.name}</h4>
+                        <p className="text-[11px] text-purple-300 font-mono mb-3">{m.role_title}</p>
+
+                        <div className="space-y-2 p-3 rounded-2xl bg-white/5 border border-white/5 text-xs font-mono">
+                          <div>
+                            <span className="text-slate-400 text-[10px] uppercase block">USN</span>
+                            <span className="text-white font-bold">{m.usn}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 text-[10px] uppercase block">Contact Number</span>
+                            <span className="text-amber-300 font-bold flex items-center space-x-1">
+                              <Phone className="w-3 h-3 text-amber-400" />
+                              <span>{m.phone !== 'N/A' ? m.phone : 'Not provided'}</span>
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 text-[10px] uppercase block">Academic Cohort</span>
+                            <span className="text-teal-300 font-bold flex items-center space-x-1">
+                              <GraduationCap className="w-3.5 h-3.5 text-teal-400" />
+                              <span>{m.cohort}</span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span className="flex items-center space-x-1 text-emerald-400">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Ready for Sprint</span>
+                        </span>
+                        <span>Slot #{m.slot || idx + 1}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer Strip */}
+              <div className="glass-panel p-5 rounded-3xl border border-white/10 bg-slate-950/60 flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+                <div className="flex items-center space-x-2 text-slate-300">
+                  <Layers className="w-4 h-4 text-purple-400" />
+                  <span>Squad Diversity: <strong>1st, 2nd, 3rd &amp; 4th Year Balanced</strong></span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span className="text-slate-400">Approved by: <strong className="text-purple-300">Visual Architects</strong></span>
+                  <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">âœ“ Team Synchronized</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* No team data yet (first load / not registered) */}
+          {!teamLoading && !teamError && !teamData && (
+            <div className="glass-panel p-12 rounded-3xl border border-white/10 bg-slate-950/60 flex flex-col items-center justify-center space-y-3 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                <Users className="w-6 h-6 text-purple-400" />
+              </div>
+              <p className="text-slate-300 font-semibold font-heading">Your team info will appear here</p>
+              <p className="text-slate-500 text-xs font-mono">Register for a team coding event to be assigned a team by Visual Architects.</p>
+            </div>
+          )}
+
         </div>
       )}
-
-      {/* TAB 4: LEADERBOARD */}
+      {/* TAB 4: LEADERBOARD (Student Profile & Innovation Hub) */}
       {activeTab === 'leaderboard' && (
-        <div className="space-y-6">
+        <div className="space-y-8 font-sans">
 
-          {/* Search bar */}
-          <div className="flex items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-white/10">
-            <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search student by name or USN..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-black/40 border border-white/10 text-xs font-mono text-white focus:outline-none"
-              />
+          {/* Profile & Innovation Hub Banner */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-purple-500/20 bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-900 shadow-xl">
+            <div>
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                <span>Student Profile & Innovation Hub</span>
+              </div>
+              <h2 className="text-2xl font-bold text-white font-heading">
+                Profile â€” {user?.name || 'demo L'}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 font-sans">
+                {user?.usn ? `USN: ${user.usn} | ` : ''}View earned credits, attendance metrics, and upcoming club sessions.
+              </p>
             </div>
-            <button onClick={fetchLeaderboard} className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-mono flex items-center space-x-1">
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Refresh</span>
+
+            <button
+              onClick={() => setShowConceptModal(true)}
+              className="flex items-center justify-center space-x-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-purple-600/30 transition-all font-mono"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Submit New Concept</span>
             </button>
           </div>
 
-          {/* Leaderboard Table */}
-          <div className="glass-card rounded-3xl border border-white/10 overflow-hidden">
-            <div className="p-4 bg-white/5 border-b border-white/10 flex items-center justify-between text-xs font-mono text-slate-400 font-bold uppercase">
-              <span>Rank & Student</span>
-              <span>Points & Credits</span>
+          {/* Your Leaderboard Credit Scorecard */}
+          <div className="glass-panel p-6 rounded-3xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-slate-900 to-slate-900 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-amber-400 font-bold text-xs uppercase tracking-wider font-mono">
+                <Award className="w-4 h-4" />
+                <span>Your Leaderboard Credit Scorecard</span>
+              </div>
+              <span className="text-xs font-bold font-mono px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Rank #1 Active Standings
+              </span>
             </div>
 
-            <div className="divide-y divide-white/5">
-              {filteredLeaderboard.map((entry, idx) => (
-                <div
-                  key={entry.id}
-                  className={`p-4 flex items-center justify-between transition-all ${
-                    entry.isCurrentUser ? 'bg-purple-600/20 border-l-4 border-purple-500' : 'hover:bg-white/5'
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-mono font-extrabold text-xs ${
-                      idx === 0 ? 'bg-amber-500 text-black shadow-md shadow-amber-500/30' :
-                      idx === 1 ? 'bg-slate-300 text-black' :
-                      idx === 2 ? 'bg-amber-700 text-white' :
-                      'bg-slate-800 text-slate-300'
-                    }`}>
-                      #{idx + 1}
-                    </span>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+              <div className="glass-card p-3.5 rounded-2xl border border-purple-500/20 text-center">
+                <span className="text-xs text-purple-400 font-semibold block mb-1 font-mono">Session 1</span>
+                <span className="text-2xl font-extrabold text-white font-mono">45</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">pts</span>
+              </div>
 
-                    <div>
-                      <h4 className="text-xs font-bold text-white font-sans flex items-center gap-1.5">
-                        <span>{entry.student?.name}</span>
-                        {entry.isCurrentUser && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-purple-500/30 text-purple-200">
-                            YOU
-                          </span>
-                        )}
-                      </h4>
-                      <span className="text-[10px] font-mono text-slate-400">{entry.student?.usn || 'Student Participant'}</span>
-                    </div>
-                  </div>
+              <div className="glass-card p-3.5 rounded-2xl border border-indigo-500/20 text-center">
+                <span className="text-xs text-indigo-400 font-semibold block mb-1 font-mono">Session 2</span>
+                <span className="text-2xl font-extrabold text-white font-mono">38</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">pts</span>
+              </div>
 
-                  <div className="flex items-center space-x-6 text-right font-mono">
-                    <div>
-                      <span className="text-xs font-extrabold text-purple-300 block">{entry.points} pts</span>
-                      <span className="text-[10px] text-slate-400">{entry.competitions_count} competitions</span>
-                    </div>
-                    <div className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-bold">
-                      +{entry.credits} Credits
-                    </div>
-                  </div>
-                </div>
-              ))}
+              <div className="glass-card p-3.5 rounded-2xl border border-teal-500/20 text-center">
+                <span className="text-xs text-teal-400 font-semibold block mb-1 font-mono">Session 3</span>
+                <span className="text-2xl font-extrabold text-white font-mono">50</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">pts</span>
+              </div>
+
+              <div className="glass-card p-3.5 rounded-2xl border border-emerald-500/20 text-center">
+                <span className="text-xs text-emerald-400 font-semibold block mb-1 font-mono">Session 4</span>
+                <span className="text-2xl font-extrabold text-white font-mono">60</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">pts</span>
+              </div>
+
+              <div className="col-span-2 sm:col-span-1 glass-card p-3.5 rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-500/20 to-amber-600/20 text-center">
+                <span className="text-xs text-amber-300 font-bold block mb-1 font-mono">Total Score</span>
+                <span className="text-2xl font-extrabold text-amber-400 font-mono">193</span>
+                <span className="text-[10px] text-amber-200 block mt-0.5 font-mono">Overall Credits</span>
+              </div>
             </div>
           </div>
+
+          {/* Leaderboard Standings Table */}
+          <div className="glass-panel rounded-3xl border border-amber-500/20 overflow-hidden shadow-2xl space-y-3 p-5 bg-slate-950/60">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-base font-bold text-white font-heading flex items-center space-x-2">
+                <Trophy className="w-5 h-5 text-amber-400" />
+                <span>Leaderboard Standings Table</span>
+              </h3>
+              <span className="text-xs text-amber-300 font-bold font-mono bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                Transferred from Leaderboard Section
+              </span>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-white/10">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-slate-900 text-slate-400 uppercase tracking-wider font-semibold border-b border-white/10">
+                  <tr>
+                    <th className="py-3 px-4">Rank</th>
+                    <th className="py-3 px-4 font-sans">Student Name</th>
+                    <th className="py-3 px-4">USN</th>
+                    <th className="py-3 px-4 text-center">Session 1</th>
+                    <th className="py-3 px-4 text-center">Session 2</th>
+                    <th className="py-3 px-4 text-center">Session 3</th>
+                    <th className="py-3 px-4 text-center">Session 4</th>
+                    <th className="py-3 px-4 text-right">Total Score</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-slate-200 font-medium">
+                  {profileLeaderboardData.map((row) => (
+                    <tr key={row.rank} className="hover:bg-white/5 transition-all">
+                      <td className="py-3 px-4 font-bold">
+                        {row.rank === 1 ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            ðŸ¥‡ #1
+                          </span>
+                        ) : row.rank === 2 ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-300/20 text-slate-200 border border-slate-300/30">
+                            ðŸ¥ˆ #2
+                          </span>
+                        ) : row.rank === 3 ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-700/20 text-amber-500 border border-amber-700/30">
+                            ðŸ¥‰ #3
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">#{row.rank}</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 font-bold text-white text-xs font-sans">{row.name}</td>
+                      <td className="py-3 px-4 text-slate-400 text-[11px]">{row.usn}</td>
+                      <td className="py-3 px-4 text-center font-semibold text-purple-400">{row.s1}</td>
+                      <td className="py-3 px-4 text-center font-semibold text-indigo-400">{row.s2}</td>
+                      <td className="py-3 px-4 text-center font-semibold text-teal-400">{row.s3}</td>
+                      <td className="py-3 px-4 text-center font-semibold text-emerald-400">{row.s4}</td>
+                      <td className="py-3 px-4 text-right font-extrabold text-amber-400 text-xs font-heading">
+                        {row.total} pts
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Lecture Headcount Tallies & Activity Metrics */}
+          <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-3 bg-slate-950/60 shadow-xl">
+            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono">
+              Lecture Headcount Tallies & Activity Metrics
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              {/* Submissions */}
+              <div className="glass-card p-5 rounded-2xl border border-purple-500/30 text-center space-y-1">
+                <div className="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto mb-2">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <span className="text-xs text-slate-400 font-semibold block uppercase font-mono">Submissions</span>
+                <div className="text-3xl font-extrabold text-purple-400 font-mono">
+                  {tallies.submissions}
+                </div>
+                <span className="text-[11px] text-slate-400 block font-sans">Total ideas & tasks submitted</span>
+              </div>
+
+              {/* Session Attended */}
+              <div className="glass-card p-5 rounded-2xl border border-emerald-500/30 text-center space-y-1">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-2">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <span className="text-xs text-slate-400 font-semibold block uppercase font-mono">Session Attended</span>
+                <div className="text-3xl font-extrabold text-emerald-400 font-mono">
+                  {tallies.sessionAttended}
+                </div>
+                <span className="text-[11px] text-slate-400 block font-sans">Live workshops & lectures attended</span>
+              </div>
+
+              {/* Session Conducted */}
+              <div className="glass-card p-5 rounded-2xl border border-indigo-500/30 text-center space-y-1">
+                <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-2">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <span className="text-xs text-slate-400 font-semibold block uppercase font-mono">Session Conducted</span>
+                <div className="text-3xl font-extrabold text-indigo-400 font-mono">
+                  {tallies.sessionConducted}
+                </div>
+                <span className="text-[11px] text-slate-400 block font-sans">Mentoring walkthroughs run</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       )}
 
@@ -831,7 +1276,7 @@ if __name__ == "__main__":
                     <div>
                       <h4 className="text-xs font-bold text-white">{reg.event?.title}</h4>
                       <span className="text-[10px] font-mono text-slate-400">
-                        Registered: {new Date(reg.registered_at).toLocaleDateString()} • Format: {reg.event?.category}
+                        Registered: {new Date(reg.registered_at).toLocaleDateString()} â€¢ Format: {reg.event?.category}
                       </span>
                     </div>
                     <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
@@ -884,6 +1329,56 @@ if __name__ == "__main__":
                   Confirm Cancel
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Submit Concept Modal */}
+      {showConceptModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-lg glass-panel p-6 rounded-3xl border border-purple-500/30 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-lg font-bold text-white font-heading">Submit New Concept</h3>
+              <button onClick={() => setShowConceptModal(false)} className="text-slate-400 hover:text-white">
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            {conceptSubmitError && <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono">{conceptSubmitError}</div>}
+            {conceptSubmitSuccess && <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono">{conceptSubmitSuccess}</div>}
+
+            <form onSubmit={handleSubmitConcept} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1 font-mono">Concept Title</label>
+                <input
+                  type="text"
+                  required
+                  value={conceptTitle}
+                  onChange={(e) => setConceptTitle(e.target.value)}
+                  placeholder="e.g. Algorithmic Optimization Pipeline"
+                  className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1 font-mono">Description & Objectives</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={conceptDescription}
+                  onChange={(e) => setConceptDescription(e.target.value)}
+                  placeholder="Describe your coding challenge concept, test cases, and problem specs..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono text-white focus:outline-none focus:border-purple-500 resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs font-mono transition-all shadow-lg shadow-purple-600/30"
+              >
+                Submit Concept
+              </button>
             </form>
           </div>
         </div>
