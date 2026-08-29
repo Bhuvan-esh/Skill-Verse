@@ -13,6 +13,27 @@ export async function POST(
     }
 
     const eventId = params.id;
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch (e) {
+      body = {};
+    }
+
+    if (body.name || body.usn) {
+      try {
+        await db.user.update({
+          where: { id: user.id },
+          data: {
+            ...(body.name ? { name: body.name } : {}),
+            ...(body.usn ? { usn: body.usn } : {}),
+          },
+        });
+      } catch (e) {
+        // user fields updated gracefully
+      }
+    }
+
     const event = await db.codingEvent.findUnique({
       where: { id: eventId },
       include: {

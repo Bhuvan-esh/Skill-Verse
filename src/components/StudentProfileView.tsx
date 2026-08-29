@@ -14,6 +14,7 @@ import {
   Sparkles,
   XCircle,
   GitPullRequest,
+  Crown,
 } from 'lucide-react';
 
 import {
@@ -34,27 +35,41 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
   const [selectedGhBadgeDetail, setSelectedGhBadgeDetail] = useState<EvaluatedGitHubBadge | null>(null);
   const [profileBadgeFilter, setProfileBadgeFilter] = useState<'all' | 'skillbarter' | 'github'>('all');
 
+  // 1. SkillBarter Milestones (20 Badges) — Open / 1 Unlocked (#1 First Exchange) & All others locked!
   const metrics: StudentActivityMetrics = {
-    totalSessionsCompleted: 8,
-    studentsHelped: 6,
-    teachingSessionsCompleted: 6,
-    distinctSkillsTaught: 4,
+    totalSessionsCompleted: 1,
+    studentsHelped: 0,
+    teachingSessionsCompleted: 0,
+    distinctSkillsTaught: 0,
     currentRating: 4.9,
-    consecutiveTeachingWeeks: 4,
+    consecutiveTeachingWeeks: 0,
   };
 
   const evaluation = evaluateStudentAchievements(metrics, {
     'sb-badge-1': 'Earned 12 Aug 2026',
-    'sb-badge-2': 'Earned 15 Aug 2026',
-    'sb-badge-3': 'Earned 18 Aug 2026',
-    'sb-badge-4': 'Earned 20 Aug 2026',
-    'sb-badge-5': 'Earned 22 Aug 2026',
-    'sb-badge-6': 'Earned 24 Aug 2026',
-    'sb-badge-8': 'Earned 24 Aug 2026',
-    'sb-badge-9': 'Earned 25 Aug 2026',
   });
 
-  const ghEvaluation = evaluateGitHubAchievements();
+  // 2. Grand Master Prestige Badges (12) — Earned for something big, ALL locked except ONE!
+  const ghStats = {
+    prsMerged: 2, // Pull Shark Tier 1 unlocked
+    fastResponses: 0,
+    acceptedSolutions: 0,
+    pairSessions: 0,
+    starsReceived: 0,
+    flawlessDeploys: 0,
+    vaultContributions: 0,
+    kudosGiven: 0,
+    nightSessions: 0,
+    streakWeeks: 0,
+    branchesMentored: 0,
+    securityAudits: 0,
+  };
+
+  const ghUnlockedDatesMap = {
+    'gh-pull-shark': 'Earned 14 Aug 2026',
+  };
+
+  const ghEvaluation = evaluateGitHubAchievements(ghStats, ghUnlockedDatesMap);
   const evaluatedBadges = evaluation.badges;
   const evaluatedGhBadges = ghEvaluation.badges;
   const unlockedBadges = evaluatedBadges.filter((b) => b.isUnlocked);
@@ -234,8 +249,8 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <GitPullRequest className="w-3.5 h-3.5 text-cyan-400" />
-            <span>GitHub-Style ({ghEvaluation.totalCount})</span>
+            <Crown className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Grand Master (12)</span>
           </button>
           <button
             onClick={() => setProfileBadgeFilter('skillbarter')}
@@ -245,17 +260,20 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            SkillBarter (20)
+            SkillBarter Milestones
           </button>
         </div>
 
-        {/* 1. GitHub-Style Badges Grid */}
+        {/* 1. Grand Master Prestige Badges Grid */}
         {(profileBadgeFilter === 'all' || profileBadgeFilter === 'github') && (
           <div className="space-y-3 pt-2">
-            <h4 className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-2">
-              <GitPullRequest className="w-4 h-4 text-cyan-400" />
-              <span>GitHub-Style Developer Badges ({ghEvaluation.totalCount})</span>
-            </h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-2">
+                <Crown className="w-4 h-4 text-cyan-400" />
+                <span>Grand Master Prestige Badges ({ghEvaluation.totalCount})</span>
+              </h4>
+              <span className="text-[11px] font-mono text-slate-400">Tiers: Bronze • Silver • Gold • Diamond • High-Stakes Peer Breakthroughs</span>
+            </div>
 
             <div className="p-5 rounded-3xl bg-[#090b17]/80 border border-white/[0.08] shadow-xl backdrop-blur-xl">
               <div className="flex flex-wrap items-center justify-start gap-4 sm:gap-5">
@@ -307,12 +325,12 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
           </div>
         )}
 
-        {/* 2. SkillBarter Badges Grid */}
+        {/* 2. SkillBarter Milestones & Reputation Marks Grid */}
         {(profileBadgeFilter === 'all' || profileBadgeFilter === 'skillbarter') && (
           <div className="space-y-3 pt-4 border-t border-white/[0.06]">
             <h4 className="text-xs font-bold text-violet-300 uppercase tracking-wider flex items-center gap-2">
               <Award className="w-4 h-4 text-violet-400" />
-              <span>SkillBarter Milestones (20 Badges)</span>
+              <span>SkillBarter Milestones & Reputation Marks</span>
             </h4>
 
             <div className="p-5 rounded-3xl bg-[#090b17]/80 border border-white/[0.08] shadow-xl backdrop-blur-xl">

@@ -17,10 +17,10 @@ export async function GET(req: Request) {
 
     const userId = session?.id || 'demo-user';
 
-    let totalSessionsCompleted = 8;
-    let teachingSessionsCompleted = 6;
-    let studentsHelped = 6;
-    let distinctSkillsTaught = 4;
+    let totalSessionsCompleted = 1;
+    let teachingSessionsCompleted = 0;
+    let studentsHelped = 0;
+    let distinctSkillsTaught = 0;
 
     try {
       if (session) {
@@ -35,11 +35,11 @@ export async function GET(req: Request) {
           }),
         ]);
 
-        totalSessionsCompleted = Math.max(chatsMentored.length + chatsRequested.length, 8);
-        teachingSessionsCompleted = Math.max(chatsMentored.length, 6);
-        studentsHelped = Math.max(chatsMentored.length, 6);
+        totalSessionsCompleted = Math.max(chatsMentored.length + chatsRequested.length, 1);
+        teachingSessionsCompleted = chatsMentored.length;
+        studentsHelped = chatsMentored.length;
         const distinctSkills = new Set(chatsMentored.map((c: any) => c.request?.skill).filter(Boolean));
-        distinctSkillsTaught = Math.max(distinctSkills.size, 4);
+        distinctSkillsTaught = distinctSkills.size;
       }
     } catch (dbErr) {
       console.warn('Fallback to seeded metrics for achievements:', dbErr);
@@ -51,18 +51,11 @@ export async function GET(req: Request) {
       teachingSessionsCompleted,
       distinctSkillsTaught,
       currentRating: 4.9,
-      consecutiveTeachingWeeks: 4,
+      consecutiveTeachingWeeks: 0,
     };
 
     const unlockedDatesMap: Record<string, string> = {
       'sb-badge-1': 'Earned 12 Aug 2026',
-      'sb-badge-2': 'Earned 15 Aug 2026',
-      'sb-badge-3': 'Earned 18 Aug 2026',
-      'sb-badge-4': 'Earned 20 Aug 2026',
-      'sb-badge-5': 'Earned 22 Aug 2026',
-      'sb-badge-6': 'Earned 24 Aug 2026',
-      'sb-badge-8': 'Earned 24 Aug 2026',
-      'sb-badge-9': 'Earned 25 Aug 2026',
     };
 
     const result = evaluateStudentAchievements(metrics, unlockedDatesMap);

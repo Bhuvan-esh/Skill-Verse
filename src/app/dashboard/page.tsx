@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notifCategoryFilter, setNotifCategoryFilter] = useState<'all' | 'coding' | 'skillbarter' | 'softskills'>('all');
 
   // Guarded Route Redirect: if unauthenticated, redirect to /join
   useEffect(() => {
@@ -43,6 +44,9 @@ export default function DashboardPage() {
         const tabParam = params.get('tab');
         if (tabParam) {
           setActiveTab(tabParam);
+          if (tabParam === 'competitions') {
+            setNotifCategoryFilter('coding');
+          }
           fetchNotifications();
           if (user.role === 'STUDENT') fetchStudentCredits(user.id);
           return;
@@ -61,6 +65,12 @@ export default function DashboardPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (activeTab === 'competitions') {
+      setNotifCategoryFilter('coding');
+    }
+  }, [activeTab]);
+
   const fetchStudentCredits = async (studentId: string) => {
     try {
       const res = await fetch(`/api/founder/students/${studentId}/credits`);
@@ -73,63 +83,126 @@ export default function DashboardPage() {
     }
   };
 
+  const fetchCredits = async () => {
+    try {
+      const res = await fetch('/api/user/credits');
+      const data = await res.json();
+      if (res.ok && data.credits) {
+        setCredits(data.credits);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const fetchNotifications = async () => {
     try {
       const res = await fetch('/api/notifications');
       const data = await res.json();
       const defaultNotifs = [
+        // Coding Challenge Environment Notifications
+        {
+          id: 'notif-coding-team-roster',
+          title: '🏛️ Visual Architects Team Roster Released',
+          message: "Visual Architects have officially validated your AI Multi-Year Balanced team roster for 'Team #1 — Algorithmic Titans'. Verified participant USNs and contact slots are now released!",
+          created_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+          read: false,
+          category: 'CODING_CHALLENGE',
+          actionTab: 'competitions',
+          actionSubTab: 'team',
+        },
+        {
+          id: 'notif-coding-sprint-live',
+          title: '⚡ Algorithmic Sprint 2026 is Live!',
+          message: 'Visual Architects have started the competition timer for Algorithmic Sprint 2026. Option 1: Problem Research & Architecture track is currently active.',
+          created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+          read: false,
+          category: 'CODING_CHALLENGE',
+          actionTab: 'competitions',
+          actionSubTab: 'workspace',
+        },
+        {
+          id: 'notif-coding-submission-locked',
+          title: '🔒 Solution Submitted to Visual Architects',
+          message: 'Your challenge solution has been locked and transferred to the Visual Architects Board for official test case assertions and scoring.',
+          created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+          read: false,
+          category: 'CODING_CHALLENGE',
+          actionTab: 'competitions',
+          actionSubTab: 'workspace',
+        },
+        {
+          id: 'notif-coding-deadline-warning',
+          title: '⚠️ Sprint Deadline Warning (10 Mins Remaining)',
+          message: '10 minutes remaining on the Visual Architects countdown clock! Prepare to finalize your code patch to avoid timeout rejection.',
+          created_at: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
+          read: false,
+          category: 'CODING_CHALLENGE',
+          actionTab: 'competitions',
+          actionSubTab: 'workspace',
+        },
+        {
+          id: 'notif-coding-rank-1',
+          title: '🏆 Rank #1 Achieved on Algorithmic Leaderboard',
+          message: 'Congratulations! You climbed to Rank #1 on the Algorithmic Standings with 193 Total Credits (+150 Pts reward).',
+          created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+          read: true,
+          category: 'CODING_CHALLENGE',
+          actionTab: 'competitions',
+          actionSubTab: 'leaderboard',
+        },
+        {
+          id: 'notif-coding-bug-hunt-feed',
+          title: '🐛 Visual Architects Bug Hunt Feed Synchronized',
+          message: 'Visual Architects have published the defect notice and test assertions for the Binary Search Subarray logic fault.',
+          created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+          read: true,
+          category: 'CODING_CHALLENGE',
+          actionTab: 'competitions',
+          actionSubTab: 'workspace',
+        },
+        {
+          id: 'notif-coding-badge-unlocked',
+          title: '🎖️ Achievement Badge Unlocked: Code Starter (#1)',
+          message: "You completed your first challenge and earned the 'Code Starter' Novice Bronze badge. Check your badge ladder in Profile!",
+          created_at: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+          read: true,
+          category: 'CODING_CHALLENGE',
+          actionTab: 'competitions',
+          actionSubTab: 'history',
+        },
+        // SkillBarter Notifications
         {
           id: 'notif-sb-accepted',
           title: '🤝 SkillBarter Request Accepted',
           message: "Rahul Sharma accepted your barter request for 'PostgreSQL Query Optimization & Indexing'. The session is now active in My Sessions!",
-          created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+          created_at: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
           read: false,
           category: 'SKILL_BARTER',
+          actionTab: 'skill-barter',
         },
         {
           id: 'notif-sb-msg',
           title: '💬 New Message in Barter Session',
           message: "Meera K sent a message in UI Design exchange: 'I reviewed the Figma design tokens you shared! Looks great.'",
-          created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+          created_at: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
           read: false,
           category: 'SKILL_BARTER',
+          actionTab: 'skill-barter',
         },
         {
           id: 'notif-sb-badge',
           title: '🏆 SkillBarter Badge Unlocked',
           message: "✨ Achievement Unlocked: 'Trusted Guide' (Maintain 4.5+ rating). Your profile reputation badge has been updated automatically!",
-          created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-          read: false,
-          category: 'ACHIEVEMENT',
-        },
-        {
-          id: 'notif-sb-credit',
-          title: '⚡ Session Completed & Credits Awarded',
-          message: "Session completed with Sanjay V for Docker Compose. +15 SkillBarter Contribution Credits credited to Domain 4!",
-          created_at: new Date(Date.now() - 1000 * 60 * 360).toISOString(),
+          created_at: new Date(Date.now() - 1000 * 60 * 480).toISOString(),
           read: true,
-          category: 'CREDITS',
-        },
-        {
-          id: 'notif-sess-launch',
-          title: '🎉 Session Launched',
-          message: 'AI Code Review & Automated Agent Hackathon session is now live! Accept your slot under Profile → Upcoming Sessions.',
-          created_at: new Date(Date.now() - 1000 * 60 * 720).toISOString(),
-          read: true,
-          category: 'CAMPUS',
-        },
-        {
-          id: 'notif-open-desk',
-          title: '💬 Message from Open Desk',
-          message: '"Welcome to the club! Your session request for SQL Queries has been approved by the Open Desk team."',
-          created_at: new Date(Date.now() - 1000 * 60 * 1440).toISOString(),
-          read: true,
-          category: 'OPEN_DESK',
+          category: 'SKILL_BARTER',
+          actionTab: 'skill-barter',
         },
       ];
 
       if (res.ok && data.notifications && data.notifications.length > 0) {
-        const combined = [...defaultNotifs, ...data.notifications];
+        const combined = [...data.notifications, ...defaultNotifs.filter(d => !data.notifications.some((n: any) => n.id === d.id))];
         setNotifications(combined);
         setUnreadCount(combined.filter((n) => !n.read).length);
       } else {
@@ -166,7 +239,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
 
-      {/* Top Navbar with Role Badge & Logout */}
+      {/* Top Navbar with Context-Aware Notifications */}
       <Navbar
         user={user}
         activeRole={user.role}
@@ -174,8 +247,30 @@ export default function DashboardPage() {
         setActiveTab={setActiveTab}
         onLogout={logout}
         onOpenLoginModal={() => { }} // No inline modal login in dashboard
-        unreadNotifications={unreadCount}
-        onOpenNotifications={() => setIsNotificationsOpen(true)}
+        unreadNotifications={(() => {
+          if (activeTab === 'competitions') {
+            return notifications.filter(n => n.category === 'CODING_CHALLENGE' && !n.read).length;
+          }
+          if (activeTab === 'skillbarter') {
+            return notifications.filter(n => n.category === 'SKILL_BARTER' && !n.read).length;
+          }
+          if (activeTab === 'soft-skills' || activeTab === 'mentorship' || activeTab === 'ideas') {
+            return notifications.filter(n => n.category === 'SOFT_SKILLS' && !n.read).length;
+          }
+          return unreadCount;
+        })()}
+        onOpenNotifications={() => {
+          if (activeTab === 'competitions') {
+            setNotifCategoryFilter('coding');
+          } else if (activeTab === 'skillbarter') {
+            setNotifCategoryFilter('skillbarter');
+          } else if (activeTab === 'soft-skills' || activeTab === 'mentorship' || activeTab === 'ideas') {
+            setNotifCategoryFilter('softskills');
+          } else {
+            setNotifCategoryFilter('all');
+          }
+          setIsNotificationsOpen(true);
+        }}
         codingSubTab={codingSubTab}
         setCodingSubTab={setCodingSubTab}
       />
@@ -263,41 +358,221 @@ export default function DashboardPage() {
         </div>
       </footer>
 
-      {/* Notifications Drawer */}
-      {isNotificationsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="w-full max-w-md glass-panel p-6 rounded-2xl border border-white/10 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-lg font-bold text-white font-heading flex items-center space-x-2">
-                <Bell className="w-5 h-5 text-blue-400" />
-                <span>In-App Notifications</span>
-              </h3>
-              <button onClick={() => setIsNotificationsOpen(false)} className="text-slate-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* Notifications Drawer — Context-Scoped per Active Section */}
+      {isNotificationsOpen && (() => {
+        const isCodingContext = activeTab === 'competitions';
+        const isSkillBarterContext = activeTab === 'skillbarter';
+        const isSoftSkillsContext = activeTab === 'soft-skills' || activeTab === 'mentorship' || activeTab === 'ideas';
 
-            <div className="max-h-80 overflow-y-auto space-y-2">
-              {notifications.length === 0 ? (
-                <p className="text-xs text-slate-400 text-center py-6">No notifications.</p>
-              ) : (
-                notifications.map((n) => (
-                  <div
-                    key={n.id}
-                    onClick={() => handleMarkNotificationRead(n.id)}
-                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${n.read ? 'bg-slate-900/50 border-white/5 opacity-75' : 'bg-blue-500/10 border-blue-500/30'
-                      }`}
-                  >
-                    <span className="font-bold text-white block mb-0.5">{n.title}</span>
-                    <p className="text-slate-300 leading-relaxed">{n.message}</p>
-                    <span className="text-[10px] text-slate-500 mt-1 block">{new Date(n.created_at).toLocaleString()}</span>
+        const filteredNotifications = notifications.filter((n) => {
+          if (notifCategoryFilter === 'coding' || (isCodingContext && notifCategoryFilter !== 'all')) {
+            return n.category === 'CODING_CHALLENGE';
+          }
+          if (notifCategoryFilter === 'skillbarter' || (isSkillBarterContext && notifCategoryFilter !== 'all')) {
+            return n.category === 'SKILL_BARTER';
+          }
+          if (notifCategoryFilter === 'softskills' || (isSoftSkillsContext && notifCategoryFilter !== 'all')) {
+            return n.category === 'SOFT_SKILLS';
+          }
+          return true;
+        });
+
+        const activeUnreadCount = filteredNotifications.filter((n) => !n.read).length;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="w-full max-w-lg glass-panel p-6 rounded-3xl border border-white/10 space-y-4 shadow-2xl bg-gradient-to-b from-slate-900 to-black font-sans">
+              
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${
+                    isCodingContext
+                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                      : isSkillBarterContext
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : isSoftSkillsContext
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  }`}>
+                    <Bell className="w-4 h-4" />
                   </div>
-                ))
-              )}
+                  <div>
+                    <h3 className="text-base font-bold text-white font-heading">
+                      {isCodingContext
+                        ? '💻 Coding Arena Notifications'
+                        : isSkillBarterContext
+                        ? '🤝 Skill Barter Notifications'
+                        : isSoftSkillsContext
+                        ? '🎭 Soft Skills Notifications'
+                        : 'In-App Notifications'}
+                    </h3>
+                    <span className="text-[10px] font-mono text-purple-300">
+                      {isCodingContext
+                        ? 'Visual Architects & Algorithmic Sprint Feed'
+                        : isSkillBarterContext
+                        ? 'Peer Exchanges, Credits & Barter Chats'
+                        : isSoftSkillsContext
+                        ? 'Skill League Sprints, Pitches & Evaluations'
+                        : 'Live Campus & Innovation Hub Feed'}
+                    </span>
+                  </div>
+                </div>
+                <button onClick={() => setIsNotificationsOpen(false)} className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scoped Context Info Strip */}
+              <div className="flex items-center justify-between gap-2">
+                {isCodingContext ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="px-3 py-1 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-mono font-bold">
+                      💻 Coding Challenge Feed ({filteredNotifications.length})
+                    </span>
+                  </div>
+                ) : isSkillBarterContext ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold">
+                      🤝 Skill Barter Feed ({filteredNotifications.length})
+                    </span>
+                  </div>
+                ) : isSoftSkillsContext ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-mono font-bold">
+                      🎭 Soft Skills Feed ({filteredNotifications.length})
+                    </span>
+                  </div>
+                ) : (
+                  /* Global Switcher for Generic Tabs */
+                  <div className="flex flex-wrap items-center gap-1.5 p-1 bg-white/[0.03] border border-white/[0.06] rounded-xl text-xs font-mono">
+                    <button
+                      onClick={() => setNotifCategoryFilter('all')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                        notifCategoryFilter === 'all' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      All ({notifications.length})
+                    </button>
+                    <button
+                      onClick={() => setNotifCategoryFilter('coding')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                        notifCategoryFilter === 'coding' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <span>💻 Coding</span>
+                    </button>
+                    <button
+                      onClick={() => setNotifCategoryFilter('skillbarter')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                        notifCategoryFilter === 'skillbarter' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <span>🤝 Barter</span>
+                    </button>
+                    <button
+                      onClick={() => setNotifCategoryFilter('softskills')}
+                      className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                        notifCategoryFilter === 'softskills' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <span>🎭 Soft Skills</span>
+                    </button>
+                  </div>
+                )}
+
+                {activeUnreadCount > 0 && (
+                  <button
+                    onClick={() => {
+                      const activeIds = new Set(filteredNotifications.map(n => n.id));
+                      setNotifications(prev => prev.map(n => activeIds.has(n.id) ? { ...n, read: true } : n));
+                    }}
+                    className="text-[11px] font-mono text-purple-400 hover:text-purple-300 underline cursor-pointer"
+                  >
+                    Mark section read
+                  </button>
+                )}
+              </div>
+
+              {/* Notification List */}
+              <div className="max-h-96 overflow-y-auto space-y-2.5 pr-1">
+                {filteredNotifications.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500 font-mono text-xs space-y-2">
+                    <p>No new notifications in this category.</p>
+                  </div>
+                ) : (
+                  filteredNotifications.map((n) => {
+                    const isCoding = n.category === 'CODING_CHALLENGE';
+                    const isSkillBarter = n.category === 'SKILL_BARTER';
+                    const isSoftSkills = n.category === 'SOFT_SKILLS';
+
+                    return (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          handleMarkNotificationRead(n.id);
+                          if (n.actionTab) {
+                            setActiveTab(n.actionTab);
+                            if (n.actionSubTab && setCodingSubTab) {
+                              setCodingSubTab(n.actionSubTab);
+                            }
+                            setIsNotificationsOpen(false);
+                          }
+                        }}
+                        className={`p-3.5 rounded-2xl border text-xs cursor-pointer transition-all relative overflow-hidden ${
+                          n.read
+                            ? 'bg-slate-950/40 border-white/5 opacity-75'
+                            : isCoding
+                            ? 'bg-gradient-to-r from-purple-950/40 to-slate-900 border-purple-500/30 ring-1 ring-purple-500/20'
+                            : isSkillBarter
+                            ? 'bg-gradient-to-r from-emerald-950/40 to-slate-900 border-emerald-500/30 ring-1 ring-emerald-500/20'
+                            : isSoftSkills
+                            ? 'bg-gradient-to-r from-amber-950/40 to-slate-900 border-amber-500/30 ring-1 ring-amber-500/20'
+                            : 'bg-gradient-to-r from-blue-950/40 to-slate-900 border-blue-500/30'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold ${
+                            isCoding
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                              : isSkillBarter
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : isSoftSkills
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                          }`}>
+                            {isCoding
+                              ? '💻 CODING ARENA'
+                              : isSkillBarter
+                              ? '🤝 SKILL BARTER'
+                              : isSoftSkills
+                              ? '🎭 SOFT SKILLS'
+                              : 'CAMPUS FEED'}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-500">{new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+
+                        <span className="font-bold text-white block text-xs mt-0.5">{n.title}</span>
+                        <p className="text-slate-300 leading-relaxed mt-1 text-[11px] font-sans">{n.message}</p>
+
+                        {n.actionTab && (
+                          <div className={`mt-2 pt-1.5 border-t border-white/5 flex items-center justify-end text-[10px] font-mono ${
+                            isCoding ? 'text-cyan-300 hover:text-cyan-200' : isSkillBarter ? 'text-emerald-300 hover:text-emerald-200' : isSoftSkills ? 'text-amber-300 hover:text-amber-200' : 'text-blue-300 hover:text-blue-200'
+                          }`}>
+                            <span>
+                              Open in {isCoding && n.actionSubTab ? `Coding Arena (${n.actionSubTab})` : isSkillBarter ? 'SkillBarter Hub' : isSoftSkills ? 'Soft Skills Arena' : n.actionTab} →
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );

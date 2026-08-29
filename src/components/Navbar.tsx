@@ -117,7 +117,7 @@ export default function Navbar({
                   }`}
                 >
                   <Users className="w-4 h-4 text-indigo-400" />
-                  <span>My Team (1)</span>
+                  <span>My Peers</span>
                 </button>
 
                 <button
@@ -140,8 +140,8 @@ export default function Navbar({
                       : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                   }`}
                 >
-                  <History className="w-4 h-4 text-emerald-400" />
-                  <span>My History</span>
+                  <User className="w-4 h-4 text-emerald-400" />
+                  <span>Profile</span>
                 </button>
               </>
             ) : (

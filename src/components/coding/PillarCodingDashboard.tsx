@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import SevenPillarsIntro from './SevenPillarsIntro';
 import {
   Globe,
   Zap,
@@ -116,9 +115,6 @@ export default function PillarCodingDashboard({ user, onRefresh }: PillarCodingD
 
   return (
     <div className="space-y-10 font-sans">
-
-      {/* 7-Pillars Introduction Section */}
-      <SevenPillarsIntro />
 
       {/* Twist Alert Banner */}
       {activeTwist && (
