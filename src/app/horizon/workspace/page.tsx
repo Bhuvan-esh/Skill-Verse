@@ -20,6 +20,12 @@ import {
 } from 'lucide-react'
 
 import { useAuth } from '@/context/AuthContext'
+import MentorSkillBarterView from '@/components/skill-barter/MentorSkillBarterView'
+import FounderSkillBarterView from '@/components/skill-barter/FounderSkillBarterView'
+import VolunteerSkillBarterView from '@/components/skill-barter/VolunteerSkillBarterView'
+import MentorCodingJudgeDeck from '@/components/coding/MentorCodingJudgeDeck'
+import MentorSoftSkillsJudgeDeck from '@/components/soft-skills/MentorSoftSkillsJudgeDeck'
+import LockedWaitingForKey from '@/components/events/LockedWaitingForKey'
 
 type WorkspaceRole = 'FOUNDER' | 'MENTOR' | 'AMBASSADOR'
 type WorkspaceSection = 'skill-barter' | 'coding-challenge' | 'soft-skills' | 'idea-hub'
@@ -159,99 +165,60 @@ function HorizonWorkspaceContent() {
               </h1>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              Dedicated Empty View • {sectionInfo.title}
+              {activeRole === 'MENTOR' ? 'Mentor Portal • Skill Barter Console' : `Dedicated Workspace • ${sectionInfo.title}`}
             </p>
           </div>
         </div>
 
-        {/* Section Switcher Tabs */}
-        <div className="flex flex-wrap items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/10">
-          {(Object.keys(SECTION_META) as WorkspaceSection[]).map((secKey) => {
-            const isSelected = activeSection === secKey
-            const sMeta = SECTION_META[secKey]
-            const SIcon = sMeta.icon
-            return (
-              <button
-                key={secKey}
-                type="button"
-                onClick={() => setActiveSection(secKey)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
-                  isSelected
-                    ? `bg-gradient-to-r ${roleInfo.color} text-white shadow-md`
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <SIcon className="w-3 h-3" />
-                <span>{sMeta.title}</span>
-              </button>
-            )
-          })}
-        </div>
+        {/* Section Switcher Tabs (Only for Multi-Pillar Roles like Founder/Ambassador) */}
+        {activeRole !== 'MENTOR' && (
+          <div className="flex flex-wrap items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/10">
+            {(Object.keys(SECTION_META) as WorkspaceSection[]).map((secKey) => {
+              const isSelected = activeSection === secKey
+              const sMeta = SECTION_META[secKey]
+              const SIcon = sMeta.icon
+              return (
+                <button
+                  key={secKey}
+                  type="button"
+                  onClick={() => setActiveSection(secKey)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all flex items-center space-x-1.5 cursor-pointer ${
+                    isSelected
+                      ? `bg-gradient-to-r ${roleInfo.color} text-white shadow-md`
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <SIcon className="w-3 h-3" />
+                  <span>{sMeta.title}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </header>
 
-      {/* Main Empty Content Canvas */}
-      <main className="max-w-4xl w-full mx-auto flex-1 flex flex-col items-center justify-center text-center my-8">
-        <div className="w-full glass-panel p-8 sm:p-12 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden space-y-6">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center shadow-xl">
-            <SectionIcon className={`w-8 h-8 sm:w-10 sm:h-10 ${roleInfo.textColor}`} />
+      {/* Main Content View */}
+      <main className="max-w-7xl w-full mx-auto flex-1 my-4">
+        {activeSection === 'skill-barter' ? (
+          activeRole === 'MENTOR' ? (
+            <MentorSkillBarterView user={user} onRefresh={() => {}} />
+          ) : activeRole === 'FOUNDER' ? (
+            <FounderSkillBarterView user={user} onRefresh={() => {}} />
+          ) : (
+            <VolunteerSkillBarterView user={user} onRefresh={() => {}} />
+          )
+        ) : activeSection === 'coding-challenge' && activeRole === 'MENTOR' ? (
+          <MentorCodingJudgeDeck user={user} onBack={() => {}} />
+        ) : activeSection === 'soft-skills' && activeRole === 'MENTOR' ? (
+          <MentorSoftSkillsJudgeDeck user={user} onBack={() => {}} />
+        ) : (
+          <div className="flex items-center justify-center">
+            <LockedWaitingForKey
+              backHref="/horizon"
+              customPillarTitle={sectionInfo.title}
+            />
           </div>
-
-          <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono uppercase tracking-widest text-slate-300">
-              <span className={roleInfo.textColor}>● {roleInfo.title}</span>
-              <span>• {sectionInfo.title}</span>
-            </div>
-
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white font-heading">
-              {sectionInfo.title} Workspace
-            </h2>
-
-            <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto font-sans leading-relaxed">
-              {sectionInfo.description}
-            </p>
-          </div>
-
-          {/* Empty Canvas Box */}
-          <div className="p-8 sm:p-12 rounded-2xl border-2 border-dashed border-white/15 bg-black/30 flex flex-col items-center justify-center space-y-3">
-            <Layers className="w-8 h-8 text-slate-500 opacity-60" />
-            <p className="text-sm font-mono text-slate-400 font-semibold">
-              Empty Canvas Ready For Content
-            </p>
-            <p className="text-xs text-slate-500 max-w-md">
-              This section is currently empty for the <strong className={roleInfo.textColor}>{roleInfo.title}</strong> role. Custom modules, analytics dashboards, and tools will appear here.
-            </p>
-          </div>
-
-          {/* Action Row */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Link
-              href="/horizon"
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-mono text-xs font-bold transition-all border border-white/10 flex items-center justify-center space-x-2 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Horizon</span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => {
-                const nextSection: WorkspaceSection =
-                  activeSection === 'skill-barter'
-                    ? 'coding-challenge'
-                    : activeSection === 'coding-challenge'
-                    ? 'soft-skills'
-                    : activeSection === 'soft-skills'
-                    ? 'idea-hub'
-                    : 'skill-barter'
-                setActiveSection(nextSection)
-              }}
-              className={`w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r ${roleInfo.color} hover:brightness-110 text-white font-mono text-xs font-bold shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer`}
-            >
-              <Compass className="w-4 h-4" />
-              <span>Cycle Next Pillar →</span>
-            </button>
-          </div>
-        </div>
+        )}
       </main>
 
       {/* Footer */}

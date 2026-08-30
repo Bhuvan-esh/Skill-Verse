@@ -28,6 +28,8 @@ import {
   Clock,
   Mic,
   Share2,
+  Bell,
+  X,
   UserCheck,
   Bot,
   Zap,
@@ -314,6 +316,97 @@ export default function SoftSkillsArenaPage() {
   const [isMySubmissionsOpen, setIsMySubmissionsOpen] = useState(false)
   const [isEditingProfileModal, setIsEditingProfileModal] = useState(false)
   const [selectedBadgeDetail, setSelectedBadgeDetail] = useState<any>(null)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
+  const [softSkillsNotifs, setSoftSkillsNotifs] = useState([
+    {
+      id: 'ss-notif-1',
+      time: '07:02 pm',
+      category: 'SOFT SKILLS',
+      title: '🏆 Live Stage Keynote Selection Approved (+100 Pts)',
+      message: "Visual Architects approved your weekly reflection report: 'Strategic Pacing & The Elimination of Verbal Crutches'. Scheduled for March 20, 2026 at Main Horizon Stage!",
+      actionLabel: 'Open in Learn Quest →',
+      tabTarget: 'videos',
+      read: false,
+      badge: '+100 Credits',
+    },
+    {
+      id: 'ss-notif-2',
+      time: '06:25 pm',
+      category: 'SOFT SKILLS',
+      title: '🎬 New Mentor Masterclass Video Published',
+      message: "Visual Architects Lead shared 'Mastering Stage Presence & Pitching Under Pressure'. Guidance note: Focus on diaphragmatic breathing and deliberate silence.",
+      actionLabel: 'Watch in Learn Quest →',
+      tabTarget: 'videos',
+      read: false,
+      badge: 'Learn Quest',
+    },
+    {
+      id: 'ss-notif-3',
+      time: '04:40 pm',
+      category: 'SOFT SKILLS',
+      title: '⚡ Algorithmic Sprint & Debate Battle Booked',
+      message: "You are marked and registered for Round 1: Live Concurrency Sprint & Live Debate Qualifiers (Team #1 — Algorithmic Titans) on August 15, 2026.",
+      actionLabel: 'View in Event Calendar →',
+      calendarDay: 15,
+      read: false,
+      badge: 'Registered',
+    },
+    {
+      id: 'ss-notif-4',
+      time: '02:15 pm',
+      category: 'SOFT SKILLS',
+      title: '💎 Soft Skill Milestone Unlocked (#1 First Voice)',
+      message: "You completed your first speaking activity and unlocked the 'First Voice' milestone (+25 Credits). Ready to level up to #2 Conversation Starter!",
+      actionLabel: 'Inspect in Badge Ladder →',
+      badgeTabTarget: 'milestones',
+      read: true,
+      badge: 'Milestone #1',
+    },
+    {
+      id: 'ss-notif-5',
+      time: '11:30 am',
+      category: 'SOFT SKILLS',
+      title: '💬 Visual Architect Feedback & Review Received',
+      message: "Reviewer Feedback: 'Outstanding synthesis of Chris Voss tactical empathy in technical keynotes. +100 Credits deposited to your domain balance.'",
+      actionLabel: 'Open Dossier 🔍 →',
+      openDossier: true,
+      read: true,
+      badge: 'Review Complete',
+    },
+    {
+      id: 'ss-notif-6',
+      time: '09:10 am',
+      category: 'SOFT SKILLS',
+      title: '⚔️ Mystery Challenge #001 Announced',
+      message: "Visual Architects revealed the mystery topic: Live Stage Debate Battle & Technical Rhetoric Qualifiers. Form your squad now!",
+      actionLabel: 'Enter Competitions →',
+      tabTarget: 'competitions',
+      read: true,
+      badge: 'Mystery Sprint',
+    },
+    {
+      id: 'ss-notif-7',
+      time: 'Yesterday',
+      category: 'SOFT SKILLS',
+      title: '📜 Soft Skills Certificate of Excellence Issued',
+      message: "Dean of Academics & Skill League Jury awarded you the 'Advanced Negotiator & Communicator' credential (+50 Domain 4 Credits).",
+      actionLabel: 'Inspect in Badge Ladder →',
+      badgeTabTarget: 'grandmaster',
+      read: true,
+      badge: '+50 Credits',
+    },
+    {
+      id: 'ss-notif-8',
+      time: 'Yesterday',
+      category: 'SOFT SKILLS',
+      title: '🏅 Inter-Department Soft Skills Rank #1 Standing',
+      message: 'Your cumulative communication, Learn Quest reflection reports, and sprint points placed you at Rank #1 on the Soft Skills Leaderboard (+193 Pts).',
+      actionLabel: 'View in Leaderboard →',
+      tabTarget: 'audit',
+      read: true,
+      badge: 'Rank #1',
+    },
+  ])
   const [editProfileForm, setEditProfileForm] = useState({
     name: 'Demo L',
     branchYear: '',
@@ -723,15 +816,14 @@ export default function SoftSkillsArenaPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'SELECT_FOR_STAGE',
-          visual_architect_feedback: reviewFeedback || '🏆 Selected for Live Stage Performance Keynote at Horizon Stage!',
-          stage_performance_date: reviewStageDate,
+          visual_architect_feedback: '🏆 Selected for Live Stage Performance Keynote at Horizon Stage!',
+          stage_performance_date: 'March 20, 2026 • Main Horizon Stage',
           credits_awarded: 100,
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to select report')
       setActionMessage({ type: 'success', text: data.message })
-      setReviewReportId(null)
       fetchReports()
     } catch (err: any) {
       setActionMessage({ type: 'error', text: err.message })
@@ -975,8 +1067,137 @@ export default function SoftSkillsArenaPage() {
             <User className="w-3.5 h-3.5 text-purple-300" />
             <span>Profile</span>
           </button>
+
+          {/* Soft Skills Notification Bell */}
+          <button
+            onClick={() => setIsNotificationsOpen(true)}
+            className="relative p-2 rounded-lg bg-white/5 hover:bg-purple-500/20 text-purple-300 border border-white/10 hover:border-purple-400/40 transition-all cursor-pointer flex items-center justify-center"
+            title="Soft Skills Notifications"
+          >
+            <Bell className="w-4 h-4 text-purple-300" />
+            {softSkillsNotifs.filter((n) => !n.read).length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-black text-[9px] font-mono font-extrabold rounded-full flex items-center justify-center animate-pulse">
+                {softSkillsNotifs.filter((n) => !n.read).length}
+              </span>
+            )}
+          </button>
         </div>
       </header>
+
+      {/* Slide-Over Notification Modal */}
+      {isNotificationsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg glass-panel p-6 rounded-3xl border border-purple-500/30 space-y-4 shadow-2xl bg-gradient-to-b from-slate-900 to-black font-sans">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-2xl flex items-center justify-center bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white font-heading">
+                    🎤 Soft Skills Notifications
+                  </h3>
+                  <span className="text-[10px] font-mono text-purple-300">
+                    Peer Exchanges, Credits & Live Stage Alerts
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsNotificationsOpen(false)}
+                className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/10 cursor-pointer transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Scoped Context Info Strip */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center space-x-2">
+                <span className="px-3 py-1 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-mono font-bold">
+                  🎤 Soft Skills Feed ({softSkillsNotifs.length})
+                </span>
+              </div>
+
+              {softSkillsNotifs.some((n) => !n.read) && (
+                <button
+                  onClick={() => {
+                    setSoftSkillsNotifs((prev) => prev.map((n) => ({ ...n, read: true })))
+                  }}
+                  className="text-[11px] font-mono text-purple-400 hover:text-purple-300 underline cursor-pointer"
+                >
+                  Mark section read
+                </button>
+              )}
+            </div>
+
+            {/* Notification List */}
+            <div className="max-h-96 overflow-y-auto space-y-2.5 pr-1">
+              {softSkillsNotifs.map((n) => (
+                <div
+                  key={n.id}
+                  onClick={() => {
+                    setSoftSkillsNotifs((prev) =>
+                      prev.map((item) => (item.id === n.id ? { ...item, read: true } : item))
+                    )
+                    if (n.tabTarget) {
+                      setActiveTab(n.tabTarget as any)
+                      setIsNotificationsOpen(false)
+                    } else if (n.calendarDay) {
+                      setActiveTab('judge')
+                      setSelectedCalendarDay(n.calendarDay)
+                      setIsNotificationsOpen(false)
+                      setTimeout(() => {
+                        document.getElementById('event-calendar-section')?.scrollIntoView({ behavior: 'smooth' })
+                      }, 100)
+                    } else if (n.badgeTabTarget) {
+                      setActiveTab('judge')
+                      setBadgeTab(n.badgeTabTarget as any)
+                      setIsNotificationsOpen(false)
+                      setTimeout(() => {
+                        document.getElementById('achievements-ladder-section')?.scrollIntoView({ behavior: 'smooth' })
+                      }, 100)
+                    } else if (n.openDossier) {
+                      const targetRep = reports.find((r) => r.status === 'SELECTED_FOR_STAGE' || r.is_public) || reports[0]
+                      if (targetRep) setSelectedReportModal(targetRep)
+                      setIsNotificationsOpen(false)
+                    }
+                  }}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                    n.read
+                      ? 'bg-white/[0.02] border-white/5 opacity-70 hover:opacity-100 hover:bg-white/[0.04]'
+                      : 'bg-purple-950/30 border-purple-500/40 shadow-lg shadow-purple-950/40 hover:border-purple-400'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        🎤 {n.category}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400">{n.time}</span>
+                    </div>
+                    {!n.read && (
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    )}
+                  </div>
+
+                  <h4 className="text-xs font-bold text-white font-heading">
+                    {n.title}
+                  </h4>
+                  <p className="text-[11px] text-slate-300 font-sans mt-1 leading-relaxed">
+                    {n.message}
+                  </p>
+
+                  <div className="mt-2 text-[11px] font-mono text-purple-300 hover:text-purple-200 flex items-center space-x-1 font-bold">
+                    <span>{n.actionLabel}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto space-y-8">
         {actionMessage && (
@@ -2191,8 +2412,99 @@ export default function SoftSkillsArenaPage() {
               </div>
             </div>
 
-            {/* 2. Arena Schedule & Sprint Timeline */}
-            <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 bg-slate-950/60 shadow-2xl space-y-6">
+            {/* 2. Soft Skills Notifications Feed */}
+            <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-purple-500/30 bg-slate-950/70 shadow-2xl space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div className="space-y-1">
+                  <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[10px] font-mono uppercase tracking-widest">
+                    <Bell className="w-3 h-3 text-purple-400" />
+                    <span>Soft Skills Notifications</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white font-heading">
+                    Peer Exchanges, Credits & Live Stage Alerts
+                  </h3>
+                  <p className="text-xs text-slate-400 font-sans">
+                    Live stage qualifiers, mentor video drops, debate sprint bookings, and credit deposits.
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-3 shrink-0">
+                  <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-purple-950/60 border border-purple-500/40 text-purple-200">
+                    🎤 Soft Skills Feed ({softSkillsNotifs.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSoftSkillsNotifs((prev) => prev.map((n) => ({ ...n, read: true })))
+                    }}
+                    className="text-[11px] font-mono text-purple-300 hover:text-white transition-colors cursor-pointer border border-purple-500/20 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10"
+                  >
+                    Mark section read
+                  </button>
+                </div>
+              </div>
+
+              {/* Feed Items */}
+              <div className="space-y-3">
+                {softSkillsNotifs.map((notif) => (
+                  <div
+                    key={notif.id}
+                    className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-2.5 ${
+                      notif.read
+                        ? 'bg-slate-900/40 border-white/5 opacity-80'
+                        : 'bg-purple-950/20 border-purple-500/40 shadow-lg shadow-purple-950/30'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          🎤 {notif.category}
+                        </span>
+                        <span className="text-[11px] font-mono text-slate-400">{notif.time}</span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                        {notif.badge}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white font-heading">
+                        {notif.title}
+                      </h4>
+                      <p className="text-xs text-slate-300 font-sans mt-1 leading-relaxed">
+                        {notif.message}
+                      </p>
+                    </div>
+
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (notif.tabTarget) {
+                            setActiveTab(notif.tabTarget as any)
+                          } else if (notif.calendarDay) {
+                            setSelectedCalendarDay(notif.calendarDay)
+                            document.getElementById('event-calendar-section')?.scrollIntoView({ behavior: 'smooth' })
+                          } else if (notif.badgeTabTarget) {
+                            setBadgeTab(notif.badgeTabTarget as any)
+                            document.getElementById('achievements-ladder-section')?.scrollIntoView({ behavior: 'smooth' })
+                          } else if (notif.openDossier) {
+                            const targetRep = reports.find((r) => r.status === 'SELECTED_FOR_STAGE' || r.is_public) || reports[0]
+                            if (targetRep) setSelectedReportModal(targetRep)
+                          }
+                        }}
+                        className="text-xs font-mono font-bold text-purple-300 hover:text-white transition-colors cursor-pointer inline-flex items-center space-x-1"
+                      >
+                        <span>{notif.actionLabel}</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. Arena Schedule & Sprint Timeline */}
+            <div id="event-calendar-section" className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 bg-slate-950/60 shadow-2xl space-y-6">
               <div className="space-y-1">
                 <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono uppercase tracking-widest">
                   <Calendar className="w-3 h-3 text-cyan-400" />
@@ -2448,7 +2760,7 @@ export default function SoftSkillsArenaPage() {
             </div>
 
             {/* 3. Soft Skills Achievement Ladder */}
-            <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 bg-slate-950/60 shadow-2xl space-y-6">
+            <div id="achievements-ladder-section" className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 bg-slate-950/60 shadow-2xl space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
                 <div>
                   <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[10px] font-mono uppercase tracking-widest mb-1.5">

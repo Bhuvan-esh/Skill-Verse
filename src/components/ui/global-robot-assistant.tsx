@@ -273,8 +273,10 @@ export function GlobalRobotAssistant() {
 
   const quickPills = [
     { label: "🤝 Skill Barter", query: "How does Skill Barter work?" },
-    { label: "💡 Project Ideas", query: "How do I submit an idea in Idea Hub?" },
-    { label: "🏆 Earn Credits", query: "How do credits and ranks work?" },
+    { label: "🎤 Soft Skills & Learn Quest", query: "How does Learn Quest and Stage Keynote work in Soft Skills?" },
+    { label: "💻 Coding Arena", query: "How do Coding Arena sprints and assertions work?" },
+    { label: "💡 Idea Hub", query: "How do I submit an idea in Idea Hub?" },
+    { label: "🏆 Leaderboard & Credits", query: "How do credits and ranks work?" },
   ];
 
   const currentTourStep = TOUR_STEPS[currentStepIndex];
