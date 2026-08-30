@@ -25,6 +25,8 @@ import FounderSkillBarterView from '@/components/skill-barter/FounderSkillBarter
 import VolunteerSkillBarterView from '@/components/skill-barter/VolunteerSkillBarterView'
 import MentorCodingJudgeDeck from '@/components/coding/MentorCodingJudgeDeck'
 import MentorSoftSkillsJudgeDeck from '@/components/soft-skills/MentorSoftSkillsJudgeDeck'
+import CommunityAmbassadorCodingView from '@/components/coding/CommunityAmbassadorCodingView'
+import CommunityAmbassadorSoftSkillsView from '@/components/soft-skills/CommunityAmbassadorSoftSkillsView'
 import LockedWaitingForKey from '@/components/events/LockedWaitingForKey'
 
 type WorkspaceRole = 'FOUNDER' | 'MENTOR' | 'AMBASSADOR'
@@ -165,13 +167,17 @@ function HorizonWorkspaceContent() {
               </h1>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
-              {activeRole === 'MENTOR' ? 'Mentor Portal • Skill Barter Console' : `Dedicated Workspace • ${sectionInfo.title}`}
+              {activeRole === 'MENTOR'
+                ? 'Mentor Portal • Skill Barter Console'
+                : activeRole === 'AMBASSADOR'
+                ? 'Community Ambassador • Access Restricted'
+                : `Dedicated Workspace • ${sectionInfo.title}`}
             </p>
           </div>
         </div>
 
-        {/* Section Switcher Tabs (Only for Multi-Pillar Roles like Founder/Ambassador) */}
-        {activeRole !== 'MENTOR' && (
+        {/* Section Switcher Tabs (Only for Visual Architect / Founder) */}
+        {activeRole === 'FOUNDER' && (
           <div className="flex flex-wrap items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/10">
             {(Object.keys(SECTION_META) as WorkspaceSection[]).map((secKey) => {
               const isSelected = activeSection === secKey
@@ -209,8 +215,12 @@ function HorizonWorkspaceContent() {
           )
         ) : activeSection === 'coding-challenge' && activeRole === 'MENTOR' ? (
           <MentorCodingJudgeDeck user={user} onBack={() => {}} />
+        ) : activeSection === 'coding-challenge' && activeRole === 'AMBASSADOR' ? (
+          <CommunityAmbassadorCodingView user={user} onBack={() => {}} />
         ) : activeSection === 'soft-skills' && activeRole === 'MENTOR' ? (
           <MentorSoftSkillsJudgeDeck user={user} onBack={() => {}} />
+        ) : activeSection === 'soft-skills' && activeRole === 'AMBASSADOR' ? (
+          <CommunityAmbassadorSoftSkillsView user={user} onBack={() => {}} />
         ) : (
           <div className="flex items-center justify-center">
             <LockedWaitingForKey
