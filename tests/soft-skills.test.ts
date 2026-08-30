@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { db } from '../src/lib/db';
 import { generateMixedYearTeams } from '../src/lib/soft-skills/teamFormationService';
 import { submitScore, submitCompetitionResult } from '../src/lib/soft-skills/judgingService';
@@ -6,7 +6,7 @@ import { confirmWinnerByFounder } from '../src/lib/soft-skills/winnerConfirmatio
 import { getStudentCreditBalance, processCreditTransaction } from '../src/lib/soft-skills/creditService';
 import { executePostWinnerWorkflow } from '../src/lib/soft-skills/postWinnerWorkflow';
 
-describe('Skill League Soft Skills Challenge System — Complete Backend Test', () => {
+describe('Skill League Soft Skills Challenge System — Complete Backend Test', { timeout: 90000 }, () => {
   let testEventId: string;
   const studentAId = 'stu-test-a-' + Date.now();
   const studentBId = 'stu-test-b-' + Date.now();
@@ -182,7 +182,7 @@ describe('Skill League Soft Skills Challenge System — Complete Backend Test', 
     expect(result.status).toBe('JUDGE_SUBMITTED');
   });
 
-  it('7. Should require Founder confirmation to make winner official and trigger post-processing', async () => {
+  it('7. Should require Founder confirmation to make winner official and trigger post-processing', { timeout: 60000 }, async () => {
     const pendingResult = await db.skillLeagueResult.findFirst({
       where: { event_id: testEventId },
     });

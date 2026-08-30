@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { createAuditLog } from '@/lib/soft-skills/audit';
@@ -13,9 +13,21 @@ export async function GET(req: NextRequest) {
     const session = await getSession();
     const isPrivileged = session && (session.role === 'FOUNDER' || (session as any).role === 'ADMIN' || (session as any).role === 'JUDGE');
 
-    const events = await db.skillLeagueEvent.findMany({
+    let events = await db.skillLeagueEvent.findMany({
       orderBy: { event_date: 'asc' },
       include: {
+        registrations: {
+          select: {
+            id: true,
+            student_id: true,
+            student_name: true,
+            usn: true,
+            status: true,
+            year: true,
+            branch: true,
+            registered_at: true,
+          },
+        },
         _count: {
           select: {
             registrations: true,
@@ -25,6 +37,83 @@ export async function GET(req: NextRequest) {
         },
       },
     });
+
+    if (events.length === 0) {
+      await db.skillLeagueEvent.createMany({
+        data: [
+          {
+            public_event_name: 'Winter SpeedCode Championship',
+            internal_challenge_type: 'SPEED_CODE',
+            description: 'Annual speed-coding tournament focused on rapid syntax, recursion, and string manipulation.',
+            registration_open_time: new Date(),
+            registration_close_time: new Date(Date.now() + 86400000 * 7),
+            event_date: new Date(Date.now() + 86400000 * 10),
+            event_location: 'Main Digital Arena / Lab 3',
+            participant_limit: 100,
+            team_based: false,
+            team_size: 1,
+            credits_reward: 80,
+            status: 'REGISTRATION_OPEN',
+            created_by: 'system-founder',
+          },
+          {
+            public_event_name: 'Hackathon CodeSprint: AI & Web Systems',
+            internal_challenge_type: 'AI_WEB_SYSTEMS',
+            description: 'Full-stack hackathon & algorithmic team challenge building high-concurrency microservices and smart predictive pipelines.',
+            registration_open_time: new Date(),
+            registration_close_time: new Date(Date.now() + 86400000 * 5),
+            event_date: new Date(Date.now() + 86400000 * 8),
+            event_location: 'Innovation Hub Hall A',
+            participant_limit: 60,
+            team_based: true,
+            team_size: 3,
+            credits_reward: 150,
+            status: 'REGISTRATION_OPEN',
+            created_by: 'system-founder',
+          },
+          {
+            public_event_name: 'Algorithmic Sprint 2026',
+            internal_challenge_type: 'ALGORITHMIC_SPRINT',
+            description: 'Time-critical coding challenge testing data structures, dynamic programming, and graph optimization algorithms.',
+            registration_open_time: new Date(),
+            registration_close_time: new Date(Date.now() + 86400000 * 2),
+            event_date: new Date(Date.now() + 86400000 * 3),
+            event_location: 'Live Stream Arena',
+            participant_limit: 120,
+            team_based: false,
+            team_size: 1,
+            credits_reward: 100,
+            status: 'LIVE',
+            created_by: 'system-founder',
+          },
+        ],
+      });
+
+      events = await db.skillLeagueEvent.findMany({
+        orderBy: { event_date: 'asc' },
+        include: {
+          registrations: {
+            select: {
+              id: true,
+              student_id: true,
+              student_name: true,
+              usn: true,
+              status: true,
+              year: true,
+              branch: true,
+              registered_at: true,
+            },
+          },
+          _count: {
+            select: {
+              registrations: true,
+              teams: true,
+              rounds: true,
+            },
+          },
+        },
+      });
+    }
 
     // Mask internal_challenge_type if unrevealed and caller is not Founder/Judge/Admin
     const sanitizedEvents = events.map((ev) => {
@@ -46,6 +135,7 @@ export async function GET(req: NextRequest) {
         team_size: ev.team_size,
         credits_reward: ev.credits_reward,
         status: ev.status,
+        registrations: ev.registrations || [],
         registration_count: ev._count.registrations,
         team_count: ev._count.teams,
         round_count: ev._count.rounds,

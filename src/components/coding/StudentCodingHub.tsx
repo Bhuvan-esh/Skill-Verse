@@ -73,23 +73,49 @@ const PAST_COMPETITIONS_DATA = [
       {
         author: 'Ananya R.',
         cohort: '3rd Year · AIML',
-        rating: 5,
+        rating: '5.0',
         quote: 'The mid-challenge twist constraint forcing us to operate in sub-16MB memory pushed our algorithms to the edge. Best team coding experience of the semester!',
         highlight: 'Exceptional real-time problem complexity',
       },
       {
         author: 'Vikram S.',
         cohort: '4th Year · AIDS',
-        rating: 5,
+        rating: '5.0',
         quote: 'Visual Architects did an amazing job balancing our squad. Having 1st and 2nd years handle modular unit testing while senior teammates tackled concurrency synchronization worked like a charm.',
         highlight: 'Balanced 1st-4th year synergy',
       },
       {
         author: 'Rohan K.',
         cohort: '2nd Year · CSE',
-        rating: 4.8,
+        rating: '4.8.0',
         quote: 'Loved the live workspace telemetry and automatic test assertion feedback. The leaderboard race in the final 10 minutes was electrifying.',
         highlight: 'Fast live compilation & test benchmarks',
+      },
+    ],
+    softSkillImprovementData: [
+      {
+        skill: 'Cross-Year Squad Synchronization & Communication',
+        growth: '+34%',
+        score: '9.8 / 10',
+        insight: 'Effective task delegation between seniors (systems logic) and juniors (test assertion fixtures).',
+      },
+      {
+        skill: 'Algorithmic Articulation & Peer Code Review',
+        growth: '+29%',
+        score: '9.6 / 10',
+        insight: 'Clear mathematical formulation during live whiteboard huddles under 15-minute deadlines.',
+      },
+      {
+        skill: 'Crisis Twist Constraint Adaptability',
+        growth: '+38%',
+        score: '9.7 / 10',
+        insight: 'Rapid pivot when memory-bounded sub-16MB limit was introduced mid-challenge.',
+      },
+      {
+        skill: 'High-Pressure Decision Making',
+        growth: '+31%',
+        score: '9.5 / 10',
+        insight: 'Leaderboard sprint in the final 10 minutes without regression in syntax correctness.',
       },
     ],
     challengesFaced: [
@@ -1246,7 +1272,34 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
               </div>
             </div>
 
-            {/* 2. Participant Reviews ("What Participants Felt") */}
+            {/* 2. Soft Skill Improvement Data */}
+            {selectedRetrospective.softSkillImprovementData && (
+              <div className="p-4 rounded-2xl bg-purple-950/30 border border-purple-500/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-purple-300 font-mono uppercase flex items-center space-x-1.5">
+                    <TrendingUp className="w-4 h-4 text-purple-400" />
+                    <span>Soft Skill Improvement & Telemetry Data</span>
+                  </h4>
+                  <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">AI Analyzed</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {selectedRetrospective.softSkillImprovementData.map((item: any, idx: number) => (
+                    <div key={idx} className="p-3 rounded-xl bg-slate-900/90 border border-white/5 space-y-1 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-200">{item.skill}</span>
+                        <span className="font-mono text-emerald-400 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded text-[10px]">
+                          {item.growth} ({item.score})
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 font-sans leading-relaxed">{item.insight}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Participant Reviews ("What Participants Felt") */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-white font-heading flex items-center space-x-1.5">
@@ -1263,10 +1316,10 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
                   <div key={idx} className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-1.5">
                     <div className="flex items-center justify-between text-xs font-mono">
                       <span className="text-white font-bold">{rev.author} ({rev.cohort})</span>
-                      <span className="text-amber-400 font-bold">★ {rev.rating}.0</span>
+                      <span className="text-amber-400 font-bold">★ {rev.rating}</span>
                     </div>
-                    <p className="text-xs text-slate-300 font-sans italic">"{rev.quote}"</p>
-                    <span className="text-[10px] font-mono text-purple-300 block">✓ {rev.highlight}</span>
+                    <p className="text-xs text-slate-300 font-sans italic">&ldquo;{rev.quote}&rdquo;</p>
+                    <span className="text-[10px] font-mono text-purple-300 block">✨ {rev.highlight}</span>
                   </div>
                 ))}
               </div>

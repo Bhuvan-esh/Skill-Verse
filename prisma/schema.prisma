@@ -1116,3 +1116,53 @@ model ClubAnnouncement {
 
   @@index([audience])
 }
+
+model SoftSkillsVideo {
+  id              String   @id @default(uuid())
+  title           String
+  video_url       String
+  video_type      String   @default("YOUTUBE") // YOUTUBE, TED_TALK, MENTOR_UPLOAD
+  shared_by_name  String
+  shared_by_role  String   @default("Visual Architect") // Visual Architect, Mentor, Guest Speaker
+  what_to_notice  String   // Mentor note detailing vocal pauses, body language, rhetorical structure
+  topic_tags      String   // Comma separated tags e.g. "Public Speaking, Body Language, Storytelling"
+  duration        String?  // e.g. "12:45"
+  views_count     Int      @default(0)
+  created_at      DateTime @default(now())
+
+  reports         SoftSkillsWeeklyReport[]
+
+  @@index([shared_by_role])
+}
+
+model SoftSkillsWeeklyReport {
+  id                         String           @id @default(uuid())
+  student_id                 String
+  student_name               String
+  usn                        String?
+  academic_year              Int              @default(1)
+  department                 String?
+  video_id                   String?
+  video                      SoftSkillsVideo? @relation(fields: [video_id], references: [id], onDelete: SetNull)
+  video_title                String
+  report_title               String
+  what_watched_summary       String
+  key_learnings              String
+  communication_techniques   String
+  proposed_stage_topic       String
+  why_selected_rationale     String?          // Why the participant should be selected for the live stage
+  external_references        String?          // Books read, movies watched, case studies relating to the video
+  attachments                String?          // JSON array of attached images, PDFs, docs, pages
+  status                     String           @default("SUBMITTED") // SUBMITTED, REVIEWED, SELECTED_FOR_STAGE, REJECTED
+  is_public                  Boolean          @default(false)
+  visual_architect_feedback String?
+  stage_performance_date     String?
+  credits_awarded            Int              @default(0)
+  submitted_at               DateTime         @default(now())
+  selected_at                DateTime?
+
+  @@index([student_id])
+  @@index([status])
+  @@index([is_public])
+}
+
