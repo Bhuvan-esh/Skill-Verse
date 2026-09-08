@@ -15,7 +15,7 @@ export interface RobotOnlyProps {
   className?: string;
 }
 
-// Procedural speckled texture generator for Glossy White Ceramic / Pearl finish
+// Procedural subtle ceramic texture generator for Glossy/Chic Porcelain White finish
 function useSpeckledTexture(baseColorHex: string = "#ffffff") {
   return useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -25,31 +25,20 @@ function useSpeckledTexture(baseColorHex: string = "#ffffff") {
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
-    // Base pure white background
+    // Chic porcelain warm white base
     ctx.fillStyle = baseColorHex;
     ctx.fillRect(0, 0, 128, 128);
 
-    // Subtle white pearl noise
+    // Very subtle micro-sheen
     const imgData = ctx.getImageData(0, 0, 128, 128);
     const data = imgData.data;
     for (let i = 0; i < data.length; i += 4) {
-      const noise = (Math.random() - 0.5) * 12;
-      data[i] = Math.min(255, Math.max(225, data[i] + noise));
-      data[i + 1] = Math.min(255, Math.max(225, data[i + 1] + noise));
-      data[i + 2] = Math.min(255, Math.max(225, data[i + 2] + noise));
+      const noise = (Math.random() - 0.5) * 8;
+      data[i] = Math.min(255, Math.max(0, data[i] + noise));
+      data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+      data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
     }
     ctx.putImageData(imgData, 0, 0);
-
-    // Fine metallic pearl dots
-    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-    for (let i = 0; i < 100; i++) {
-      const x = Math.random() * 128;
-      const y = Math.random() * 128;
-      const r = Math.random() * 1.5 + 0.4;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.wrapS = THREE.RepeatWrapping;
@@ -183,12 +172,12 @@ function RobotMesh({
     });
   }, [color, speckledTexture, metalness]);
 
-  // Dark Metallic Accent Material for Head/Joints
+  // Sleek Metallic Accent Material for Head/Joints & Trims
   const darkMetalMaterial = useMemo(() => {
     return new THREE.MeshStandardMaterial({
-      color: "#0f172a",
-      metalness: 0.9,
-      roughness: 0.15,
+      color: "#1e293b",
+      metalness: 0.8,
+      roughness: 0.2,
     });
   }, []);
 

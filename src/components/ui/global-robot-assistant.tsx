@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { RobotOnly } from "./robot-only";
 import { Sparkles, X, Send, Bot, User, RefreshCw, MessageSquare, ChevronRight, ChevronLeft, Navigation, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -97,7 +98,75 @@ const TOUR_STEPS: TourStep[] = [
   },
 ];
 
+interface SectionCard {
+  id: string;
+  title: string;
+  icon: string;
+  badge: string;
+  gradient: string;
+  border: string;
+  desc: string;
+  query: string;
+}
+
+const SECTION_CARDS: SectionCard[] = [
+  {
+    id: "about",
+    title: "About Us",
+    icon: "📖",
+    badge: "Mission & Pillars",
+    gradient: "from-amber-500/15 via-orange-500/10 to-transparent",
+    border: "border-amber-500/30 hover:border-amber-400/60",
+    desc: "Club mission, 4 pillars (Skill-Barter, Soft Skills, Coding Arena, Idea Hub) & department connect.",
+    query: "Can you give me a comprehensive breakdown of the About Us section, our mission, and the student club ecosystem?",
+  },
+  {
+    id: "signin",
+    title: "Sign In / Sign Up",
+    icon: "🔑",
+    badge: "Student Access",
+    gradient: "from-purple-500/15 via-indigo-500/10 to-transparent",
+    border: "border-purple-500/30 hover:border-purple-400/60",
+    desc: "Create account with Google, Apple, or OTP to unlock Horizon 3D and all club resources.",
+    query: "Can you explain the Sign In / Sign Up process, verification steps, and what features unlock once signed in?",
+  },
+  {
+    id: "contact",
+    title: "Contact Us",
+    icon: "✉️",
+    badge: "Direct Support",
+    gradient: "from-cyan-500/15 via-blue-500/10 to-transparent",
+    border: "border-cyan-500/30 hover:border-cyan-400/60",
+    desc: "Faculty coordinators, student leads, office location (Dept of AI), and official support email.",
+    query: "Can you provide the full Contact Us directory with faculty phone numbers, student coordinators, and support email?",
+  },
+];
+
+const getLocalSectionResponse = (text: string): string | null => {
+  const t = text.toLowerCase();
+
+  // 1. About Us
+  if (t.includes("about") || t.includes("mission") || t.includes("story") || t.includes("pillar") || t.includes("department") || t.includes("what is in about") || t.includes("soft skill") || t.includes("skill-barter") || t.includes("coding arena") || t.includes("idea hub")) {
+    return "📖 **ABOUT US — CLUB PILLARS & MISSION**\n\n• **Core Vision**: ORZYA is a student-led engagement ecosystem designed to transform learning into peer collaboration and real achievements.\n• **4 Core Pillars**:\n  1. 🤝 **Skill-Barter**: Direct peer teaching credit exchange in React, Python, UI/UX, and DSA.\n  2. 🎤 **Soft Skill League**: Debate battles, public speaking keynote stages & dynamic leaderboard.\n  3. 💻 **Coding Arena**: Real-time algorithmic sprints, speed coding tournaments & bug hunts.\n  4. 💡 **Idea Hub**: Incubator for student project concepts and founder mentorship.\n• **Department Connect**: Directly integrated with the Department of AI curriculum and credits.";
+  }
+
+  // 2. Sign In / Sign Up
+  if (t.includes("sign") || t.includes("login") || t.includes("auth") || t.includes("register") || t.includes("account") || t.includes("otp") || t.includes("verification") || t.includes("access") || t.includes("unlock") || t.includes("why sign in") || t.includes("credential")) {
+    return "🔑 **SIGN IN / SIGN UP — STUDENT ACCESS GATE**\n\n• **How to Access**: Click 'SIGN IN/UP' in the top navbar on Ethereal.\n• **Login Methods**: Sign up with Google, Apple, or verify with a 6-digit email OTP.\n• **Role Pathways**: Choose your role — Visual Architect (Club Leadership), Community Ambassador (Design & UX), Mentor (Code Review & Guidance), or Participant (Student Builder).\n• **What You Unlock**: Access to Horizon 3D, live skill bartering, code challenges, project idea pitch boards, and verified credit earnings!";
+  }
+
+  // 3. Contact Us
+  if (t.includes("contact") || t.includes("email") || t.includes("phone") || t.includes("coordinator") || t.includes("support") || t.includes("faculty") || t.includes("professor") || t.includes("reach") || t.includes("how to contact") || t.includes("team")) {
+    return "✉️ **CONTACT US — OFFICIAL DIRECTORY**\n\n• **Official Support Email**: b.11.08.bandana@gmail.com (Replies within 24 hours)\n• **Visual Architect**: Dept of AI\n• **Professor Coordinators**:\n  - Coordinator 1: +91 8197613412\n  - Coordinator 2: +91 8904752677\n• **Student Coordinators**:\n  - Student Lead 1: +91 9110412394\n  - Student Lead 2: +91 9483379575\n  - Student Lead 3: +91 9148481986\n• **Office Hours**: Monday–Friday, 9:00 AM – 5:00 PM";
+  }
+
+  return null;
+};
+
 export function GlobalRobotAssistant() {
+  const pathname = usePathname();
+  const [isClubEntered, setIsClubEntered] = useState(false);
+
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -109,13 +178,14 @@ export function GlobalRobotAssistant() {
   const [isTourActive, setIsTourActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
+  const [isSignInOpened, setIsSignInOpened] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
       sender: "bot",
-      text: "Hello! 👋 I'm your ORZYA 3D AI Assistant. How can I help you navigate the student club ecosystem today?",
+      text: "👋 Welcome to the ORZYA Student Club! Here is your quick orientation guide:\n\n📖 1. About Us — Discover our mission, departmental integration, and student initiatives.\n🔑 2. Sign In / Sign Up — Register or log in to unlock Horizon 3D (Skill Barter, Coding Challenges, Soft Skills, Idea Hub).\n✉️ 3. Contact Us — Reach our student and faculty coordinator team.\n\nClick any quick pill below or ask me any question!",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -148,9 +218,23 @@ export function GlobalRobotAssistant() {
     const handleTourEvent = (e: any) => {
       const type = e.detail?.type;
 
+      if (type === "enter-club" || type === "user-clicked-enter") {
+        setIsClubEntered(true);
+      } else if (type === "back-to-landing") {
+        setIsClubEntered(false);
+        setIsOnHorizon(false);
+        setIsSignInOpened(false);
+        setIsOpen(false);
+        setIsTourActive(false);
+      } else if (type === "open-signin") {
+        setIsSignInOpened(true);
+      }
+
       if (type === "auth-success" || type === "reach-horizon") {
+        setIsClubEntered(true);
         setIsOnHorizon(true);
-      } else if (type === "leave-horizon" || type === "back-to-landing") {
+        setIsSignInOpened(true);
+      } else if (type === "leave-horizon") {
         setIsOnHorizon(false);
       }
 
@@ -212,13 +296,12 @@ export function GlobalRobotAssistant() {
     setIsTourActive(false);
     setCurrentStepIndex(0);
     
-    // Add completion message to chat
     setMessages((prev) => [
       ...prev,
       {
         id: Date.now().toString(),
         sender: "bot",
-        text: "Tour completed! 🎉 You have explored the full ORZYA ecosystem and all 4 Horizon 3D sections. Ask me anything whenever you need help!",
+        text: "Orientation completed! Explore the 3 section cards above or ask me any question about About Us, Sign In / Sign Up, and Contact Us.",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       },
     ]);
@@ -239,6 +322,22 @@ export function GlobalRobotAssistant() {
     if (!customText) setInputMessage("");
     setIsLoading(true);
 
+    // Instant local high-accuracy answer for any of the 3 sections
+    const localAnswer = getLocalSectionResponse(textToSend);
+    if (localAnswer) {
+      setTimeout(() => {
+        const botMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          sender: "bot",
+          text: localAnswer,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, botMsg]);
+        setIsLoading(false);
+      }, 150);
+      return;
+    }
+
     try {
       const res = await fetch("/api/ai/assistant", {
         method: "POST",
@@ -247,7 +346,7 @@ export function GlobalRobotAssistant() {
       });
 
       const data = await res.json();
-      const botReply = data.reply || "I'm here to assist you with ORZYA!";
+      const botReply = data.reply || "I am here to assist with our 3 main areas: 1. About Us (Pillars & Mission), 2. Sign In / Sign Up (Student Access Gate), and 3. Contact Us (Coordinator Directory). Please ask any question regarding these sections!";
 
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -262,7 +361,7 @@ export function GlobalRobotAssistant() {
       const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: "bot",
-        text: "I experienced a temporary connection glitch. Try asking again!",
+        text: "I am ready to help you with our 3 club sections: About Us, Sign In / Sign Up, and Contact Us. Tap one of the 3 cards above or ask below!",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -272,14 +371,16 @@ export function GlobalRobotAssistant() {
   };
 
   const quickPills = [
-    { label: "🤝 Skill Barter", query: "How does Skill Barter work?" },
-    { label: "🎤 Soft Skills & Learn Quest", query: "How does Learn Quest and Stage Keynote work in Soft Skills?" },
-    { label: "💻 Coding Arena", query: "How do Coding Arena sprints and assertions work?" },
-    { label: "💡 Idea Hub", query: "How do I submit an idea in Idea Hub?" },
-    { label: "🏆 Leaderboard & Credits", query: "How do credits and ranks work?" },
+    { label: "📖 About Pillars", query: "Can you explain the 4 club pillars and mission in About Us?" },
+    { label: "🔑 Sign In Steps", query: "What are the steps and methods to sign in or create an account?" },
+    { label: "✉️ Contact Info", query: "Who are the professor and student coordinators to contact?" }
   ];
 
   const currentTourStep = TOUR_STEPS[currentStepIndex];
+
+  if (pathname === "/" && !isClubEntered) {
+    return null;
+  }
 
   return (
     <motion.div
@@ -368,10 +469,8 @@ export function GlobalRobotAssistant() {
             </motion.div>
           )}
 
-
-
           {/* ========================================================= */}
-          {/* 3. TRAVELING CHAT DRAWER MODAL */}
+          {/* 3. TRAVELING CHAT DRAWER MODAL (With 3 Dedicated Cards) */}
           {/* ========================================================= */}
           {isOpen && !isTourActive && (
             <motion.div
@@ -380,7 +479,7 @@ export function GlobalRobotAssistant() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="w-[90vw] sm:w-[380px] h-[510px] mb-4 bg-slate-950/95 border border-purple-500/40 rounded-3xl backdrop-blur-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto selection:bg-purple-500 selection:text-white"
+              className="w-[94vw] sm:w-[460px] h-[560px] mb-4 bg-slate-950/95 border border-purple-500/40 rounded-3xl backdrop-blur-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto selection:bg-purple-500 selection:text-white"
             >
               {/* Modal Header */}
               <div className="p-4 border-b border-purple-500/20 bg-slate-900/80 flex items-center justify-between">
@@ -391,10 +490,10 @@ export function GlobalRobotAssistant() {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white font-heading tracking-wide flex items-center gap-1.5">
-                      <span>ORZYA Assistant</span>
+                      <span>ORZYA Club Assistant</span>
                       <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
                     </h3>
-                    <p className="text-[11px] text-slate-400 font-sans">3D Interactive AI Companion</p>
+                    <p className="text-[11px] text-slate-400 font-sans">3D Interactive Guide (About • Sign In • Contact)</p>
                   </div>
                 </div>
 
@@ -405,7 +504,7 @@ export function GlobalRobotAssistant() {
                         {
                           id: Date.now().toString(),
                           sender: "bot",
-                          text: "Chat cleared! How can I assist you now?",
+                          text: "Chat cleared! Tap any of the 3 section cards above or ask me anything about About Us, Sign In / Sign Up, and Contact Us.",
                           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                         },
                       ])
@@ -424,10 +523,43 @@ export function GlobalRobotAssistant() {
                 </div>
               </div>
 
-
+              {/* THREE SEPARATE SECTION CARDS */}
+              <div className="p-3 bg-slate-900/70 border-b border-white/10">
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <span className="text-[11px] font-mono-code font-bold uppercase tracking-wider text-slate-300">
+                    3 Club Sections
+                  </span>
+                  <span className="text-[10px] font-mono-code text-purple-400">
+                    Click card for info ↓
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {SECTION_CARDS.map((card) => (
+                    <button
+                      key={card.id}
+                      type="button"
+                      onClick={() => handleSendMessage(card.query)}
+                      className={`p-2.5 rounded-2xl bg-gradient-to-b ${card.gradient} border ${card.border} flex flex-col items-start justify-between text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md cursor-pointer group`}
+                    >
+                      <div className="flex items-center justify-between w-full mb-1">
+                        <span className="text-sm">{card.icon}</span>
+                        <span className="text-[8px] font-mono-code uppercase px-1 py-0.5 rounded bg-white/10 text-white/70 font-bold">
+                          {card.badge}
+                        </span>
+                      </div>
+                      <h4 className="text-[11px] font-bold text-white font-heading leading-tight mb-1 group-hover:text-purple-300 transition-colors">
+                        {card.title}
+                      </h4>
+                      <p className="text-[9px] text-slate-300 font-sans leading-tight line-clamp-2">
+                        {card.desc}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Chat Body Messages */}
-              <div className="flex-1 p-4 overflow-y-auto space-y-3.5 font-sans scrollbar-thin scrollbar-thumb-purple-500/20">
+              <div className="flex-1 p-3.5 overflow-y-auto space-y-3 font-sans scrollbar-thin scrollbar-thumb-purple-500/20">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -436,17 +568,17 @@ export function GlobalRobotAssistant() {
                     }`}
                   >
                     <div
-                      className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs shrink-0 ${
+                      className={`w-6 h-6 rounded-xl flex items-center justify-center text-xs shrink-0 ${
                         msg.sender === "user"
                           ? "bg-purple-600 text-white"
                           : "bg-slate-800 border border-purple-500/30 text-cyan-400"
                       }`}
                     >
-                      {msg.sender === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                      {msg.sender === "user" ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                     </div>
 
                     <div
-                      className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
+                      className={`max-w-[82%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed whitespace-pre-line ${
                         msg.sender === "user"
                           ? "bg-purple-600 text-white rounded-tr-none shadow-md"
                           : "bg-slate-900 border border-white/10 text-slate-200 rounded-tl-none shadow-md"
@@ -467,14 +599,14 @@ export function GlobalRobotAssistant() {
                 {isLoading && (
                   <div className="flex items-center space-x-2 text-xs text-purple-300 animate-pulse">
                     <Bot className="w-4 h-4 text-cyan-400 animate-spin" />
-                    <span>Thinking...</span>
+                    <span>Analyzing 3 club sections...</span>
                   </div>
                 )}
                 <div ref={chatEndRef} />
               </div>
 
               {/* Quick Action Suggestion Pills */}
-              <div className="px-3 py-2 bg-slate-900/60 border-t border-white/5 flex gap-1.5 overflow-x-auto no-scrollbar">
+              <div className="px-3 py-1.5 bg-slate-900/60 border-t border-white/5 flex gap-1.5 overflow-x-auto no-scrollbar">
                 {quickPills.map((pill) => (
                   <button
                     key={pill.label}
@@ -498,7 +630,7 @@ export function GlobalRobotAssistant() {
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Ask AI Assistant anything..."
+                  placeholder="Ask anything about About, Sign In, or Contact..."
                   className="flex-1 bg-slate-900 border border-white/10 focus:border-purple-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none transition-all font-sans"
                 />
                 <button
@@ -532,25 +664,33 @@ export function GlobalRobotAssistant() {
         {/* 4. AI ASSISTANT STATUS BADGE */}
         {/* ------------------------------------------------------------- */}
         <button
-          onClick={() => {
-            if (!isTourActive) setIsOpen((prev) => !prev);
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen((prev) => !prev);
           }}
-          className="mb-1.5 opacity-90 hover:opacity-100 transition-all bg-slate-900/90 hover:bg-slate-800 border border-purple-500/40 text-white text-[10px] font-mono-code px-3 py-1 rounded-full backdrop-blur-md shadow-2xl flex items-center space-x-1.5 cursor-pointer hover:border-purple-400"
+          className="mb-1.5 opacity-90 hover:opacity-100 transition-all bg-[#162019]/90 hover:bg-[#1f2e24] border border-white/[0.18] text-white text-[10px] font-mono-code px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.35)] flex items-center space-x-1.5 cursor-pointer hover:border-white/[0.35] active:scale-95 z-30 pointer-events-auto"
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span>{isTourActive ? `Tour: Step ${currentTourStep.step}/8` : isOpen ? "Close Assistant" : "AI Assistant"}</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse" />
+          <span>{isOpen ? "Close Assistant ✕" : "AI Assistant 💬"}</span>
         </button>
 
         {/* ------------------------------------------------------------- */}
-        {/* 5. 3D ROBOT CANVAS COMPONENT */}
+        {/* 5. 3D ROBOT CANVAS COMPONENT WITH CLICK OVERLAY */}
         {/* ------------------------------------------------------------- */}
-        <div
-          onClick={() => {
-            if (!isTourActive) setIsOpen((prev) => !prev);
-          }}
-          className="w-28 h-28 sm:w-36 sm:h-36 relative drop-shadow-[0_10px_25px_rgba(0,0,0,0.5)] cursor-pointer"
-        >
-          <RobotOnly color="#ffffff" pantallaColor="#06b6d4" pantallaBrillo={1.8} metalness={0.5} className="w-full h-full" />
+        <div className="w-28 h-28 sm:w-36 sm:h-36 relative drop-shadow-[0_10px_25px_rgba(0,0,0,0.22)] cursor-pointer group pointer-events-auto">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen((prev) => !prev);
+            }}
+            className="absolute inset-0 z-30 w-full h-full bg-transparent cursor-pointer rounded-full focus:outline-none"
+            aria-label={isOpen ? "Close Assistant" : "Open AI Assistant"}
+          />
+          <div className="w-full h-full pointer-events-none">
+            <RobotOnly color="#ffffff" pantallaColor="#00e5ff" pantallaBrillo={2.0} metalness={0.2} className="w-full h-full" />
+          </div>
         </div>
       </div>
     </motion.div>

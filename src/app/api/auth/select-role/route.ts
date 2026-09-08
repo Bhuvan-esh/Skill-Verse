@@ -100,42 +100,27 @@ export async function POST(req: Request) {
       });
 
       if (initialApproval === 'PENDING') {
-        const founders = await db.user.findMany({ where: { role: 'FOUNDER' } });
-        const founderEmails = Array.from(new Set([
-          ...founders.map(f => f.college_email),
-          'b.11.08.bandana@gmail.com'
-        ]));
-
-        for (const adminEmail of founderEmails) {
-          sendAdminAccessRequestEmail({
-            adminEmail,
-            studentName: user.name,
-            studentEmail: user.college_email,
-            usn: user.usn,
-            role: targetRole,
-          }).catch((e) => console.error('[Admin Alert Error]:', e));
-        }
+        const founderEmail = 'b.11.08.bandana@gmail.com';
+        sendAdminAccessRequestEmail({
+          adminEmail: founderEmail,
+          studentName: user.name,
+          studentEmail: user.college_email,
+          usn: user.usn,
+          role: targetRole,
+        }).catch((e) => console.error('[Admin Alert Error]:', e));
       }
     }
 
     // ─── Also fire admin email when an EXISTING PENDING user logs in ─────────
     if (user && user.approval_status === 'PENDING' && !isFirstTime) {
-      const founders = await db.user.findMany({ where: { role: 'FOUNDER' } });
-      const founderEmails = Array.from(new Set([
-        ...founders.map(f => f.college_email),
-        'founder1@club.edu',
-        'architect@club.edu'
-      ]));
-
-      for (const adminEmail of founderEmails) {
-        sendAdminAccessRequestEmail({
-          adminEmail,
-          studentName: user.name,
-          studentEmail: user.college_email,
-          usn: user.usn,
-          role: user.role,
-        }).catch((e) => console.error('[Admin Reminder Error]:', e));
-      }
+      const founderEmail = 'b.11.08.bandana@gmail.com';
+      sendAdminAccessRequestEmail({
+        adminEmail: founderEmail,
+        studentName: user.name,
+        studentEmail: user.college_email,
+        usn: user.usn,
+        role: user.role,
+      }).catch((e) => console.error('[Admin Reminder Error]:', e));
     }
 
     // ─── Blocked check ───────────────────────────────────────────────────────

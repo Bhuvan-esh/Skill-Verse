@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -12,10 +12,13 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 50% 20%, #17111f 0%, #0a0812 45%, #08070d 100%);
   color: var(--foreground);
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
+}
+
+.font-fraunces {
+  font-family: 'Fraunces', Georgia, serif;
 }
 
 .font-playfair {

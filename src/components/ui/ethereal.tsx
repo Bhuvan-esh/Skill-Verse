@@ -319,7 +319,7 @@ const fragmentShader = `
     color += pattern * 0.015;
 
     color = clamp(color, 0.0, 4.0);
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(color, 1.0 - uScrollProgress*0.12);
   }
 `;
 
@@ -328,14 +328,14 @@ const cinematicPostShader = {
     tDiffuse: { value: null },
     uTime: { value: 0 },
     uResolution: { value: new THREE.Vector2() },
-    uTemperature: { value: 0.08 },
-    uTint: { value: 0.02 },
-    uContrast: { value: 1.06 },
-    uSaturation: { value: 1.05 },
+    uTemperature: { value: 0.04 },
+    uTint: { value: 0.03 },
+    uContrast: { value: 1.05 },
+    uSaturation: { value: 1.02 },
     uVignette: { value: 0.35 },
     uAberration: { value: 0.0018 },
-    uGrain: { value: 0.22 },
-    uLetterbox: { value: 1.0 }
+    uGrain: { value: 0.20 },
+    uLetterbox: { value: 0.6 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -385,16 +385,24 @@ const cinematicPostShader = {
       vec3 col = vec3(r,g,b);
 
       float n = rand(vUv*vec2(uResolution.x, uResolution.y) + uTime*60.0) - 0.5;
-      col += n * uGrain * 0.08;
+      col += n * uGrain * 0.04;
 
       col = tempTint(col, uTemperature, uTint);
       col = satContrast(col, uSaturation, uContrast);
 
-      float vig = smoothstep(0.85, 0.2, dist);
+      float vig = smoothstep(0.88, 0.22, dist);
       col *= mix(1.0, vig, uVignette);
+
+      float bar = smoothstep(uLetterbox, 0.0, abs(vUv.y - 0.5));
+      col *= bar;
 
       col = aces(col);
       col = pow(col, vec3(1.0/2.2));
+
+      // Deep Dark Olive base background (#111713)
+      vec3 darkOlive = vec3(0.0667, 0.0902, 0.0745);
+      float modelPresence = smoothstep(0.02, 0.15, max(max(col.r, col.g), col.b));
+      col = mix(darkOlive, col, modelPresence);
 
       gl_FragColor = vec4(col, 1.0);
     }
@@ -413,7 +421,7 @@ export default function ScrollHero({
     secondary: '#8b5cf6',
     tertiary: '#ec4899',
     accent: '#06ffa5',
-    dark: '#0a0a0a'
+    dark: '#111713'
   },
   logo = 'STUDIO',
   menuItems = ['Work', 'About', 'Services', 'Contact'],
@@ -439,9 +447,6 @@ export default function ScrollHero({
   const router = useRouter();
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeSection, setActiveSection] = useState(0);
-  const activeSectionRef = useRef(0);
-  activeSectionRef.current = activeSection;
-
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -474,18 +479,21 @@ export default function ScrollHero({
 
     const init = () => {
       scene = new THREE.Scene();
+      scene.background = new THREE.Color('#111713');
 
       camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
       camera.position.set(0, 0, 5);
 
+      let isVisible = true;
       let isAnimating = false;
 
       renderer = new THREE.WebGLRenderer({
         canvas: canvasRef.current!,
         antialias: true,
-        alpha: true,
+        alpha: false,
         powerPreference: 'high-performance'
       });
+      renderer.setClearColor(new THREE.Color('#111713'), 1);
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.0));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -563,18 +571,14 @@ export default function ScrollHero({
 
           mat.uniforms.uScrollProgress.value = scrollRef.current.progress;
           mat.uniforms.uScrollVelocity.value = scrollRef.current.velocity;
-          mat.uniforms.uSectionIndex.value = activeSectionRef.current;
 
-          // Continuous 3D auto-spin animation + smooth mouse/scroll offset
-          const autoSpinY = t * 0.45;
-          const autoSpinX = Math.sin(t * 0.35) * 0.35;
-
+          // Buttery smooth lerp calculation (0 GC overhead)
           scrollRef.current.currentRotationX += (scrollRef.current.targetRotationX - scrollRef.current.currentRotationX) * 0.12;
           scrollRef.current.currentRotationY += (scrollRef.current.targetRotationY - scrollRef.current.currentRotationY) * 0.12;
 
-          mesh.rotation.x = autoSpinX + scrollRef.current.currentRotationX + (mouseRef.current.sy - 0.5) * 0.4;
-          mesh.rotation.y = autoSpinY + scrollRef.current.currentRotationY + (mouseRef.current.sx - 0.5) * 0.6;
-          mesh.position.y = Math.sin(t * 0.6) * 0.08;
+          mesh.rotation.x = scrollRef.current.currentRotationX;
+          mesh.rotation.y = scrollRef.current.currentRotationY;
+          mesh.position.y = Math.sin(t * 0.45) * 0.05;
         }
 
         const lastPass = composer.passes[composer.passes.length - 1] as any;
@@ -601,15 +605,34 @@ export default function ScrollHero({
       const handleVisibility = () => {
         if (document.hidden) {
           stopAnimation();
-        } else {
+        } else if (isVisible) {
           startAnimation();
         }
       };
       document.addEventListener('visibilitychange', handleVisibility);
 
+      const intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            isVisible = entry.isIntersecting;
+            if (isVisible && !document.hidden) {
+              startAnimation();
+            } else {
+              stopAnimation();
+            }
+          });
+        },
+        { threshold: 0.05 }
+      );
+
+      if (canvasRef.current) {
+        intersectionObserver.observe(canvasRef.current);
+      }
+
       return () => {
         window.removeEventListener('resize', onResize);
         document.removeEventListener('visibilitychange', handleVisibility);
+        intersectionObserver.disconnect();
         stopAnimation();
         geometry.dispose();
         material.dispose();
@@ -644,19 +667,14 @@ export default function ScrollHero({
         scrollRef.current.targetRotationX = self.progress * Math.PI * 3.0;
         scrollRef.current.targetRotationY = self.progress * Math.PI * 4.5;
 
-        if (sections && sections.length > 0) {
-          const idx = Math.min(
-            Math.floor(self.progress * sections.length),
-            sections.length - 1
-          );
-          setActiveSection(idx);
-        }
-
         clearTimeout(velTimeout);
         velTimeout = setTimeout(() => {
           scrollRef.current.velocity = 0;
         }, 120);
 
+        if (progressRef.current) {
+          progressRef.current.style.transform = `scaleY(${self.progress})`;
+        }
       }
     });
 
@@ -693,18 +711,26 @@ export default function ScrollHero({
   }, []);
 
   return (
-    <div ref={containerRef} className="scroll-hero bg-[#0a0a0a] min-h-screen relative w-full">
-      <div className="fixed top-0 left-0 w-full h-screen pointer-events-none z-0 overflow-hidden">
+    <div ref={containerRef} className="scroll-hero bg-[#111713] min-h-screen relative w-full">
+      <div className="sticky top-0 left-0 w-full h-screen pointer-events-none z-0 overflow-hidden">
         <canvas ref={canvasRef} className="w-full h-full" />
       </div>
 
-      <nav className="nav-container fixed top-0 left-0 w-full px-6 py-4 z-[100] pointer-events-auto backdrop-blur-md bg-black/40 border-b border-white/10 shadow-2xl">
+      <nav className="nav-container fixed top-0 left-0 w-full px-6 py-4 z-20 pointer-events-auto backdrop-blur-2xl bg-[#111713]/60 border-b border-white/[0.12] shadow-2xl">
         <div className="nav-inner max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-6">
             {onBack && (
               <button
-                onClick={onBack}
-                className="px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-xs font-mono-code text-slate-300 hover:text-white border border-white/10 flex items-center space-x-1.5 transition-all cursor-pointer hover:scale-105"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsAboutOpen(false);
+                  setIsHelpOpen(false);
+                  setIsAuthOpen(false);
+                  onBack();
+                }}
+                className="px-3.5 py-1.5 rounded-full bg-white/[0.12] hover:bg-white/[0.22] text-xs font-mono-code text-white/90 hover:text-white border border-white/[0.18] hover:border-white/[0.35] backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1.5px_rgba(255,255,255,0.35)] flex items-center space-x-1.5 transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
               >
                 <span>← Back</span>
               </button>
@@ -713,7 +739,7 @@ export default function ScrollHero({
               {logo ? logo : null}
             </div>
           </div>
-          <div className="nav-menu flex space-x-8 ml-auto">
+          <div className="nav-menu flex space-x-6 ml-auto">
             {menuItems.map((item, i) => {
               const itemKey = item.toLowerCase();
               const isAbout = itemKey.includes('about');
@@ -732,7 +758,7 @@ export default function ScrollHero({
                   <button
                     key={i}
                     onClick={() => setIsAboutOpen(true)}
-                    className="nav-item text-xs font-mono-code uppercase tracking-wider text-slate-400 hover:text-white transition-all duration-300 hover:scale-105"
+                    className="nav-item px-3.5 py-1.5 rounded-xl bg-white/[0.10] hover:bg-white/[0.20] border border-white/[0.15] hover:border-white/[0.30] backdrop-blur-2xl shadow-[0_4px_14px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.2)] text-xs font-mono-code uppercase tracking-wider text-slate-200 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95"
                   >
                     {item}
                   </button>
@@ -744,7 +770,7 @@ export default function ScrollHero({
                   <button
                     key={i}
                     onClick={() => setIsAuthOpen(true)}
-                    className="nav-item text-xs font-mono-code uppercase tracking-wider text-slate-400 hover:text-white transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className="nav-item px-3.5 py-1.5 rounded-xl bg-white/[0.10] hover:bg-white/[0.20] border border-white/[0.15] hover:border-white/[0.30] backdrop-blur-2xl shadow-[0_4px_14px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.2)] text-xs font-mono-code uppercase tracking-wider text-slate-200 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                   >
                     {item}
                   </button>
@@ -756,7 +782,7 @@ export default function ScrollHero({
                   <button
                     key={i}
                     onClick={() => setIsHelpOpen(true)}
-                    className="nav-item text-xs font-mono-code uppercase tracking-wider text-slate-400 hover:text-white transition-all duration-300 hover:scale-105 cursor-pointer"
+                    className="nav-item px-3.5 py-1.5 rounded-xl bg-white/[0.10] hover:bg-white/[0.20] border border-white/[0.15] hover:border-white/[0.30] backdrop-blur-2xl shadow-[0_4px_14px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.2)] text-xs font-mono-code uppercase tracking-wider text-slate-200 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
                   >
                     {item}
                   </button>
@@ -768,7 +794,7 @@ export default function ScrollHero({
                   key={i}
                   href={`#${targetId}`}
                   className={`nav-item text-xs font-mono-code uppercase tracking-wider transition-all duration-300 ${
-                    activeSection === i ? 'text-purple-400 font-bold scale-105' : 'text-slate-400 hover:text-white'
+                    activeSection === i ? 'text-white font-bold scale-105 drop-shadow-[0_0_10px_rgba(255,255,255,0.7)]' : 'text-slate-300/80 hover:text-white'
                   }`}
                 >
                   {item}
@@ -780,7 +806,7 @@ export default function ScrollHero({
       </nav>
 
       {/* Sticky centered text overlay - pinned in viewport center over 3D model */}
-      <div className="fixed top-0 left-0 w-full h-screen pointer-events-none z-10 flex items-center justify-center px-6">
+      <div className="sticky top-0 left-0 w-full h-screen pointer-events-none z-10 flex items-center justify-center px-6 -mt-[100vh]">
         {sections.map((section, index) => (
           <div
             key={section.id}
@@ -788,13 +814,13 @@ export default function ScrollHero({
               activeSection === index ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'
             }`}
           >
-            <h1 className="section-headline text-5xl sm:text-7xl lg:text-8xl font-extrabold text-white font-heading tracking-tight bg-gradient-to-r from-white via-slate-100 to-purple-300 bg-clip-text text-transparent">
+            <h1 className="section-headline text-5xl sm:text-7xl lg:text-8xl font-extrabold text-white font-heading tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
               {section.headline}
             </h1>
-            <h2 className="section-subheadline text-xl sm:text-2xl lg:text-3xl font-semibold text-purple-400 font-mono-code tracking-wide">
+            <h2 className="section-subheadline text-xl sm:text-2xl lg:text-3xl font-semibold text-slate-100 font-mono-code tracking-wide drop-shadow-[0_2px_14px_rgba(255,255,255,0.25)]">
               {section.subheadline}
             </h2>
-            <p className="section-body text-slate-300 text-sm sm:text-base lg:text-lg max-w-xl mx-auto font-sans leading-relaxed">
+            <p className="section-body text-slate-300 text-sm sm:text-base lg:text-lg max-w-xl mx-auto font-sans leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
               {section.body}
             </p>
           </div>
@@ -802,7 +828,7 @@ export default function ScrollHero({
       </div>
 
       {/* Invisible scroll triggers maintaining page height for scroll interactions */}
-      <div className="relative z-0 pointer-events-none">
+      <div className="relative z-0 pointer-events-none -mt-[100vh]">
         {sections.map((section, index) => (
           <div
             key={section.id}
@@ -822,13 +848,13 @@ export default function ScrollHero({
             const el = sectionsRef.current[prev];
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 text-white/80 hover:text-white border border-white/10 backdrop-blur-md flex items-center justify-center transition-all cursor-pointer hover:scale-110"
+          className="w-10 h-10 rounded-full bg-white/[0.12] hover:bg-white/[0.22] text-white/90 hover:text-white border border-white/[0.18] hover:border-white/[0.35] backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95"
           aria-label="Previous Section"
         >
           ‹
         </button>
 
-        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-black/40 border border-white/10 backdrop-blur-md">
+        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/[0.12] backdrop-blur-2xl shadow-[0_4px_14px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.15)]">
           {sections.map((_, idx) => (
             <button
               key={idx}
@@ -838,7 +864,7 @@ export default function ScrollHero({
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
               className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                activeSection === idx ? 'bg-purple-400 scale-125 shadow-sm shadow-purple-400' : 'bg-white/30 hover:bg-white/60'
+                activeSection === idx ? 'bg-white scale-125 shadow-[0_0_10px_rgba(255,255,255,0.9)] ring-2 ring-white/40' : 'bg-white/30 hover:bg-white/60'
               }`}
               aria-label={`Go to section ${idx + 1}`}
             />
@@ -852,7 +878,7 @@ export default function ScrollHero({
             const el = sectionsRef.current[next];
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 text-white/80 hover:text-white border border-white/10 backdrop-blur-md flex items-center justify-center transition-all cursor-pointer hover:scale-110"
+          className="w-10 h-10 rounded-full bg-white/[0.12] hover:bg-white/[0.22] text-white/90 hover:text-white border border-white/[0.18] hover:border-white/[0.35] backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95"
           aria-label="Next Section"
         >
           ›
@@ -861,11 +887,11 @@ export default function ScrollHero({
 
       {/* Separate About Us Modal Window */}
       {isAboutOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0a0a0a] animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#111713] animate-in fade-in duration-300">
           <div className="relative w-full min-h-screen">
             <button
               onClick={() => setIsAboutOpen(false)}
-              className="fixed top-6 right-6 z-[100] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110 shadow-2xl backdrop-blur-md"
+              className="fixed top-6 right-6 z-[100] w-10 h-10 rounded-full bg-white/[0.14] hover:bg-white/[0.28] text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/[0.20] hover:border-white/[0.40] hover:scale-110 shadow-2xl backdrop-blur-xl active:scale-95 cursor-pointer"
               aria-label="Close About Window"
             >
               ✕
@@ -879,11 +905,11 @@ export default function ScrollHero({
 
       {/* Contact Us Modal Window */}
       {isHelpOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0a0a0a] animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#111713] animate-in fade-in duration-300">
           <div className="relative w-full min-h-screen flex flex-col justify-center">
             <button
               onClick={() => setIsHelpOpen(false)}
-              className="fixed top-6 right-6 z-[100] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110 shadow-2xl backdrop-blur-md"
+              className="fixed top-6 right-6 z-[100] w-10 h-10 rounded-full bg-white/[0.14] hover:bg-white/[0.28] text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/[0.20] hover:border-white/[0.40] hover:scale-110 shadow-2xl backdrop-blur-xl active:scale-95 cursor-pointer"
               aria-label="Close Help Window"
             >
               ✕
@@ -897,11 +923,11 @@ export default function ScrollHero({
 
       {/* Separate Sign In / Up Modal Window */}
       {isAuthOpen && (
-        <div className="fixed inset-0 z-[999] overflow-y-auto bg-black flex items-center justify-center animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[999] overflow-y-auto bg-[#111713] flex items-center justify-center animate-in fade-in duration-300">
           <div className="relative w-full h-full min-h-screen">
             <button
               onClick={() => setIsAuthOpen(false)}
-              className="fixed top-5 right-5 z-[1000] w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/20 hover:scale-110 cursor-pointer shadow-2xl backdrop-blur-md"
+              className="fixed top-5 right-5 z-[1000] w-10 h-10 rounded-full bg-white/[0.14] hover:bg-white/[0.28] text-white flex items-center justify-center font-bold transition-all duration-300 border border-white/[0.20] hover:border-white/[0.40] hover:scale-110 cursor-pointer shadow-2xl backdrop-blur-xl active:scale-95"
               aria-label="Close Sign In Window"
             >
               ✕
@@ -911,7 +937,7 @@ export default function ScrollHero({
         </div>
       )}
 
-      <div className={`loading-overlay fixed inset-0 z-50 bg-[#0a0a0a] flex items-center justify-center transition-opacity duration-700 pointer-events-none ${isLoaded ? 'opacity-0' : 'opacity-100'}`}>
+      <div className={`loading-overlay fixed inset-0 z-50 bg-[#111713] flex items-center justify-center transition-opacity duration-700 pointer-events-none ${isLoaded ? 'opacity-0' : 'opacity-100'}`}>
         <div className="loading-text text-purple-400 font-mono-code text-sm uppercase tracking-widest animate-pulse flex items-center space-x-3">
           <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
           <span>Loading Ethereal Canvas...</span>

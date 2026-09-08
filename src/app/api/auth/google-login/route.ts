@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       // First-time signup: Layer 2 requires founder approval
-      const isFounder = email.toLowerCase().includes('founder') || email.toLowerCase().includes('architect') || ['b.11.08.bandana@gmail.com'].includes(email.toLowerCase());
+      const isFounder = ['b.11.08.bandana@gmail.com'].includes(email.toLowerCase());
       const initialApproval = isFounder ? 'APPROVED' : 'PENDING';
       const initialRole = isFounder ? 'FOUNDER' : (role as any) || 'STUDENT';
 
@@ -53,10 +53,9 @@ export async function POST(req: Request) {
         update: {},
       });
 
-      // Alert Founder about new access request
+      // Alert Visual Architect about new access request
       if (initialApproval === 'PENDING') {
-        const founder = await db.user.findFirst({ where: { role: 'FOUNDER' } });
-        const founderEmail = founder?.college_email || 'b.11.08.bandana@gmail.com';
+        const founderEmail = 'b.11.08.bandana@gmail.com';
 
         sendAdminAccessRequestEmail({
           adminEmail: founderEmail,
@@ -66,6 +65,15 @@ export async function POST(req: Request) {
           role: initialRole,
         }).catch((e) => console.error('[Admin Alert Error]:', e));
       }
+    } else if (user.approval_status === 'PENDING') {
+      // Re-trigger alert to Visual Architect on subsequent pending sign-in
+      sendAdminAccessRequestEmail({
+        adminEmail: 'b.11.08.bandana@gmail.com',
+        studentName: user.name,
+        studentEmail: user.college_email,
+        usn: user.usn,
+        role: user.role,
+      }).catch((e) => console.error('[Admin Alert Error]:', e));
     }
 
     // Layer 2: Approval Status Check
