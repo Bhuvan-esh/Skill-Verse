@@ -484,20 +484,20 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       
       {/* Mentor Header Console */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 via-slate-900 to-indigo-950/40 shadow-2xl relative overflow-hidden">
+      <div className="p-6 sm:p-8 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-mono uppercase tracking-widest">
-              <Award className="w-3.5 h-3.5 text-blue-400" />
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#6D3DF5]/15 border border-[#6D3DF5]/30 text-[#A78BFA] text-xs font-semibold uppercase tracking-wider">
+              <Award className="w-3.5 h-3.5 text-[#A78BFA]" />
               <span>Mentor Intelligence Console</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-heading">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               Participant SkillBarter & PeerVault Oversight
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300">
+            <p className="text-xs sm:text-sm text-slate-400">
               Live mentorship analytics, top mentor standings, weak performer diagnostics, and separated review streams.
             </p>
           </div>
@@ -509,22 +509,22 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                 onRefresh();
               }}
               disabled={isLoading}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-blue-200 border border-blue-500/30 text-xs font-mono font-bold transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-50"
+              className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.10] text-slate-200 border border-white/[0.08] text-xs font-semibold transition-all flex items-center space-x-2 cursor-pointer disabled:opacity-50"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-[#A78BFA]' : 'text-slate-400'}`} />
               <span>{isLoading ? 'Syncing...' : 'Sync Ecosystem 🔄'}</span>
             </button>
           </div>
         </div>
 
         {/* Sub-Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-6 mt-4 border-t border-white/10">
+        <div className="flex flex-wrap items-center gap-1.5 pt-6 mt-4 border-t border-white/[0.08]">
           <button
             onClick={() => setActiveSubTab('overview')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeSubTab === 'overview'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-lg shadow-[#6D3DF5]/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
             }`}
           >
             <TrendingUp className="w-3.5 h-3.5" />
@@ -533,22 +533,22 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
 
           <button
             onClick={() => setActiveSubTab('exchanges')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeSubTab === 'exchanges'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-lg shadow-[#6D3DF5]/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
             }`}
           >
-            <Repeat className="w-3.5 h-3.5 text-cyan-300" />
+            <Repeat className="w-3.5 h-3.5" />
             <span>🤝 Skill Exchanges ({exchangeActivity.length})</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('peervault')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeSubTab === 'peervault'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-lg shadow-[#6D3DF5]/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
             }`}
           >
             <Video className="w-3.5 h-3.5" />
@@ -557,37 +557,37 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
 
           <button
             onClick={() => setActiveSubTab('leaderboard')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeSubTab === 'leaderboard'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-lg shadow-[#6D3DF5]/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
             }`}
           >
-            <Trophy className="w-3.5 h-3.5 text-amber-300" />
+            <Trophy className="w-3.5 h-3.5" />
             <span>🏆 Top Performers ({topPerformers.length})</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('weak_performers')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeSubTab === 'weak_performers'
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
-                : 'text-rose-300 hover:text-white hover:bg-rose-950/30 border border-rose-500/20'
+                ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
+                : 'text-red-400 hover:bg-red-500/10 border border-red-500/20'
             }`}
           >
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-300" />
-            <span>⚠️ Weak & Needs Attention ({weakPerformers.length})</span>
+            <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+            <span>⚠️ Needs Attention ({weakPerformers.length})</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('feedback')}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeSubTab === 'feedback'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-lg shadow-[#6D3DF5]/20'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
             }`}
           >
-            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+            <MessageSquare className="w-3.5 h-3.5" />
             <span>💬 Feedback & Reviews ({positiveFeedbacks.length + negativeFeedbacks.length})</span>
           </button>
         </div>
@@ -603,52 +603,52 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3.5">
             
             {/* Card 1: Participants Exchanged Skills */}
-            <div className="glass-panel p-4.5 rounded-2xl border border-cyan-500/40 bg-gradient-to-b from-cyan-950/30 to-slate-900 shadow-lg space-y-1 text-center">
-              <span className="text-[10px] uppercase font-mono text-cyan-300 font-bold block">Exchanged Skills</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-cyan-300 font-heading">{overview.totalParticipantsExchangedSkills}</p>
-              <span className="text-[10px] text-cyan-200/80 font-mono block">Participants Traded</span>
+            <div className="p-4.5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-1 text-center">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">Exchanged Skills</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-[#A78BFA]">{overview.totalParticipantsExchangedSkills}</p>
+              <span className="text-[10px] text-slate-400 block">Participants Traded</span>
             </div>
 
             {/* Card 2: Mentoring Given */}
-            <div className="glass-panel p-4.5 rounded-2xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/30 to-slate-900 shadow-lg space-y-1 text-center">
-              <span className="text-[10px] uppercase font-mono text-emerald-300 font-bold block">Mentoring Given</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-emerald-300 font-heading">{overview.mentoringGivenCount}</p>
-              <span className="text-[10px] text-emerald-200/80 font-mono block">{overview.mentoringGivenHours} Given</span>
+            <div className="p-4.5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-1 text-center">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">Mentoring Given</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-emerald-400">{overview.mentoringGivenCount}</p>
+              <span className="text-[10px] text-slate-400 block">{overview.mentoringGivenHours} Given</span>
             </div>
 
             {/* Card 3: Classes Learnt */}
-            <div className="glass-panel p-4.5 rounded-2xl border border-purple-500/40 bg-gradient-to-b from-purple-950/30 to-slate-900 shadow-lg space-y-1 text-center">
-              <span className="text-[10px] uppercase font-mono text-purple-300 font-bold block">Classes Learnt</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-purple-300 font-heading">{overview.classesLearntCount}</p>
-              <span className="text-[10px] text-purple-200/80 font-mono block">{overview.classesLearntHours} Consumed</span>
+            <div className="p-4.5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-1 text-center">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">Classes Learnt</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-[#A78BFA]">{overview.classesLearntCount}</p>
+              <span className="text-[10px] text-slate-400 block">{overview.classesLearntHours} Consumed</span>
             </div>
 
             {/* Card 4: Total Classes Conducted */}
-            <div className="glass-panel p-4.5 rounded-2xl border border-blue-500/30 bg-slate-900/60 shadow-lg space-y-1 text-center">
-              <span className="text-[10px] uppercase font-mono text-blue-300 font-bold block">Total Sessions</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-white font-heading">{overview.totalClassesConducted}</p>
-              <span className="text-[10px] text-blue-200/80 font-mono block">Peer Circles Done</span>
+            <div className="p-4.5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-1 text-center">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">Total Sessions</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-white">{overview.totalClassesConducted}</p>
+              <span className="text-[10px] text-slate-400 block">Peer Circles Done</span>
             </div>
 
             {/* Card 5: Learnt Students */}
-            <div className="glass-panel p-4.5 rounded-2xl border border-indigo-500/30 bg-slate-900/60 shadow-lg space-y-1 text-center">
-              <span className="text-[10px] uppercase font-mono text-indigo-300 font-bold block">Learnt Students</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-indigo-300 font-heading">{overview.totalStudentsLearnt}</p>
-              <span className="text-[10px] text-indigo-200/80 font-mono block">Peers Helped</span>
+            <div className="p-4.5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-1 text-center">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">Learnt Students</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-white">{overview.totalStudentsLearnt}</p>
+              <span className="text-[10px] text-slate-400 block">Peers Helped</span>
             </div>
 
             {/* Card 6: Credits Traded */}
-            <div className="glass-panel p-4.5 rounded-2xl border border-amber-500/30 bg-slate-900/60 shadow-lg space-y-1 text-center">
-              <span className="text-[10px] uppercase font-mono text-amber-300 font-bold block">Credits Traded</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-amber-300 font-heading">{overview.totalCreditsExchanged}</p>
-              <span className="text-[10px] text-amber-200/80 font-mono block">Domain 3 Pts</span>
+            <div className="p-4.5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-1 text-center">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">Credits Traded</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-amber-400">{overview.totalCreditsExchanged}</p>
+              <span className="text-[10px] text-slate-400 block">Domain 3 Pts</span>
             </div>
 
             {/* Card 7: Average Rating */}
-            <div className="glass-panel p-4.5 rounded-2xl border border-pink-500/30 bg-slate-900/60 shadow-lg space-y-1 text-center col-span-2 sm:col-span-1">
-              <span className="text-[10px] uppercase font-mono text-pink-300 font-bold block">Ecosystem Rating</span>
-              <p className="text-2xl sm:text-3xl font-extrabold text-pink-300 font-heading">{overview.averageEcosystemRating} ★</p>
-              <span className="text-[10px] text-pink-200/80 font-mono block">{overview.satisfactionRate} Positive</span>
+            <div className="p-4.5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-1 text-center col-span-2 sm:col-span-1">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider block">Ecosystem Rating</span>
+              <p className="text-2xl sm:text-3xl font-extrabold text-amber-400">{overview.averageEcosystemRating} ★</p>
+              <span className="text-[10px] text-emerald-400 font-semibold block">{overview.satisfactionRate} Positive</span>
             </div>
 
           </div>
@@ -657,15 +657,15 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Top Mentors Standings Preview */}
-            <div className="glass-panel p-6 rounded-3xl border border-white/10 bg-slate-950/60 space-y-4 shadow-xl">
+            <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md space-y-4 shadow-2xl">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-white font-heading flex items-center space-x-2">
+                <h3 className="text-base font-bold text-white flex items-center space-x-2">
                   <Trophy className="w-4 h-4 text-amber-400" />
                   <span>Top Student Mentors</span>
                 </h3>
                 <button
                   onClick={() => setActiveSubTab('leaderboard')}
-                  className="text-xs font-mono text-blue-400 hover:text-blue-300 transition-colors"
+                  className="text-xs font-semibold text-[#A78BFA] hover:underline cursor-pointer"
                 >
                   Full Leaderboard ({topPerformers.length}) →
                 </button>
@@ -673,19 +673,19 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
 
               <div className="space-y-3">
                 {topPerformers.slice(0, 3).map((p: any) => (
-                  <div key={p.rank} className="p-4 rounded-2xl bg-slate-900/80 border border-white/5 flex items-center justify-between gap-3">
+                  <div key={p.rank} className="p-4 rounded-xl bg-[#0B0E1D]/90 border border-white/[0.06] flex items-center justify-between gap-3">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold font-mono text-xs flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center justify-center">
                         #{p.rank}
                       </div>
                       <div>
                         <span className="text-xs font-bold text-white block">{p.name}</span>
-                        <span className="text-[11px] text-slate-400 font-mono">{p.department}</span>
+                        <span className="text-[11px] text-slate-400">{p.department}</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-bold text-amber-400 font-mono block">+{p.credits_earned} Credits</span>
-                      <span className="text-[10px] text-slate-400 font-mono">{p.mentoring_given} Given • {p.classes_learnt} Learnt</span>
+                      <span className="text-xs font-bold text-amber-400 block">+{p.credits_earned} Credits</span>
+                      <span className="text-[10px] text-slate-400">{p.mentoring_given} Given • {p.classes_learnt} Learnt</span>
                     </div>
                   </div>
                 ))}
@@ -693,15 +693,15 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
             </div>
 
             {/* Weak / Needs Attention Performers Preview */}
-            <div className="glass-panel p-6 rounded-3xl border border-rose-500/30 bg-rose-950/20 space-y-4 shadow-xl">
+            <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md space-y-4 shadow-2xl">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-rose-300 font-heading flex items-center space-x-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-400" />
+                <h3 className="text-base font-bold text-red-400 flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 text-red-400" />
                   <span>Mentors Requiring Intervention</span>
                 </h3>
                 <button
                   onClick={() => setActiveSubTab('weak_performers')}
-                  className="text-xs font-mono text-rose-300 hover:text-rose-200 transition-colors"
+                  className="text-xs font-semibold text-red-400 hover:underline cursor-pointer"
                 >
                   View Diagnostics ({weakPerformers.length}) →
                 </button>
@@ -709,17 +709,17 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
 
               <div className="space-y-3">
                 {weakPerformers.slice(0, 2).map((w: any) => (
-                  <div key={w.id} className="p-4 rounded-2xl bg-slate-950/80 border border-rose-500/30 space-y-2">
+                  <div key={w.id} className="p-4 rounded-xl bg-[#0B0E1D]/90 border border-red-500/20 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <div className="space-y-0.5">
                         <span className="text-xs font-bold text-white block">{w.name}</span>
-                        <span className="text-[10px] text-rose-300 font-mono">{w.department} • {w.rating} ★</span>
+                        <span className="text-[10px] text-slate-400">{w.department} • <strong className="text-amber-400">{w.rating} ★</strong></span>
                       </div>
-                      <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-mono font-bold border border-rose-500/30">
+                      <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px] font-semibold border border-red-500/20">
                         {w.badge}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-300 font-sans line-clamp-1">
+                    <p className="text-[11px] text-slate-400 line-clamp-1">
                       ⚠️ {w.deficiency_area}
                     </p>
                   </div>
@@ -735,14 +735,14 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
       {/* 2. 2-WAY SKILL EXCHANGES LOG TAB                                          */}
       {/* ========================================================================= */}
       {activeSubTab === 'exchanges' && (
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 bg-slate-950/60 shadow-2xl space-y-6 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="p-6 sm:p-8 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-6 animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
             <div>
-              <h3 className="text-xl font-bold text-white font-heading flex items-center space-x-2">
-                <Repeat className="w-5 h-5 text-cyan-400" />
+              <h3 className="text-xl font-bold text-white flex items-center space-x-2">
+                <Repeat className="w-5 h-5 text-[#A78BFA]" />
                 <span>2-Way Peer Skill Exchange Matrix & Log</span>
               </h3>
-              <p className="text-xs text-slate-400 font-sans mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Detailed record of cross-participant mentoring given, classes learnt, and mutual credit settlement.
               </p>
             </div>
@@ -754,15 +754,15 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                 placeholder="Search exchanges, skills, or students..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none font-mono"
+                className="w-full bg-[#090C19]/80 border border-white/[0.08] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#6D3DF5] transition-colors"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-white/10 text-slate-400 uppercase text-[10px]">
+                <tr className="border-b border-white/[0.08] bg-[#0B0E1D]/90 text-slate-400 uppercase text-[10px] font-semibold">
                   <th className="py-3 px-3">Mentor (Taught)</th>
                   <th className="py-3 px-3">Learner (Received)</th>
                   <th className="py-3 px-3">Taught Skill</th>
@@ -772,24 +772,24 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                   <th className="py-3 px-3 text-right">Credit Transfer</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-white/[0.06]">
                 {filteredExchanges.map((ex: any) => (
                   <tr key={ex.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="py-3.5 px-3">
                       <span className="font-bold text-emerald-400 block">{ex.mentor_name}</span>
-                      <span className="text-[10px] text-slate-400 font-sans">{ex.mentor_dept}</span>
+                      <span className="text-[10px] text-slate-400">{ex.mentor_dept}</span>
                     </td>
                     <td className="py-3.5 px-3">
-                      <span className="font-bold text-purple-400 block">{ex.learner_name}</span>
-                      <span className="text-[10px] text-slate-400 font-sans">{ex.learner_dept}</span>
+                      <span className="font-bold text-[#A78BFA] block">{ex.learner_name}</span>
+                      <span className="text-[10px] text-slate-400">{ex.learner_dept}</span>
                     </td>
                     <td className="py-3.5 px-3">
-                      <span className="text-white font-medium block">{ex.taught_skill}</span>
+                      <span className="text-white font-semibold block">{ex.taught_skill}</span>
                     </td>
                     <td className="py-3.5 px-3">
-                      <span className="text-cyan-300 font-medium block">{ex.received_skill}</span>
+                      <span className="text-slate-300 font-medium block">{ex.received_skill}</span>
                     </td>
-                    <td className="py-3.5 px-3 text-slate-300">
+                    <td className="py-3.5 px-3 text-white">
                       <span>{ex.mode}</span>
                       <span className="text-slate-400 text-[10px] block">⏱️ {ex.duration}</span>
                     </td>
@@ -797,7 +797,7 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                       <span className="text-amber-400 font-bold">★ {ex.rating}</span>
                     </td>
                     <td className="py-3.5 px-3 text-right">
-                      <span className="px-2.5 py-1 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold">
+                      <span className="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold text-xs">
                         +{ex.credits_transferred} Credits
                       </span>
                     </td>
@@ -814,7 +814,7 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
       {/* ========================================================================= */}
       {activeSubTab === 'peervault' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-panel p-4 rounded-2xl border border-white/10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl">
             <div className="relative w-full sm:w-96">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -822,10 +822,10 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                 placeholder="Search PeerVault masterclasses or authors..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
+                className="w-full bg-[#090C19]/80 border border-white/[0.08] rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#6D3DF5] transition-colors"
               />
             </div>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-xs text-slate-400">
               Showing {filteredPeerVault.length} PeerVault Masterclasses
             </span>
           </div>
@@ -834,47 +834,47 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
             {filteredPeerVault.map((item: any) => (
               <div
                 key={item.id}
-                className="glass-panel p-5 rounded-3xl border border-white/10 bg-slate-950/60 shadow-xl space-y-4 hover:border-blue-500/40 transition-all flex flex-col justify-between"
+                className="p-5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-4 hover:border-[#6D3DF5]/40 transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300 text-[10px] font-mono font-bold uppercase">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#6D3DF5]/15 border border-[#6D3DF5]/30 text-[#A78BFA] text-[10px] font-semibold uppercase tracking-wider">
                       {item.status.replace('_', ' ')}
                     </span>
-                    <span className="text-amber-400 font-bold font-mono text-xs flex items-center space-x-1">
+                    <span className="text-amber-400 font-bold text-xs flex items-center space-x-1">
                       <span>★</span>
                       <span>{item.rating}</span>
                     </span>
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-bold text-white font-heading leading-snug">
+                    <h4 className="text-sm font-bold text-white leading-snug">
                       {item.title}
                     </h4>
-                    <p className="text-xs text-blue-300 font-mono mt-1">
+                    <p className="text-xs text-[#A78BFA] font-semibold mt-1">
                       {item.topic}
                     </p>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-slate-900/90 border border-white/5 space-y-1 text-[11px] font-mono text-slate-300">
+                  <div className="p-3 rounded-xl bg-[#0B0E1D]/90 border border-white/[0.06] space-y-1 text-[11px] text-slate-400">
                     <div className="flex justify-between">
                       <span className="text-slate-400">Creator:</span>
                       <span className="text-white font-semibold">{item.student_author}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Department:</span>
-                      <span>{item.department}</span>
+                      <span className="text-slate-300">{item.department}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Duration & Size:</span>
-                      <span>{item.duration} ({item.video_size})</span>
+                      <span className="text-slate-300">{item.duration} ({item.video_size})</span>
                     </div>
                   </div>
 
                   {item.tags && (
                     <div className="flex flex-wrap gap-1.5">
                       {item.tags.map((t: string) => (
-                        <span key={t} className="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-[10px] font-mono">
+                        <span key={t} className="px-2 py-0.5 rounded-md bg-white/[0.04] text-slate-300 text-[10px] font-medium border border-white/[0.08]">
                           #{t}
                         </span>
                       ))}
@@ -882,12 +882,12 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                  <div className="flex items-center space-x-3 text-[11px] font-mono text-slate-400">
+                <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
+                  <div className="flex items-center space-x-3 text-[11px] text-slate-400">
                     <span>👁️ {item.views}</span>
                     <span>👥 {item.learners_count}</span>
                   </div>
-                  <span className="px-3 py-1 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-300 text-xs font-mono font-bold">
+                  <span className="px-3 py-1 rounded-xl bg-[#6D3DF5]/15 border border-[#6D3DF5]/30 text-[#A78BFA] text-xs font-bold">
                     +{item.credits_awarded} Credits
                   </span>
                 </div>
@@ -901,14 +901,14 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
       {/* 4. TOP PERFORMERS LEADERBOARD TAB                                         */}
       {/* ========================================================================= */}
       {activeSubTab === 'leaderboard' && (
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 bg-slate-950/60 shadow-2xl space-y-6 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="p-6 sm:p-8 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-6 animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
             <div>
-              <h3 className="text-xl font-bold text-white font-heading flex items-center space-x-2">
+              <h3 className="text-xl font-bold text-white flex items-center space-x-2">
                 <Trophy className="w-5 h-5 text-amber-400" />
                 <span>Collegiate Top Mentors & Barter Performers</span>
               </h3>
-              <p className="text-xs text-slate-400 font-sans mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Real-time performance ranking based on mentoring given, classes learnt, and verified peer ratings.
               </p>
             </div>
@@ -920,15 +920,15 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                 placeholder="Filter mentors..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-900 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none font-mono"
+                className="w-full bg-[#090C19]/80 border border-white/[0.08] rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#6D3DF5] transition-colors"
               />
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
+            <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-white/10 text-slate-400 uppercase text-[10px]">
+                <tr className="border-b border-white/[0.08] bg-[#0B0E1D]/90 text-slate-400 uppercase text-[10px] font-semibold">
                   <th className="py-3 px-3">Rank</th>
                   <th className="py-3 px-3">Student Mentor</th>
                   <th className="py-3 px-3">Mentoring Given</th>
@@ -939,42 +939,42 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                   <th className="py-3 px-3 text-right">Domain Credits</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-white/[0.06]">
                 {filteredTopPerformers.map((mentor: any) => (
                   <tr key={mentor.rank} className="hover:bg-white/[0.02] transition-colors">
                     <td className="py-3.5 px-3">
                       <span className={`w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs ${
-                        mentor.rank === 1 ? 'bg-amber-500 text-black font-extrabold' :
-                        mentor.rank === 2 ? 'bg-slate-300 text-black font-bold' :
-                        mentor.rank === 3 ? 'bg-amber-700 text-white font-bold' :
-                        'bg-slate-800 text-slate-300'
+                        mentor.rank === 1 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' :
+                        mentor.rank === 2 ? 'bg-white/[0.08] text-slate-200 border border-white/[0.15]' :
+                        mentor.rank === 3 ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40' :
+                        'bg-white/[0.04] text-slate-400'
                       }`}>
                         #{mentor.rank}
                       </span>
                     </td>
                     <td className="py-3.5 px-3">
                       <span className="font-bold text-white block">{mentor.name}</span>
-                      <span className="text-[10px] text-slate-400 font-sans">{mentor.usn} • {mentor.department}</span>
+                      <span className="text-[10px] text-slate-400">{mentor.usn} • {mentor.department}</span>
                     </td>
                     <td className="py-3.5 px-3 font-semibold text-emerald-400">
                       {mentor.mentoring_given} Given
                     </td>
-                    <td className="py-3.5 px-3 font-semibold text-purple-400">
+                    <td className="py-3.5 px-3 font-semibold text-[#A78BFA]">
                       {mentor.classes_learnt} Learnt
                     </td>
-                    <td className="py-3.5 px-3 font-semibold text-blue-300">
+                    <td className="py-3.5 px-3 font-semibold text-white">
                       {mentor.sessions_conducted} Sessions
                     </td>
                     <td className="py-3.5 px-3">
                       <span className="text-amber-400 font-bold">★ {mentor.rating}</span>
                     </td>
                     <td className="py-3.5 px-3">
-                      <span className="px-2.5 py-1 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[10px] font-bold">
+                      <span className="px-2.5 py-1 rounded-xl bg-[#6D3DF5]/15 border border-[#6D3DF5]/30 text-[#A78BFA] text-[10px] font-bold">
                         {mentor.badge}
                       </span>
                     </td>
                     <td className="py-3.5 px-3 text-right">
-                      <span className="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/30 text-amber-300 font-bold">
+                      <span className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 font-bold text-xs">
                         +{mentor.credits_earned} Pts
                       </span>
                     </td>
@@ -990,19 +990,19 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
       {/* 5. WEAK & NEEDS ATTENTION PERFORMERS TAB                                  */}
       {/* ========================================================================= */}
       {activeSubTab === 'weak_performers' && (
-        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-rose-500/30 bg-slate-950/60 shadow-2xl space-y-6 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+        <div className="p-6 sm:p-8 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl space-y-6 animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
             <div>
-              <h3 className="text-xl font-bold text-white font-heading flex items-center space-x-2">
-                <AlertTriangle className="w-5 h-5 text-rose-400" />
+              <h3 className="text-xl font-bold text-red-400 flex items-center space-x-2">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
                 <span>Weak & Needs Attention Mentors (Intervention Station)</span>
               </h3>
-              <p className="text-xs text-slate-400 font-sans mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Participants with &lt;3.5★ peer ratings, elevated session cancellations, or unprepared lesson outlines.
               </p>
             </div>
 
-            <span className="px-3.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 font-mono text-xs font-bold">
+            <span className="px-3.5 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
               ⚠️ Needs Intervention ({weakPerformers.length})
             </span>
           </div>
@@ -1011,59 +1011,59 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
             {filteredWeakPerformers.map((w: any) => (
               <div
                 key={w.id}
-                className="p-5 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-4 shadow-lg"
+                className="p-5 rounded-2xl bg-[#0B0E1D]/90 border border-red-500/20 space-y-4 shadow-2xl"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
                       <span className="font-bold text-white text-base">{w.name}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-mono font-bold border border-rose-500/30">
+                      <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-[10px] font-semibold border border-red-500/20">
                         {w.badge}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 font-mono">
+                    <p className="text-xs text-slate-400">
                       {w.usn} • {w.department} ({w.year})
                     </p>
                   </div>
 
-                  <div className="flex items-center space-x-3 text-xs font-mono">
-                    <span className="px-3 py-1 rounded-xl bg-slate-900 border border-white/10 text-amber-400 font-bold">
+                  <div className="flex items-center space-x-3 text-xs">
+                    <span className="px-3 py-1 rounded-xl bg-white/[0.04] border border-white/[0.08] text-amber-400 font-bold">
                       ★ {w.rating} Avg Rating
                     </span>
-                    <span className="px-3 py-1 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 font-bold">
+                    <span className="px-3 py-1 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold">
                       {w.sessions_cancelled} Cancelled
                     </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-white/5 space-y-1">
-                    <span className="text-slate-400 text-[10px] uppercase block">Sessions Completed:</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                  <div className="p-3 rounded-xl bg-[#12162A]/80 border border-white/[0.06] space-y-1">
+                    <span className="text-slate-400 text-[10px] uppercase font-semibold block">Sessions Completed:</span>
                     <span className="text-white font-bold">{w.sessions_conducted} Sessions ({w.mentoring_given} Given / {w.classes_learnt} Learnt)</span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-white/5 space-y-1">
-                    <span className="text-slate-400 text-[10px] uppercase block">Credits Earned:</span>
+                  <div className="p-3 rounded-xl bg-[#12162A]/80 border border-white/[0.06] space-y-1">
+                    <span className="text-slate-400 text-[10px] uppercase font-semibold block">Credits Earned:</span>
                     <span className="text-amber-400 font-bold">+{w.credits_earned} Pts</span>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-white/5 space-y-1">
-                    <span className="text-slate-400 text-[10px] uppercase block">Primary Deficiency:</span>
-                    <span className="text-rose-300 font-bold">{w.deficiency_area}</span>
+                  <div className="p-3 rounded-xl bg-[#12162A]/80 border border-white/[0.06] space-y-1">
+                    <span className="text-slate-400 text-[10px] uppercase font-semibold block">Primary Deficiency:</span>
+                    <span className="text-red-400 font-bold">{w.deficiency_area}</span>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-950/90 border border-white/5 text-xs font-mono text-slate-300 space-y-1">
-                  <span className="text-slate-400 text-[10px] uppercase block">Peer Audit & Mentor Failure Log:</span>
-                  <p className="text-rose-200 font-sans italic">&quot;{w.mentor_notes}&quot;</p>
+                <div className="p-3 rounded-xl bg-[#12162A]/80 border border-white/[0.06] text-xs text-slate-300 space-y-1">
+                  <span className="text-slate-400 text-[10px] uppercase font-semibold block">Peer Audit & Mentor Failure Log:</span>
+                  <p className="text-slate-200 italic">&quot;{w.mentor_notes}&quot;</p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-900 border border-rose-500/20 text-xs font-mono text-amber-200 space-y-1">
-                  <span className="text-amber-400 font-bold uppercase text-[10px] flex items-center space-x-1">
-                    <Zap className="w-3 h-3 text-amber-400" />
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 space-y-1">
+                  <span className="text-amber-300 font-bold uppercase text-[10px] flex items-center space-x-1">
+                    <Zap className="w-3 h-3 text-amber-300" />
                     <span>Actionable Mentorship Remediation Plan:</span>
                   </span>
-                  <p className="text-slate-300 font-sans">{w.remediation_action}</p>
+                  <p className="text-amber-200 font-medium">{w.remediation_action}</p>
                 </div>
               </div>
             ))}
@@ -1076,12 +1076,12 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
       {/* ========================================================================= */}
       {activeSubTab === 'feedback' && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl border border-white/10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md shadow-2xl">
             <div className="space-y-0.5">
-              <h3 className="text-base font-bold text-white font-heading">
+              <h3 className="text-base font-bold text-white">
                 Peer Reviews & Feedback Station
               </h3>
-              <p className="text-xs text-slate-400 font-sans">
+              <p className="text-xs text-slate-400">
                 Review verified student submissions, commendations, and constructive feedback.
               </p>
             </div>
@@ -1089,10 +1089,10 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setFeedbackCategory('all')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                   feedbackCategory === 'all'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-slate-900 text-slate-400 hover:text-white border border-white/5'
+                    ? 'bg-[#6D3DF5] text-white shadow-lg shadow-[#6D3DF5]/20'
+                    : 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.08]'
                 }`}
               >
                 All Feedback ({positiveFeedbacks.length + negativeFeedbacks.length})
@@ -1100,25 +1100,25 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
 
               <button
                 onClick={() => setFeedbackCategory('positive')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 ${
                   feedbackCategory === 'positive'
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'bg-emerald-950/20 text-emerald-300 hover:bg-emerald-950/40 border border-emerald-500/30'
+                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                    : 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
                 }`}
               >
-                <ThumbsUp className="w-3.5 h-3.5 text-emerald-300" />
+                <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Positive Commendations ({positiveFeedbacks.length})</span>
               </button>
 
               <button
                 onClick={() => setFeedbackCategory('negative')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer flex items-center space-x-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1.5 ${
                   feedbackCategory === 'negative'
-                    ? 'bg-amber-600 text-white shadow-md'
-                    : 'bg-amber-950/20 text-amber-300 hover:bg-amber-950/40 border border-amber-500/30'
+                    ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20'
+                    : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border border-amber-500/20'
                 }`}
               >
-                <ThumbsDown className="w-3.5 h-3.5 text-amber-300" />
+                <ThumbsDown className="w-3.5 h-3.5 text-amber-400" />
                 <span>Needs Improvement ({negativeFeedbacks.length})</span>
               </button>
             </div>
@@ -1129,7 +1129,7 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 px-1">
                   <ThumbsUp className="w-4 h-4 text-emerald-400" />
-                  <h4 className="text-sm font-bold text-emerald-300 font-heading uppercase tracking-wide">
+                  <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wide">
                     👍 Positive Praise & Highlights ({positiveFeedbacks.length})
                   </h4>
                 </div>
@@ -1138,13 +1138,13 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                   {positiveFeedbacks.map((item: any) => (
                     <div
                       key={item.id}
-                      className="p-5 rounded-2xl bg-emerald-950/20 border border-emerald-500/30 space-y-3 shadow-lg"
+                      className="p-5 rounded-2xl bg-[#12162A]/80 backdrop-blur-md border border-white/[0.08] space-y-3 shadow-2xl"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold">
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold border border-emerald-500/20">
                           {item.tag}
                         </span>
-                        <div className="flex items-center space-x-1 text-amber-400 font-bold text-xs font-mono">
+                        <div className="flex items-center space-x-1 text-amber-400 font-bold text-xs">
                           <span>★ {item.rating}.0</span>
                           <span className="text-slate-400 text-[10px] font-normal ml-2">{item.timestamp}</span>
                         </div>
@@ -1152,21 +1152,21 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
 
                       <div>
                         <span className="text-xs font-bold text-white block">{item.topic}</span>
-                        <p className="text-[11px] text-slate-300 font-mono mt-0.5">
-                          Reviewer: <strong className="text-white">{item.reviewer_name}</strong> ({item.reviewer_dept}) ➔ Mentor: <strong className="text-emerald-300">{item.mentor_name}</strong>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Reviewer: <strong className="text-white">{item.reviewer_name}</strong> ({item.reviewer_dept}) ➔ Mentor: <strong className="text-emerald-400">{item.mentor_name}</strong>
                         </p>
                       </div>
 
-                      <p className="text-xs text-slate-200 font-sans italic bg-slate-950/60 p-3 rounded-xl border border-white/5">
+                      <p className="text-xs text-slate-200 italic bg-[#0B0E1D]/90 p-3 rounded-xl border border-white/[0.06]">
                         &quot;{item.comment}&quot;
                       </p>
 
-                      <div className="flex items-center justify-between text-[11px] font-mono text-emerald-300 pt-1">
+                      <div className="flex items-center justify-between text-[11px] text-emerald-400 pt-1 font-semibold">
                         <span className="flex items-center space-x-1">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                           <span>Verified Learner Review</span>
                         </span>
-                        <span className="font-bold">{item.credit_reward} Deposited</span>
+                        <span>{item.credit_reward} Deposited</span>
                       </div>
                     </div>
                   ))}
@@ -1178,7 +1178,7 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 px-1">
                   <ThumbsDown className="w-4 h-4 text-amber-400" />
-                  <h4 className="text-sm font-bold text-amber-300 font-heading uppercase tracking-wide">
+                  <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wide">
                     ⚠️ Critical / Needs Improvement ({negativeFeedbacks.length})
                   </h4>
                 </div>
@@ -1187,13 +1187,13 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
                   {negativeFeedbacks.map((item: any) => (
                     <div
                       key={item.id}
-                      className="p-5 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-3 shadow-lg"
+                      className="p-5 rounded-2xl bg-[#12162A]/80 backdrop-blur-md border border-white/[0.08] space-y-3 shadow-2xl"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold">
+                        <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 text-[10px] font-semibold border border-amber-500/20">
                           {item.tag}
                         </span>
-                        <div className="flex items-center space-x-1 text-amber-400 font-bold text-xs font-mono">
+                        <div className="flex items-center space-x-1 text-amber-400 font-bold text-xs">
                           <span>★ {item.rating}.0</span>
                           <span className="text-slate-400 text-[10px] font-normal ml-2">{item.timestamp}</span>
                         </div>
@@ -1201,21 +1201,21 @@ export default function MentorSkillBarterView({ user, onRefresh }: ViewProps) {
 
                       <div>
                         <span className="text-xs font-bold text-white block">{item.topic}</span>
-                        <p className="text-[11px] text-slate-300 font-mono mt-0.5">
-                          Reviewer: <strong className="text-white">{item.reviewer_name}</strong> ({item.reviewer_dept}) ➔ Mentor: <strong className="text-amber-300">{item.mentor_name}</strong>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Reviewer: <strong className="text-white">{item.reviewer_name}</strong> ({item.reviewer_dept}) ➔ Mentor: <strong className="text-amber-400">{item.mentor_name}</strong>
                         </p>
                       </div>
 
-                      <p className="text-xs text-slate-200 font-sans italic bg-slate-950/60 p-3 rounded-xl border border-white/5">
+                      <p className="text-xs text-slate-200 italic bg-[#0B0E1D]/90 p-3 rounded-xl border border-white/[0.06]">
                         &quot;{item.comment}&quot;
                       </p>
 
-                      <div className="p-2.5 rounded-xl bg-slate-900 border border-amber-500/20 text-[11px] font-mono text-amber-200 space-y-1">
-                        <span className="text-[10px] text-amber-400 font-bold uppercase block flex items-center space-x-1">
-                          <AlertTriangle className="w-3 h-3 text-amber-400" />
+                      <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-200 space-y-1">
+                        <span className="text-[10px] text-amber-300 font-bold uppercase block flex items-center space-x-1">
+                          <AlertTriangle className="w-3 h-3 text-amber-300" />
                           <span>Mentor Guidance Recommendation:</span>
                         </span>
-                        <p className="text-slate-300 font-sans">{item.recommendation}</p>
+                        <p className="text-amber-200">{item.recommendation}</p>
                       </div>
                     </div>
                   ))}

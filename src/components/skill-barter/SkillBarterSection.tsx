@@ -60,31 +60,31 @@ export default function SkillBarterSection({ user, onRefresh, initialTab }: Skil
       title="Double-click anywhere on the page to toggle view"
     >
       {!showDefaultPage ? (
-        <div className="glass-panel p-16 rounded-2xl border border-white/10 min-h-[400px] flex flex-col items-center justify-center text-center space-y-4 shadow-2xl group hover:border-purple-500/40 transition-all bg-slate-950/80">
-          <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-            <MousePointerClick className="w-8 h-8 animate-pulse" />
+        <div className="p-12 sm:p-16 rounded-2xl border border-white/[0.08] min-h-[400px] flex flex-col items-center justify-center text-center space-y-4 shadow-2xl bg-[#12162A]/80 backdrop-blur-md font-sans transition-all hover:border-[#6D3DF5]/40">
+          <div className="w-14 h-14 rounded-2xl bg-[#6D3DF5]/15 border border-[#6D3DF5]/30 flex items-center justify-center text-[#A78BFA] transition-transform shadow-lg shadow-[#6D3DF5]/20">
+            <MousePointerClick className="w-6 h-6 animate-pulse" />
           </div>
           <div className="space-y-2 max-w-md">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-mono font-bold">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#6D3DF5]/15 border border-[#6D3DF5]/30 text-[#A78BFA] text-xs font-semibold">
               <span>{roleName} Portal</span>
             </div>
-            <h3 className="text-xl font-bold text-white font-heading">
+            <h3 className="text-xl font-bold text-white tracking-tight">
               SkillBarter Entry Gate
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              SkillBarter content for <strong className="text-purple-300 font-semibold">{roleName}</strong> accounts is restricted.<br />
-              <strong className="text-purple-300 font-bold">Double-click anywhere on this page</strong> to enter SkillBarter.
+              SkillBarter content for <strong className="text-white font-semibold">{roleName}</strong> accounts is restricted.<br />
+              <strong className="text-[#A78BFA] font-semibold">Double-click anywhere on this page</strong> to enter SkillBarter.
             </p>
           </div>
-          <span className="text-[10px] font-mono text-slate-400 px-3.5 py-1.5 rounded-full bg-slate-900 border border-white/10">
+          <span className="text-[11px] text-slate-400 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08]">
             🖱️ Double-click page to enter SkillBarter
           </span>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/30 text-xs text-purple-200">
+          <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#6D3DF5]/15 border border-[#6D3DF5]/30 text-xs text-[#A78BFA]">
             <span className="font-semibold">✨ Entered SkillBarter View ({roleName})</span>
-            <span className="text-[10px] font-mono opacity-75">Double-click page anytime to return</span>
+            <span className="text-[11px] opacity-75">Double-click page anytime to return</span>
           </div>
           {renderNonParticipantContent()}
         </div>

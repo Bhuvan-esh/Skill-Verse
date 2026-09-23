@@ -1070,7 +1070,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   <button
                     type="button"
                     onClick={() => handleSocialSignUp("Google")}
-                    className="flex-1 flex items-center justify-center gap-2 bg-[#0f0f12]/90 hover:bg-[#1a1a22] text-white border border-white/15 hover:border-purple-400/50 rounded-xl py-2.5 px-3 transition-all text-xs sm:text-sm font-medium shadow-sm font-sans group cursor-pointer"
+                    className="flex-1 flex items-center justify-center gap-2 bg-white/[0.10] hover:bg-white/[0.20] text-white border border-white/[0.18] hover:border-white/[0.35] backdrop-blur-2xl rounded-xl py-2.5 px-3 transition-all duration-300 text-xs sm:text-sm font-medium shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] font-sans group cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <GoogleIcon />
                     <span>Sign up with Google</span>
@@ -1078,7 +1078,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   <button
                     type="button"
                     onClick={() => handleSocialSignUp("Apple")}
-                    className="flex-1 flex items-center justify-center gap-2 bg-[#0f0f12]/90 hover:bg-[#1a1a22] text-white border border-white/15 hover:border-purple-400/50 rounded-xl py-2.5 px-3 transition-all text-xs sm:text-sm font-medium shadow-sm font-sans group cursor-pointer"
+                    className="flex-1 flex items-center justify-center gap-2 bg-white/[0.10] hover:bg-white/[0.20] text-white border border-white/[0.18] hover:border-white/[0.35] backdrop-blur-2xl rounded-xl py-2.5 px-3 transition-all duration-300 text-xs sm:text-sm font-medium shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] font-sans group cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <AppleIcon />
                     <span>Sign up with Apple</span>
@@ -1096,7 +1096,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                 <form onSubmit={handleEmailSubmit} className="space-y-3">
                   {/* First Name & Last Name */}
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
+                    <div className="relative flex items-center justify-between bg-white/[0.05] border border-white/15 focus-within:border-white/40 backdrop-blur-xl rounded-xl px-3.5 py-2.5 transition-all">
                       <input
                         type="text"
                         placeholder="First Name"
@@ -1109,7 +1109,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                         First Name
                       </span>
                     </div>
-                    <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
+                    <div className="relative flex items-center justify-between bg-white/[0.05] border border-white/15 focus-within:border-white/40 backdrop-blur-xl rounded-xl px-3.5 py-2.5 transition-all">
                       <input
                         type="text"
                         placeholder="Last Name"
@@ -1125,7 +1125,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   </div>
 
                   {/* Email */}
-                  <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
+                  <div className="relative flex items-center justify-between bg-white/[0.05] border border-white/15 focus-within:border-white/40 backdrop-blur-xl rounded-xl px-3.5 py-2.5 transition-all">
                     <input
                       type="email"
                       placeholder="your.email@college.edu"
@@ -1141,7 +1141,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   </div>
 
                   {/* Password */}
-                  <div className="relative flex items-center justify-between bg-[#0f0f12]/90 border border-white/15 focus-within:border-white/40 rounded-xl px-3.5 py-2.5 transition-all">
+                  <div className="relative flex items-center justify-between bg-white/[0.05] border border-white/15 focus-within:border-white/40 backdrop-blur-xl rounded-xl px-3.5 py-2.5 transition-all">
                     <input
                       type="password"
                       placeholder="••••••••••••"
@@ -1171,10 +1171,10 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                             type="button"
                             onClick={() => setSelectedRole(r.id)}
                             className={cn(
-                              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border transition-all text-left font-sans cursor-pointer",
+                              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium border backdrop-blur-2xl transition-all duration-300 text-left font-sans cursor-pointer",
                               isSelected
-                                ? "bg-purple-500/20 text-white border-purple-400/60 shadow-sm"
-                                : "bg-[#0f0f12]/80 text-slate-400 border-white/10 hover:border-white/20 hover:text-white"
+                                ? "bg-white/[0.18] text-white border-white/40 shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1.5px_rgba(255,255,255,0.4)] scale-[1.02]"
+                                : "bg-white/[0.06] text-slate-300 border-white/10 hover:border-white/25 hover:bg-white/[0.12] hover:text-white shadow-[0_2px_8px_rgba(0,0,0,0.2)]"
                             )}
                           >
                             <Icon className={cn("w-3.5 h-3.5 flex-shrink-0", isSelected ? "text-purple-300" : "text-slate-400")} />
@@ -1271,7 +1271,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   <button
                     type="submit"
                     disabled={loading || !termsAgreed}
-                    className="w-full mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full mt-4 flex items-center justify-center gap-2 bg-white/[0.16] hover:bg-white/[0.26] text-white font-semibold rounded-xl py-3 text-sm border border-white/[0.25] hover:border-white/[0.45] backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] transition-all duration-300 cursor-pointer font-sans disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
                   >
                     {loading ? (
                       <span>Creating account...</span>
@@ -1442,7 +1442,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   type="button"
                   disabled={loading || !termsAgreed}
                   onClick={handleGoogleConfirmContinue}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-white via-slate-100 to-slate-200 hover:from-slate-200 hover:to-white text-black font-semibold rounded-xl py-3 text-sm shadow-xl transition-all cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 bg-white/[0.16] hover:bg-white/[0.26] text-white font-semibold rounded-xl py-3 text-sm border border-white/[0.25] hover:border-white/[0.45] backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] transition-all duration-300 cursor-pointer font-sans disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <span>{loading ? "Authenticating..." : `Continue as ${firstName || email?.split("@")[0] || "User"}`}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -1489,7 +1489,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   <button
                     type="button"
                     onClick={() => setStep(socialProvider ? "google-confirm" : "email")}
-                    className="text-xs text-slate-300 hover:text-white flex items-center gap-1 font-sans bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10 transition-all cursor-pointer"
+                    className="text-xs text-slate-300 hover:text-white flex items-center gap-1 font-sans bg-white/[0.10] hover:bg-white/[0.20] px-3.5 py-1.5 rounded-full border border-white/[0.18] hover:border-white/[0.35] backdrop-blur-2xl shadow-[0_4px_14px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.2)] transition-all duration-300 cursor-pointer hover:scale-105 active:scale-95"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     <span>Back</span>
@@ -1515,12 +1515,10 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                         onClick={() => handleRoleSelect(r.id)}
                         disabled={loading}
                         className={cn(
-                          "relative text-left p-4 rounded-2xl border transition-all duration-300 group cursor-pointer overflow-hidden flex flex-col justify-between min-h-[120px]",
-                          "bg-gradient-to-br bg-[#0f0f14]/90",
-                          r.gradient,
+                          "relative text-left p-4 rounded-2xl border backdrop-blur-2xl transition-all duration-300 group cursor-pointer overflow-hidden flex flex-col justify-between min-h-[120px]",
                           isSelected
-                            ? "border-purple-400 shadow-lg shadow-purple-500/25 ring-1 ring-purple-400/50"
-                            : `border-white/10 ${r.border}`
+                            ? "bg-white/[0.18] border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] ring-1 ring-white/30 scale-[1.02]"
+                            : "bg-white/[0.06] hover:bg-white/[0.14] border-white/10 hover:border-white/30 shadow-[0_4px_16px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:scale-[1.01]"
                         )}
                       >
                         <div className="flex items-center justify-between w-full mb-2">
@@ -1567,7 +1565,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                   </div>
 
                   <div className="w-full">
-                    <div className="relative rounded-full py-4 px-5 border border-white/15 bg-[#121215]">
+                    <div className="relative rounded-full py-4 px-5 border border-white/15 bg-white/[0.05] backdrop-blur-xl">
                       <div className="flex items-center justify-center">
                         {code.map((digit, i) => (
                           <div key={i} className="flex items-center">
@@ -1613,7 +1611,7 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                     <button
                       type="button"
                       onClick={handleBackClick}
-                      className="rounded-full bg-white/10 hover:bg-white/20 text-white font-medium px-6 py-3 transition-colors text-sm w-[35%]"
+                      className="rounded-full bg-white/[0.10] hover:bg-white/[0.20] text-white font-medium px-6 py-3 border border-white/[0.15] hover:border-white/[0.30] backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.2)] transition-all duration-300 text-sm w-[35%] cursor-pointer hover:scale-105 active:scale-95"
                     >
                       Back
                     </button>
@@ -1621,10 +1619,10 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
                       type="button"
                       onClick={() => verifyOtpAndEnter(code.join(""))}
                       className={cn(
-                        "flex-1 rounded-full font-medium py-3 text-sm transition-all duration-300",
+                        "flex-1 rounded-full font-medium py-3 text-sm backdrop-blur-2xl transition-all duration-300",
                         code.every((d) => d !== "")
-                          ? "bg-white text-black hover:bg-gray-200 cursor-pointer shadow-lg"
-                          : "bg-white/5 text-gray-500 border border-white/10 cursor-not-allowed"
+                          ? "bg-white/[0.20] hover:bg-white/[0.30] text-white border border-white/[0.30] hover:border-white/[0.50] shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] cursor-pointer hover:scale-105 active:scale-95"
+                          : "bg-white/5 text-gray-500 border border-white/10 cursor-not-allowed opacity-50"
                       )}
                       disabled={!code.every((d) => d !== "")}
                     >

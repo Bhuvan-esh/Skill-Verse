@@ -206,27 +206,33 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         </div>
 
         {/* Role Selector Tabs */}
-        <div className="grid grid-cols-3 gap-1 bg-slate-900/90 p-1.5 rounded-xl mb-6 border border-white/5">
+        <div className="grid grid-cols-3 gap-1.5 bg-white/[0.06] p-1.5 rounded-2xl mb-6 border border-white/[0.12] backdrop-blur-2xl">
           <button
             onClick={() => { setActiveTab('STUDENT'); setError(''); setOtpStep(false); }}
-            className={`py-2 text-xs font-bold rounded-lg transition-all ${
-              activeTab === 'STUDENT' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+            className={`py-2 text-xs font-bold rounded-xl transition-all duration-300 ${
+              activeTab === 'STUDENT'
+                ? 'bg-white/[0.20] text-white border border-white/[0.30] shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1.5px_rgba(255,255,255,0.4)]'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.08]'
             }`}
           >
             Student (USN)
           </button>
           <button
             onClick={() => { setActiveTab('FOUNDER'); setError(''); }}
-            className={`py-2 text-xs font-bold rounded-lg transition-all ${
-              activeTab === 'FOUNDER' ? 'bg-purple-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+            className={`py-2 text-xs font-bold rounded-xl transition-all duration-300 ${
+              activeTab === 'FOUNDER'
+                ? 'bg-white/[0.20] text-white border border-white/[0.30] shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1.5px_rgba(255,255,255,0.4)]'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.08]'
             }`}
           >
             Visual Architects
           </button>
           <button
             onClick={() => { setActiveTab('VOLUNTEER'); setError(''); }}
-            className={`py-2 text-xs font-bold rounded-lg transition-all ${
-              activeTab === 'VOLUNTEER' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+            className={`py-2 text-xs font-bold rounded-xl transition-all duration-300 ${
+              activeTab === 'VOLUNTEER'
+                ? 'bg-white/[0.20] text-white border border-white/[0.30] shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1.5px_rgba(255,255,255,0.4)]'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.08]'
             }`}
           >
             Volunteer
@@ -260,7 +266,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                 <button
                   onClick={() => handleRequestOtp()}
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2"
+                  className="w-full py-3 rounded-xl bg-white/[0.16] hover:bg-white/[0.26] text-white font-semibold text-sm border border-white/[0.25] hover:border-white/[0.45] backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40"
                 >
                   <span>{loading ? 'Sending OTP...' : 'Send 6-Digit Email OTP'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -272,13 +278,13 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                   <div className="flex justify-center space-x-2">
                     <button
                       onClick={() => handleQuickStudentLogin('1MS21CS001')}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-blue-300 border border-blue-500/20"
+                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.18] text-xs font-semibold text-white border border-white/[0.15] hover:border-white/[0.30] backdrop-blur-xl transition-all shadow-[0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)]"
                     >
                       Alex (1MS21CS001)
                     </button>
                     <button
                       onClick={() => handleQuickStudentLogin('1MS21CS002')}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-purple-300 border border-purple-500/20"
+                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.18] text-xs font-semibold text-white border border-white/[0.15] hover:border-white/[0.30] backdrop-blur-xl transition-all shadow-[0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)]"
                     >
                       Prior (1MS21CS002)
                     </button>
@@ -287,7 +293,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
               </>
             ) : (
               <>
-                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300">
+                <div className="p-3 rounded-xl bg-white/[0.08] border border-white/20 text-xs text-slate-200 backdrop-blur-xl">
                   OTP sent to <strong>{otpEmail}</strong>. Check email or use code below.
                 </div>
 
@@ -306,7 +312,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                 <button
                   onClick={handleVerifyOtp}
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2"
+                  className="w-full py-3 rounded-xl bg-white/[0.18] hover:bg-white/[0.28] text-white font-semibold text-sm border border-white/[0.25] hover:border-white/[0.45] backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40"
                 >
                   <span>{loading ? 'Verifying...' : 'Verify OTP & Enter'}</span>
                   <CheckCircle2 className="w-4 h-4" />
@@ -344,7 +350,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
             <button
               onClick={handleFounderLogin}
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-all shadow-lg shadow-purple-500/25"
+              className="w-full py-3 rounded-xl bg-white/[0.18] hover:bg-white/[0.28] text-white font-semibold text-sm border border-white/[0.25] hover:border-white/[0.45] backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] transition-all duration-300 cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40"
             >
               {loading ? 'Authenticating...' : 'Founder Sign In'}
             </button>
@@ -381,7 +387,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                 <button
                   onClick={handleVolunteerLoginRequest}
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm transition-all shadow-lg shadow-emerald-500/25"
+                  className="w-full py-3 rounded-xl bg-white/[0.18] hover:bg-white/[0.28] text-white font-semibold text-sm border border-white/[0.25] hover:border-white/[0.45] backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] transition-all duration-300 cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40"
                 >
                   {loading ? 'Submitting Request...' : 'Submit Login Approval Request'}
                 </button>
@@ -397,7 +403,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                   <button
                     onClick={handlePollVolunteerStatus}
                     disabled={loading}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-md"
+                    className="px-4 py-2 rounded-xl bg-white/[0.16] hover:bg-white/[0.26] text-white border border-white/[0.25] hover:border-white/[0.40] font-semibold text-xs transition-all shadow-[0_4px_16px_rgba(0,0,0,0.3)] backdrop-blur-xl cursor-pointer"
                   >
                     {loading ? 'Checking...' : 'Check Founder Approval Status'}
                   </button>

@@ -1096,43 +1096,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentSection, totalSections]);
 
-  // GSAP Animations
-  useEffect(() => {
-    if (!isReady || !containerRef.current) return;
 
-    gsap.set(
-      [menuRef.current, scrollProgressRef.current],
-      { visibility: "visible" }
-    );
-
-    const tl = gsap.timeline();
-
-    if (menuRef.current) {
-      tl.from(menuRef.current, {
-        x: -100,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
-      });
-    }
-
-    if (scrollProgressRef.current) {
-      tl.from(
-        scrollProgressRef.current,
-        {
-          opacity: 0,
-          y: 50,
-          duration: 1,
-          ease: "power2.out",
-        },
-        "-=0.5"
-      );
-    }
-
-    return () => {
-      tl.kill();
-    };
-  }, [isReady]);
 
   useEffect(() => {
     const handleTourEvent = (e: any) => {
@@ -1308,76 +1272,142 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
     >
       <canvas ref={canvasRef} className="hero-canvas" />
 
-      {/* Interactive 4-Scroll Header Navigator with ROLE SWITCHER & LOG OUT Button */}
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-40 flex flex-wrap items-center justify-center gap-2 bg-slate-950/90 border border-purple-500/40 p-1.5 rounded-full backdrop-blur-2xl shadow-2xl pointer-events-auto max-w-[95vw]">
-        {/* Role Locked Pill (Strictly Locked to Authenticated Section) */}
-        <div className="relative">
-          <div
-            className={`px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider font-bold flex items-center gap-1.5 shadow-sm border select-none ${
-              currentRole === 'FOUNDER'
-                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
-                : currentRole === 'MENTOR'
-                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                : currentRole === 'AMBASSADOR'
-                ? 'bg-pink-500/20 text-pink-300 border-pink-500/40'
-                : 'bg-blue-500/20 text-cyan-300 border-blue-500/40'
-            }`}
-            title={`Your session is locked to the ${activeRoleConfig.title} section.`}
-          >
-            {currentRole === 'FOUNDER' && <Crown className="w-3.5 h-3.5 text-purple-300" />}
-            {currentRole === 'MENTOR' && <GraduationCap className="w-3.5 h-3.5 text-emerald-300" />}
-            {currentRole === 'AMBASSADOR' && <Palette className="w-3.5 h-3.5 text-pink-300" />}
-            {currentRole === 'PARTICIPANT' && <Users className="w-3.5 h-3.5 text-cyan-300" />}
-            <span>{activeRoleConfig.title}</span>
-            <span className="text-[10px] opacity-75 font-mono ml-0.5" title="Section Locked">🔒</span>
-          </div>
-        </div>
-
-        <div className="h-4 w-px bg-white/20 mx-0.5" />
-
-        {/* 4 Pillars Navigation Buttons */}
+      {/* 1. CENTER SCREEN: Minimalist 4 Pillars Glass Navigation Tabs */}
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-40 flex items-center justify-center gap-2 sm:gap-2.5 pointer-events-auto max-w-[96vw] overflow-x-auto no-scrollbar py-1 px-2 select-none">
         {sectionData.map((sec, idx) => {
           const isActive = currentSection === idx + 1;
           return (
             <button
               key={sec.id}
               onClick={() => scrollToSection(idx)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-mono tracking-wider transition-all duration-300 cursor-pointer ${
+              className={`px-4 sm:px-5 py-2 rounded-full text-xs font-mono tracking-wider transition-all duration-300 cursor-pointer backdrop-blur-2xl ${
                 isActive
-                  ? `bg-gradient-to-r ${activeRoleConfig.color} text-white font-extrabold shadow-lg shadow-purple-500/40 scale-105`
-                  : "text-slate-300 hover:text-white hover:bg-white/10"
+                  ? `bg-gradient-to-r ${activeRoleConfig.color} text-white font-extrabold border border-white/40 shadow-[0_0_25px_rgba(255,255,255,0.25),inset_0_1px_2px_rgba(255,255,255,0.4)] scale-105`
+                  : "bg-white/5 hover:bg-white/15 text-slate-200 hover:text-white border border-white/10 hover:border-white/25 shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.15)] hover:scale-[1.02]"
               }`}
             >
               {sec.title}
             </button>
           );
         })}
+      </div>
 
-        <div className="h-4 w-px bg-white/20 mx-0.5" />
+      {/* 2. TOP-RIGHT CORNER: Dedicated Frosted Glass User Profile & Log Out Dropdown */}
+      <div className="fixed top-6 right-4 sm:right-8 z-40 pointer-events-auto select-none">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowRoleDropdown((prev) => !prev)}
+            className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/25 hover:border-white/40 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_2px_rgba(255,255,255,0.35)] text-white transition-all transform hover:scale-105 active:scale-95 cursor-pointer group"
+            title="Account & Session Menu"
+          >
+            {/* Avatar Circle with Initial */}
+            <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${activeRoleConfig.color} p-[1px] flex items-center justify-center shadow-md relative`}>
+              <div className="w-full h-full rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-[11px] font-bold text-white font-mono">
+                {(user?.name ? user.name.charAt(0).toUpperCase() : "P")}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-1 ring-black/40" />
+            </div>
 
-        {/* Log Out Button */}
-        <button
-          onClick={() => setShowLogoutModal(true)}
-          className="px-3 py-1.5 rounded-full text-xs font-mono tracking-wider text-rose-300 hover:text-white hover:bg-rose-500/20 border border-rose-500/30 transition-all duration-300 flex items-center gap-1 cursor-pointer shadow-sm"
-        >
-          <LogOut className="w-3.5 h-3.5 text-rose-400" />
-          <span className="hidden sm:inline">LOG OUT</span>
-        </button>
+            {/* User Label / Role Tag */}
+            <div className="flex items-center gap-1.5 text-left">
+              <span className="text-xs font-bold font-sans tracking-wide text-slate-100 max-w-[100px] truncate hidden sm:inline-block">
+                {user?.name?.split(" ")[0] || activeRoleConfig.title}
+              </span>
+              <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-white/15 border border-white/10 ${activeRoleConfig.textColor}`}>
+                {activeRoleConfig.title}
+              </span>
+            </div>
+
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-300 group-hover:text-white transition-transform duration-200 ${showRoleDropdown ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* Floating Dropdown Card */}
+          <AnimatePresence>
+            {showRoleDropdown && (
+              <>
+                {/* Backdrop to close when clicking outside */}
+                <div
+                  className="fixed inset-0 z-40 bg-transparent"
+                  onClick={() => setShowRoleDropdown(false)}
+                />
+
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute top-full right-0 mt-2.5 w-72 rounded-3xl bg-black/40 border border-white/20 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,0.6),inset_0_1px_2px_rgba(255,255,255,0.3)] p-3.5 z-50 text-left font-sans space-y-3 select-none"
+                >
+                  {/* User Profile Header */}
+                  <div className="p-3 rounded-2xl bg-white/[0.07] border border-white/15 backdrop-blur-xl shadow-inner space-y-1.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${activeRoleConfig.color} flex items-center justify-center text-sm font-bold text-white font-mono shadow-md`}>
+                        {(user?.name ? user.name.charAt(0).toUpperCase() : "P")}
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-xs font-bold text-white truncate">
+                          {user?.name || "Student Participant"}
+                        </p>
+                        <p className="text-[10px] font-mono text-cyan-300 truncate">
+                          {user?.usn ? `USN: ${user.usn}` : "Authenticated Session"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {user?.college_email && (
+                      <p className="text-[10px] font-mono text-slate-300 truncate pt-1.5 border-t border-white/10">
+                        {user.college_email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Active Role Status */}
+                  <div className="px-3 py-2 rounded-xl bg-white/[0.05] border border-white/10 flex items-center justify-between text-[11px] font-mono text-slate-200">
+                    <span className="text-slate-400">Status:</span>
+                    <span className="flex items-center gap-1.5 text-emerald-300 font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34d399]" />
+                      Active Session 🔒
+                    </span>
+                  </div>
+
+                  <div className="h-px w-full bg-white/15" />
+
+                  {/* Log Out Action Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRoleDropdown(false);
+                      setShowLogoutModal(true);
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-2xl text-xs font-mono text-rose-200 hover:text-white bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 hover:border-rose-400/50 backdrop-blur-xl shadow-[0_4px_16px_rgba(244,63,94,0.15),inset_0_1px_1px_rgba(255,255,255,0.2)] transition-all flex items-center justify-between cursor-pointer group hover:scale-[1.02] active:scale-98"
+                  >
+                    <span className="flex items-center gap-2 font-bold">
+                      <LogOut className="w-4 h-4 text-rose-400 group-hover:translate-x-0.5 transition-transform" />
+                      <span>Log Out</span>
+                    </span>
+                    <span className="text-[10px] opacity-80 font-sans">End Session →</span>
+                  </button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Role-Specific Interactive Pillar Modal */}
       <AnimatePresence>
         {activeRoleModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200 pointer-events-auto">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-2xl animate-in fade-in duration-200 pointer-events-auto">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-lg bg-[#0c0a14] border border-purple-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl text-left space-y-5 overflow-hidden"
+              className="relative w-full max-w-lg bg-black/40 border border-white/20 backdrop-blur-3xl rounded-3xl p-6 sm:p-8 shadow-[0_25px_70px_rgba(0,0,0,0.7),inset_0_1px_2px_rgba(255,255,255,0.3)] text-left space-y-5 overflow-hidden"
             >
               <div 
                 className="absolute inset-0 pointer-events-none -z-10"
-                style={{ background: `radial-gradient(circle at 50% 30%, ${activeRoleConfig.bgGlow} 0%, rgba(12, 10, 20, 0.98) 70%)` }}
+                style={{ background: `radial-gradient(circle at 50% 30%, ${activeRoleConfig.bgGlow} 0%, rgba(12, 10, 20, 0.4) 70%)` }}
               />
 
               <button
@@ -1389,19 +1419,19 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
               </button>
 
               <div className="space-y-1.5">
-                <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono uppercase tracking-wider">
+                <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] font-mono uppercase tracking-wider">
                   <span className={activeRoleConfig.textColor}>● {activeRoleConfig.title}</span>
-                  <span className="text-slate-400">• {activeRoleModal.badge}</span>
+                  <span className="text-slate-300">• {activeRoleModal.badge}</span>
                 </div>
                 <h3 className="text-2xl font-extrabold text-white font-heading">
                   {activeRoleModal.modalTitle}
                 </h3>
-                <p className="text-xs text-purple-200/80 font-mono">
+                <p className="text-xs text-purple-200/90 font-mono">
                   {activeRoleModal.modalSub}
                 </p>
               </div>
 
-              <div className="space-y-2.5 bg-black/40 p-4 rounded-2xl border border-white/10 text-xs text-slate-200">
+              <div className="space-y-2.5 bg-white/[0.04] p-4 rounded-2xl border border-white/10 text-xs text-slate-200 backdrop-blur-xl">
                 <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
                   Role Capabilities & Responsibilities:
                 </p>
@@ -1441,12 +1471,12 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
       {/* Sleek Log Out Confirmation Modal */}
       <AnimatePresence>
         {showLogoutModal && (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-2xl animate-in fade-in duration-200">
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative w-full max-w-md bg-slate-950 border border-rose-500/40 rounded-3xl p-6 shadow-2xl text-center space-y-5"
+              className="relative w-full max-w-md bg-black/40 border border-white/20 backdrop-blur-3xl rounded-3xl p-6 shadow-[0_25px_70px_rgba(0,0,0,0.7),inset_0_1px_2px_rgba(255,255,255,0.3)] text-center space-y-5"
             >
               <button
                 onClick={() => setShowLogoutModal(false)}
@@ -1455,7 +1485,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-rose-500/15 border border-rose-400/30 backdrop-blur-xl flex items-center justify-center shadow-[0_4px_20px_rgba(244,63,94,0.2)]">
                 <LogOut className="w-7 h-7 text-rose-400" />
               </div>
 
@@ -1463,7 +1493,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
                 <h3 className="text-xl font-extrabold text-white font-heading">
                   Confirm Log Out
                 </h3>
-                <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                <p className="text-xs text-slate-200 font-sans leading-relaxed">
                   Are you sure you want to end your Horizon session and log out of the digital ecosystem?
                 </p>
               </div>
@@ -1472,7 +1502,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
                 <button
                   type="button"
                   onClick={() => setShowLogoutModal(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs transition-all cursor-pointer font-sans"
+                  className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-medium text-xs transition-all cursor-pointer font-sans shadow-sm"
                 >
                   Cancel
                 </button>
@@ -1497,31 +1527,7 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
         )}
       </AnimatePresence>
 
-      {/* Side menu */}
-      <div ref={menuRef} className="side-menu" style={{ visibility: "hidden" }}>
-        <div className="menu-icon">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div className="vertical-text">SPACE</div>
-      </div>
 
-      {/* Scroll & Keyboard progress indicator */}
-      <div ref={scrollProgressRef} className="scroll-progress" style={{ visibility: "hidden" }}>
-        <div className="scroll-text font-mono text-[10px] tracking-widest text-slate-300">
-          PRESS SPACE ␣ OR SCROLL
-        </div>
-        <div className="progress-track">
-          <div
-            className="progress-fill"
-            style={{ width: `${scrollProgress * 100}%` }}
-          />
-        </div>
-        <div className="section-counter font-mono text-xs font-bold text-purple-300">
-          {String(currentSection).padStart(2, "0")} / {String(totalSections).padStart(2, "0")}
-        </div>
-      </div>
 
       {/* Sleek Coming Soon / Event Locked Modal (Participant Idea Hub) */}
       <AnimatePresence>
@@ -1683,39 +1689,39 @@ export const Component = ({ onLogout }: ComponentProps = {}) => {
               {splitTitle(activeData.title)}
             </h1>
 
-            {/* Subtitle Card Container with Backdrop Blur, Direct CTA Button and Double Click Indicator */}
+            {/* Subtitle Lines & Glassy CTA Action Controls (Outer Box Removed) */}
             <div 
               onDoubleClick={() => handleNavigateSection(activeData.id)}
-              className="mt-6 space-y-4 text-white font-sans max-w-3xl bg-slate-950/85 border border-purple-500/40 backdrop-blur-2xl px-8 py-6 rounded-3xl shadow-2xl cursor-pointer hover:border-purple-400/80 hover:bg-slate-950/90 transition-all group pointer-events-auto select-none"
+              className="mt-6 space-y-4 text-white font-sans max-w-3xl px-4 py-2 cursor-pointer transition-all group pointer-events-auto select-none"
             >
-              <div className="space-y-1">
-                <p className="text-lg sm:text-2xl font-medium tracking-wide text-purple-100 drop-shadow-md">
+              <div className="space-y-1.5">
+                <p className="text-lg sm:text-2xl font-medium tracking-wide text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
                   {activeData.line1}
                 </p>
-                <p className="text-base sm:text-xl font-normal tracking-wide text-amber-300 drop-shadow-md">
+                <p className="text-base sm:text-xl font-normal tracking-wide text-amber-300 drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)]">
                   {activeData.line2}
                 </p>
               </div>
 
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleNavigateSection(activeData.id);
                   }}
-                  className={`px-7 py-3.5 rounded-2xl bg-gradient-to-r ${activeRoleConfig.color} hover:brightness-110 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl shadow-purple-500/30 flex items-center justify-center gap-2 transition-all transform hover:scale-105 cursor-pointer font-mono`}
+                  className="px-8 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/25 hover:border-white/40 backdrop-blur-2xl text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-[0_8px_32px_rgba(0,0,0,0.45),inset_0_1px_1px_rgba(255,255,255,0.35)] flex items-center justify-center gap-2.5 transition-all transform hover:scale-105 active:scale-95 cursor-pointer font-mono group/btn"
                 >
-                  <span>{activeData.ctaText}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span className="drop-shadow-sm">{activeData.ctaText}</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
                 </button>
 
-                <div className="flex items-center gap-1.5 text-xs font-mono text-purple-300">
-                  <span className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center gap-1.5 shadow-sm">
+                <div className="flex items-center gap-1.5 text-xs font-mono text-purple-200">
+                  <span className="px-4 py-2 rounded-full bg-white/5 backdrop-blur-2xl border border-white/15 text-slate-200 flex items-center gap-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)]">
                     {activeData.active ? (
-                      <span>⚡ {activeData.badge}</span>
+                      <span className="text-cyan-300 font-semibold">⚡ {activeData.badge}</span>
                     ) : (
-                      <span>🔒 {activeData.badge}</span>
+                      <span className="text-amber-300 font-semibold">🔒 {activeData.badge}</span>
                     )}
                   </span>
                 </div>

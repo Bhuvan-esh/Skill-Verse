@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -700,7 +700,146 @@ export default function ScrollHero({
     };
   }, [isLoaded, sections]);
 
-  // Mouse smoothing
+  const activeSectionRef = useRef(activeSection);
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
+
+  const goToSection = useCallback((idx: number) => {
+    const total = sections.length;
+    if (total === 0) return;
+    const target = (idx % total + total) % total;
+    setActiveSection(target);
+    activeSectionRef.current = target;
+    const el = sectionsRef.current[target];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [sections]);
+
+  // Keyboard navigation: Space, Enter, Arrow keys to navigate between sections
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if any modal window is open or if typing in an input/textarea
+      if (isAboutOpen || isHelpOpen || isAuthOpen) return;
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (targetTag === 'input' || targetTag === 'textarea' || (e.target as HTMLElement)?.isContentEditable) {
+        return;
+      }
+
+      if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowDown' || e.code === 'ArrowRight') {
+        e.preventDefault();
+        if (e.shiftKey && e.code === 'Space') {
+          goToSection(activeSectionRef.current - 1);
+        } else {
+          goToSection(activeSectionRef.current + 1);
+        }
+      } else if (e.code === 'ArrowUp' || e.code === 'ArrowLeft') {
+        e.preventDefault();
+        goToSection(activeSectionRef.current - 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAboutOpen, isHelpOpen, isAuthOpen, goToSection]);
+
+  // Touch swipe navigation for mobile / trackpad
+  useEffect(() => {
+    let startX = 0;
+    let startY = 0;
+    let isTouchDown = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (isAboutOpen || isHelpOpen || isAuthOpen) return;
+      if (e.touches.length === 1) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isTouchDown = true;
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!isTouchDown || isAboutOpen || isHelpOpen || isAuthOpen) return;
+      isTouchDown = false;
+      if (e.changedTouches.length === 1) {
+        const deltaX = startX - e.changedTouches[0].clientX;
+        const deltaY = startY - e.changedTouches[0].clientY;
+        const threshold = 40;
+
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          if (deltaY > threshold) {
+            goToSection(activeSectionRef.current + 1);
+          } else if (deltaY < -threshold) {
+            goToSection(activeSectionRef.current - 1);
+          }
+        } else {
+          if (deltaX > threshold) {
+            goToSection(activeSectionRef.current + 1);
+          } else if (deltaX < -threshold) {
+            goToSection(activeSectionRef.current - 1);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isAboutOpen, isHelpOpen, isAuthOpen, goToSection]);
+
+  // Mouse slide / drag navigation
+  useEffect(() => {
+    let startY = 0;
+    let startX = 0;
+    let isMouseDown = false;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (isAboutOpen || isHelpOpen || isAuthOpen) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('button') || target.closest('a') || target.closest('input') || target.closest('textarea')) {
+        return;
+      }
+      isMouseDown = true;
+      startX = e.clientX;
+      startY = e.clientY;
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      if (!isMouseDown || isAboutOpen || isHelpOpen || isAuthOpen) return;
+      isMouseDown = false;
+      const deltaX = startX - e.clientX;
+      const deltaY = startY - e.clientY;
+      const threshold = 50;
+
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        if (deltaY > threshold) {
+          goToSection(activeSectionRef.current + 1);
+        } else if (deltaY < -threshold) {
+          goToSection(activeSectionRef.current - 1);
+        }
+      } else {
+        if (deltaX > threshold) {
+          goToSection(activeSectionRef.current + 1);
+        } else if (deltaX < -threshold) {
+          goToSection(activeSectionRef.current - 1);
+        }
+      }
+    };
+
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isAboutOpen, isHelpOpen, isAuthOpen, goToSection]);
+
+  // Mouse smoothing for 3D model interaction
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       mouseRef.current.x = e.clientX / window.innerWidth;
@@ -839,51 +978,6 @@ export default function ScrollHero({
         ))}
       </div>
 
-      {/* Interactive Bottom Section Indicators & Navigation */}
-      <div className="fixed bottom-8 left-0 w-full z-30 pointer-events-auto flex items-center justify-center space-x-4 px-4">
-        <button
-          onClick={() => {
-            const prev = (activeSection - 1 + sections.length) % sections.length;
-            setActiveSection(prev);
-            const el = sectionsRef.current[prev];
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="w-10 h-10 rounded-full bg-white/[0.12] hover:bg-white/[0.22] text-white/90 hover:text-white border border-white/[0.18] hover:border-white/[0.35] backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95"
-          aria-label="Previous Section"
-        >
-          ‹
-        </button>
-
-        <div className="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/[0.08] border border-white/[0.12] backdrop-blur-2xl shadow-[0_4px_14px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.15)]">
-          {sections.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                setActiveSection(idx);
-                const el = sectionsRef.current[idx];
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
-                activeSection === idx ? 'bg-white scale-125 shadow-[0_0_10px_rgba(255,255,255,0.9)] ring-2 ring-white/40' : 'bg-white/30 hover:bg-white/60'
-              }`}
-              aria-label={`Go to section ${idx + 1}`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={() => {
-            const next = (activeSection + 1) % sections.length;
-            setActiveSection(next);
-            const el = sectionsRef.current[next];
-            if (el) el.scrollIntoView({ behavior: 'smooth' });
-          }}
-          className="w-10 h-10 rounded-full bg-white/[0.12] hover:bg-white/[0.22] text-white/90 hover:text-white border border-white/[0.18] hover:border-white/[0.35] backdrop-blur-2xl shadow-[0_4px_16px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.25)] flex items-center justify-center transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95"
-          aria-label="Next Section"
-        >
-          ›
-        </button>
-      </div>
 
       {/* Separate About Us Modal Window */}
       {isAboutOpen && (

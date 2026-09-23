@@ -348,10 +348,10 @@ const SEED_VIDEO_QUERIES: VideoQueryRequest[] = [
 ];
 
 const DOMAIN_CHIP: Record<string, string> = {
-  'Web Development': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  'Artificial Intelligence & ML': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  'Cloud DevOps': 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  'Database Systems': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'Web Development': 'bg-[#6D3DF5]/10 text-[#6D3DF5] border-[#6D3DF5]/20',
+  'Artificial Intelligence & ML': 'bg-[#6D3DF5]/10 text-[#6D3DF5] border-[#6D3DF5]/20',
+  'Cloud DevOps': 'bg-[#159570]/10 text-[#159570] border-[#159570]/20',
+  'Database Systems': 'bg-[#C58A20]/10 text-[#C58A20] border-[#C58A20]/20',
 };
 
 type ActiveTab = 'requests' | 'sessions' | 'discover' | 'videos' | 'achievements';
@@ -1533,7 +1533,10 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   };
 
   return (
-    <div className="min-h-screen bg-[#07080f] text-slate-200 font-sans pb-16">
+    <div className="min-h-screen bg-[#0A0C16] text-slate-100 font-sans pb-16 relative overflow-hidden">
+      
+      {/* Subtle Ambient Radial Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-purple-900/15 via-transparent to-transparent blur-3xl pointer-events-none" />
 
       {/* Hidden File Inputs */}
       <input
@@ -1552,27 +1555,27 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       />
 
       {/* Hero Banner */}
-      <div className="relative border-b border-white/[0.06] bg-gradient-to-b from-emerald-950/20 via-[#07080f] to-[#07080f] px-4 sm:px-6 py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="relative border-b border-white/[0.08] bg-[#0F1326]/70 backdrop-blur-xl px-4 sm:px-6 py-6 sm:py-8">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest font-bold">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+              <span className="text-[11px] text-purple-400 uppercase tracking-widest font-semibold">
                 Skillora Peer Network
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
               Peer Skill Exchange & PeerVault Video Hub
             </h1>
-            <p className="text-xs text-slate-400 max-w-xl font-light">
+            <p className="text-xs text-slate-400 max-w-xl font-normal">
               Connect 1:1 with verified peer mentors, upload self-recorded video walkthroughs to PeerVault, and send requests directly to authors.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs font-mono">
+            <div className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium backdrop-blur-md">
               <span className="text-slate-400">Active Chats:</span>
-              <span className="text-emerald-400 font-bold flex items-center gap-1">
+              <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 {sessions.filter(s => s.status === 'ACTIVE').length} active
               </span>
@@ -1580,15 +1583,15 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
             <button
               onClick={() => setIsUploadVideoModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-purple-600/20 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/10 hover:bg-white/[0.1] text-white text-xs font-semibold shadow-sm transition-all cursor-pointer backdrop-blur-md"
             >
-              <Film className="w-3.5 h-3.5 text-purple-200" />
+              <Film className="w-3.5 h-3.5 text-purple-400" />
               <span>Upload to PeerVault</span>
             </button>
 
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 transition-all cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Request Skill</span>
@@ -1598,10 +1601,10 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6 relative z-10">
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 p-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1.5 bg-[#0F1326]/80 backdrop-blur-md border border-white/[0.08] rounded-2xl overflow-x-auto shadow-xl">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -1609,9 +1612,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               <button
                 key={item.id}
                 onClick={() => handleTabChange(item.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                    ? 'bg-[#6D3DF5] text-white shadow-md shadow-purple-600/30'
                     : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
               >
@@ -1624,8 +1627,8 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
         {/* Global Feedback Banner */}
         {msg && (
-          <div className={`p-3.5 rounded-xl text-xs font-mono font-bold flex items-center justify-between ${
-            msgType === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' : 'bg-rose-500/10 border border-rose-500/20 text-rose-300'
+          <div className={`p-3.5 rounded-xl text-xs font-medium flex items-center justify-between backdrop-blur-md ${
+            msgType === 'success' ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300' : 'bg-rose-500/15 border border-rose-500/30 text-rose-300'
           }`}>
             <span>{msg}</span>
             <button onClick={() => setMsg(null)} className="text-slate-400 hover:text-white cursor-pointer">✕</button>
@@ -1638,9 +1641,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
         {activeTab === 'requests' && (
           <div className="space-y-5">
             {/* Header & Sub-filters */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
               <div>
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
                   Peer Requests & Video Query Inbox ({requests.length + videoQueryRequests.length})
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -1653,10 +1656,10 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   <button
                     key={filter}
                     onClick={() => setRequestsSubFilter(filter)}
-                    className={`px-3 py-1.5 rounded-xl text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       requestsSubFilter === filter
-                        ? 'bg-emerald-600 text-white shadow-md'
-                        : 'bg-white/[0.03] text-slate-400 hover:text-white'
+                        ? 'bg-[#6D3DF5] text-white shadow-sm'
+                        : 'bg-[#12162A]/80 border border-white/10 text-slate-400 hover:text-white hover:bg-white/[0.05]'
                     }`}
                   >
                     {filter === 'ALL' ? 'All Requests' : filter === 'VIDEO_QUERIES' ? 'PeerVault Queries' : 'General Skill Requests'}
@@ -1670,7 +1673,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Film className="w-4 h-4 text-purple-400" />
-                  <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                     PeerVault Video Query Requests ({videoQueryRequests.length})
                   </h3>
                 </div>
@@ -1683,48 +1686,48 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     return (
                       <div
                         key={vq.id}
-                        className={`p-5 rounded-2xl border transition-all space-y-3 shadow-lg ${
+                        className={`p-5 rounded-2xl border transition-all space-y-3 shadow-xl bg-[#12162A]/80 backdrop-blur-md ${
                           isAccepted
-                            ? 'bg-emerald-950/20 border-emerald-500/30'
+                            ? 'border-emerald-500/30'
                             : isPending
-                            ? 'bg-purple-950/20 border-purple-500/40'
-                            : 'bg-white/[0.02] border-white/5 opacity-60'
+                            ? 'border-purple-500/40 hover:border-purple-400/60'
+                            : 'border-white/10 opacity-70'
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#6D3DF5]/15 text-purple-300 border border-[#6D3DF5]/30 flex items-center gap-1">
                             <Film className="w-3 h-3" />
                             <span>{vq.topic}</span>
                           </span>
 
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold ${
+                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                             isAccepted
-                              ? 'bg-emerald-500/20 text-emerald-300'
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                               : isPending
-                              ? 'bg-amber-500/20 text-amber-300 animate-pulse'
-                              : 'bg-slate-700 text-slate-400'
+                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                              : 'bg-white/5 text-slate-400 border-white/10'
                           }`}>
                             {isAccepted ? '✓ ACCEPTED' : isPending ? '⏳ AWAITING ACCEPTANCE' : 'DECLINED'}
                           </span>
                         </div>
 
                         <div>
-                          <h4 className="text-xs font-bold text-slate-300 font-mono">
-                            Video: <span className="text-white">{vq.video_title}</span>
+                          <h4 className="text-xs font-semibold text-slate-400">
+                            Video: <span className="text-white font-bold">{vq.video_title}</span>
                           </h4>
-                          <p className="text-xs text-slate-300 font-sans mt-2 leading-relaxed p-3 rounded-xl bg-black/40 border border-white/5">
+                          <p className="text-xs text-slate-200 mt-2 leading-relaxed p-3.5 rounded-xl bg-[#090C19] border border-white/5">
                             "{vq.query_message}"
                           </p>
                         </div>
 
-                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                        <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+                            <div className="w-7 h-7 rounded-lg bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center text-xs font-bold border border-[#6D3DF5]/30">
                               {vq.requester_name[0] || 'S'}
                             </div>
                             <div>
                               <p className="text-xs font-bold text-white">{vq.requester_name}</p>
-                              <p className="text-[9px] font-mono text-slate-400">{vq.requester_email}</p>
+                              <p className="text-[10px] text-slate-400 font-mono">{vq.requester_email}</p>
                             </div>
                           </div>
 
@@ -1732,14 +1735,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                             <div className="flex items-center gap-1.5">
                               <button
                                 onClick={() => handleDeclineVideoQuery(vq.id)}
-                                className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-mono cursor-pointer"
+                                className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 text-xs font-medium cursor-pointer transition-colors"
                               >
                                 Decline
                               </button>
                               <button
                                 onClick={() => handleAcceptVideoQuery(vq)}
                                 disabled={acceptingQueryId === vq.id}
-                                className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-mono font-bold shadow-md shadow-emerald-600/30 flex items-center gap-1 cursor-pointer"
+                                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm flex items-center gap-1 cursor-pointer transition-colors"
                               >
                                 <UserCheck className="w-3.5 h-3.5" />
                                 <span>{acceptingQueryId === vq.id ? 'Accepting...' : 'Accept & Start Chat'}</span>
@@ -1751,7 +1754,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                                 if (vq.session_id) setActiveSessionId(vq.session_id);
                                 setActiveTab('sessions');
                               }}
-                              className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold flex items-center gap-1 cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                             >
                               <span>Open Chat →</span>
                             </button>
@@ -1768,17 +1771,17 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
             {(requestsSubFilter === 'ALL' || requestsSubFilter === 'GENERAL') && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-emerald-400" />
-                  <h3 className="text-xs font-bold text-white uppercase font-mono tracking-wider">
+                  <BookOpen className="w-4 h-4 text-purple-400" />
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
                     General Peer Requests ({requests.length})
                   </h3>
                 </div>
 
                 {requestsLoading ? (
-                  <div className="p-8 text-center text-xs font-mono text-slate-500">Loading requests...</div>
+                  <div className="p-8 text-center text-xs text-slate-400">Loading requests...</div>
                 ) : requests.length === 0 ? (
-                  <div className="p-12 text-center text-xs text-slate-500 space-y-3 glass-card rounded-2xl border border-white/5">
-                    <BookOpen className="w-8 h-8 mx-auto text-slate-600 opacity-40" />
+                  <div className="p-12 text-center text-xs text-slate-400 space-y-3 bg-[#12162A]/80 rounded-2xl border border-white/10 shadow-xl">
+                    <BookOpen className="w-8 h-8 mx-auto text-slate-500 opacity-40" />
                     <p>No open general requests found right now.</p>
                   </div>
                 ) : (
@@ -1786,35 +1789,43 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     {requests.map((req) => (
                       <div
                         key={req.id}
-                        className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:border-emerald-500/30 transition-all space-y-3 shadow-lg"
+                        className="p-5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md hover:border-purple-500/40 transition-all space-y-3 shadow-xl"
                       >
                         <div className="flex items-center justify-between">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border ${DOMAIN_CHIP[req.domain] || 'bg-white/10 text-white'}`}>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${DOMAIN_CHIP[req.domain] || 'bg-white/5 text-slate-300'}`}>
                             {req.domain}
                           </span>
-                          <span className="text-[10px] font-mono text-slate-500">
+                          <span className="text-[11px] text-slate-400">
                             {new Date(req.created_at).toLocaleDateString()}
                           </span>
                         </div>
 
                         <div>
-                          <h3 className="text-base font-bold text-white font-heading">{req.skill}</h3>
-                          <p className="text-xs text-slate-400 font-sans mt-1 line-clamp-2">{req.message}</p>
+                          <h4 className="text-sm font-bold text-white">{req.skill}</h4>
+                          <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                            {req.message}
+                          </p>
                         </div>
 
-                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                        <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xs font-bold">
-                              {req.student?.name?.[0] || 'S'}
+                            <div className="w-7 h-7 rounded-lg bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center text-xs font-bold border border-[#6D3DF5]/30">
+                              {(req.requester?.name || 'S')[0]}
                             </div>
-                            <span className="text-xs text-slate-300 font-mono">{req.student?.name || 'Student'}</span>
+                            <div>
+                              <p className="text-xs font-bold text-white">{req.requester?.name || 'Student'}</p>
+                              <p className="text-[10px] text-slate-400 font-mono">{req.requester?.usn}</p>
+                            </div>
                           </div>
 
                           <button
-                            onClick={() => setRespondingRequestId(req.id)}
-                            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold transition-all cursor-pointer"
+                            onClick={() => {
+                              setRespondingRequestId(req.id);
+                              setResponseMessage(`Hi ${req.requester?.name || 'Peer'}! I can help you with ${req.skill}. Let's connect!`);
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
                           >
-                            Offer Mentorship
+                            Offer Help →
                           </button>
                         </div>
                       </div>
@@ -1827,34 +1838,34 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
         )}
 
         {/* ============================================================ */}
-        {/* TAB 2 — MY SESSIONS (WHATSAPP CHAT WITHOUT CALL / MIC)       */}
+        {/* TAB 2 — 1:1 ACTIVE CHAT & SESSIONS                          */}
         {/* ============================================================ */}
         {activeTab === 'sessions' && (
-          <div className="rounded-3xl border border-white/[0.08] bg-[#0c1317] overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12" style={{ height: '720px' }}>
+          <div className="rounded-3xl border border-white/[0.08] bg-[#0F1326]/90 backdrop-blur-xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 min-h-[640px]">
 
-            {/* WHATSAPP LEFT SIDEBAR */}
-            <div className="lg:col-span-4 flex flex-col border-r border-white/[0.08] bg-[#111b21] overflow-hidden">
-              <div className="px-4 py-3 bg-[#202c33] flex items-center justify-between border-b border-white/[0.05] shrink-0">
+            {/* SESSIONS LEFT SIDEBAR */}
+            <div className="lg:col-span-4 flex flex-col border-r border-white/[0.08] bg-[#0B0E1D]/90 overflow-hidden">
+              <div className="px-4 py-3 bg-[#0F1326]/90 flex items-center justify-between border-b border-white/[0.08] shrink-0">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center text-base shadow-md">
-                    👩‍💻
+                  <div className="w-8 h-8 rounded-full bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center text-xs font-bold border border-[#6D3DF5]/30">
+                    {(user?.name ? user.name[0].toUpperCase() : 'U')}
                   </div>
-                  <span className="text-xs font-bold text-white font-heading">
+                  <span className="text-xs font-bold text-white">
                     {user?.name || 'My Chats'}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-slate-400">
+                <div className="flex items-center gap-1.5 text-slate-400">
                   <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="p-1.5 rounded-full hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer"
+                    className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                     title="New Barter Chat"
                   >
                     <MessageSquarePlus className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => showFeedback('WhatsApp Status: End-to-end encrypted peer chat protocol active.')}
-                    className="p-1.5 rounded-full hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer"
+                    onClick={() => showFeedback('Status: End-to-end encrypted peer chat protocol active.')}
+                    className="p-1.5 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                     title="Menu"
                   >
                     <MoreVertical className="w-4 h-4" />
@@ -1863,7 +1874,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               </div>
 
               {/* Search Bar */}
-              <div className="p-2.5 bg-[#111b21] border-b border-white/[0.05] space-y-2">
+              <div className="p-3 bg-[#0F1326]/60 border-b border-white/[0.08] space-y-2">
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -1871,7 +1882,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     value={sidebarSearch}
                     onChange={(e) => setSidebarSearch(e.target.value)}
                     placeholder="Search or start new chat"
-                    className="w-full pl-9 pr-7 py-1.5 rounded-lg bg-[#202c33] border-none text-xs text-white placeholder-slate-400 focus:outline-none font-sans"
+                    className="w-full pl-8 pr-7 py-2 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5]"
                   />
                   {sidebarSearch && (
                     <button
@@ -1883,15 +1894,15 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] font-mono">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
                   {(['ALL', 'UNREAD', 'TEACHING', 'LEARNING'] as const).map((filterType) => (
                     <button
                       key={filterType}
                       onClick={() => setSidebarFilter(filterType)}
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                         sidebarFilter === filterType
-                          ? 'bg-[#00a884] text-[#111b21]'
-                          : 'bg-[#202c33] text-slate-400 hover:text-slate-200'
+                          ? 'bg-[#6D3DF5] text-white font-semibold shadow-xs'
+                          : 'text-slate-400 hover:text-white hover:bg-white/5'
                       }`}
                     >
                       {filterType === 'ALL' ? 'All' : filterType === 'UNREAD' ? 'Unread' : filterType === 'TEACHING' ? 'Teaching' : 'Learning'}
@@ -1901,10 +1912,10 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               </div>
 
               {/* Chat Items List */}
-              <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04]">
+              <div className="flex-1 overflow-y-auto divide-y divide-white/5">
                 {filteredSessions.length === 0 && (
-                  <div className="p-8 text-center text-xs text-slate-500 space-y-2">
-                    <MessageSquare className="w-8 h-8 mx-auto text-slate-600 opacity-40" />
+                  <div className="p-8 text-center text-xs text-slate-400 space-y-2">
+                    <MessageSquare className="w-8 h-8 mx-auto text-slate-500 opacity-40" />
                     <p>No conversations found.</p>
                   </div>
                 )}
@@ -1921,42 +1932,42 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     <div
                       key={sess.id}
                       onClick={() => setActiveSessionId(sess.id)}
-                      className={`px-3.5 py-3 flex items-center gap-3 transition-all cursor-pointer relative group ${
+                      className={`px-4 py-3 flex items-center gap-3 transition-all cursor-pointer relative group ${
                         selected
-                          ? 'bg-[#2a3942]'
-                          : 'hover:bg-[#202c33]/70'
+                          ? 'bg-purple-950/30 border-l-4 border-l-[#6D3DF5]'
+                          : 'hover:bg-white/[0.03]'
                       }`}
                     >
                       <div className="relative shrink-0">
-                        <div className="w-12 h-12 rounded-full bg-[#202c33] border border-white/10 flex items-center justify-center text-2xl shadow-inner">
+                        <div className="w-11 h-11 rounded-full bg-[#12162E] border border-white/10 flex items-center justify-center text-xl">
                           {sessAvatar}
                         </div>
                         {sess.isOnline && !isPendingAccept && (
-                          <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-[#00a884] border-2 border-[#111b21]" />
+                          <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#0B0E1D]" />
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-semibold text-white truncate font-sans">
+                          <span className="text-xs font-bold text-white truncate">
                             {sessName}
                           </span>
-                          <span className={`text-[11px] font-mono shrink-0 ml-1 ${hasUnread ? 'text-[#00a884] font-bold' : 'text-slate-400'}`}>
+                          <span className={`text-[10px] shrink-0 ml-1 ${hasUnread ? 'text-purple-400 font-bold' : 'text-slate-400'}`}>
                             {sessTime}
                           </span>
                         </div>
 
                         <div className="flex items-center justify-between gap-1">
-                          <p className="text-xs text-slate-400 truncate font-sans flex items-center gap-1">
-                            {!isPendingAccept && <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb] shrink-0" />}
+                          <p className="text-xs text-slate-400 truncate flex items-center gap-1">
+                            {!isPendingAccept && <CheckCheck className="w-3.5 h-3.5 text-purple-400 shrink-0" />}
                             <span>{sess.lastMessage}</span>
                           </p>
                           {isPendingAccept ? (
-                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[9px] font-bold">
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 text-[9px] font-semibold border border-amber-500/30">
                               PENDING
                             </span>
                           ) : hasUnread ? (
-                            <span className="w-5 h-5 rounded-full bg-[#00a884] text-[#111b21] font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                            <span className="w-5 h-5 rounded-full bg-[#6D3DF5] text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-md">
                               {sess.unreadCount}
                             </span>
                           ) : null}
@@ -1968,51 +1979,51 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               </div>
             </div>
 
-            {/* WHATSAPP RIGHT CHAT PANE */}
+            {/* CHAT RIGHT PANE */}
             {activeSession ? (
-              <div className="lg:col-span-8 flex flex-col bg-[#0b141a] overflow-hidden relative">
+              <div className="lg:col-span-8 flex flex-col bg-[#0B0E1D]/80 overflow-hidden relative">
 
                 {/* Top Header */}
-                <div className="px-4 py-2.5 bg-[#202c33] flex items-center justify-between border-b border-white/[0.05] shrink-0 z-10">
+                <div className="px-5 py-3 bg-[#0F1326]/90 flex items-center justify-between border-b border-white/[0.08] shrink-0 z-10">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="w-10 h-10 rounded-full bg-[#111b21] border border-white/10 flex items-center justify-center text-xl shadow-md">
+                      <div className="w-10 h-10 rounded-full bg-[#12162E] border border-white/10 flex items-center justify-center text-lg">
                         {activeSession.avatar || '🧑‍💻'}
                       </div>
                       {activeSession.isOnline && activeSession.status === 'ACTIVE' && (
-                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#00a884] border-2 border-[#202c33]" />
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0F1326]" />
                       )}
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white leading-tight font-sans">
+                      <h4 className="text-sm font-bold text-white leading-tight">
                         {activeSession.name || activeSession.partner?.name || 'Peer'}
                       </h4>
-                      <p className={`text-[11px] font-mono flex items-center gap-1 ${
+                      <p className={`text-xs flex items-center gap-1.5 ${
                         activeSession.status === 'PENDING_ACCEPTANCE'
-                          ? 'text-amber-300'
+                          ? 'text-amber-400'
                           : 'text-emerald-400'
                       }`}>
-                        <span>{activeSession.status === 'PENDING_ACCEPTANCE' ? '⏳ awaiting acceptance' : '🟢 online'}</span>
+                        <span>{activeSession.status === 'PENDING_ACCEPTANCE' ? '⏳ Awaiting Acceptance' : '● Online'}</span>
                         <span className="text-slate-400">• {activeSession.skill}</span>
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 sm:gap-2 text-slate-300">
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400">
                     {activeSession.status === 'ACTIVE' && (
                       <>
                         <button
                           onClick={() => handleOpenEndSessionModal(activeSession)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30 transition-all cursor-pointer shadow-md shadow-rose-500/10"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 transition-all cursor-pointer"
                           title="End this session and rate your experience"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5 text-rose-400" />
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>End Session</span>
                         </button>
 
                         <button
                           onClick={() => setIsMeetingModalOpen(true)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-bold bg-[#00a884]/20 text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/30 transition-all cursor-pointer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#6D3DF5]/15 text-purple-300 border border-[#6D3DF5]/30 hover:bg-[#6D3DF5]/25 transition-all cursor-pointer"
                         >
                           <Video className="w-3.5 h-3.5" />
                           <span>Meet Link</span>
@@ -2023,22 +2034,22 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     <div className="relative">
                       <button
                         onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
-                        className="p-2 rounded-full hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                        className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                       >
                         <MoreVertical className="w-4 h-4" />
                       </button>
 
                       {isHeaderMenuOpen && (
-                        <div className="absolute right-0 top-11 w-52 rounded-2xl bg-[#233138] border border-white/10 shadow-2xl py-1.5 z-50 text-xs font-sans">
+                        <div className="absolute right-0 top-11 w-52 rounded-2xl bg-[#0F1326] border border-white/10 shadow-2xl py-1.5 z-50 text-xs text-white">
                           {activeSession.status === 'ACTIVE' && (
                             <button
                               onClick={() => {
                                 handleOpenEndSessionModal(activeSession);
                                 setIsHeaderMenuOpen(false);
                               }}
-                              className="w-full text-left px-4 py-2 hover:bg-white/10 text-rose-300 flex items-center gap-2 cursor-pointer font-bold"
+                              className="w-full text-left px-4 py-2 hover:bg-white/5 text-rose-400 flex items-center gap-2 cursor-pointer font-semibold"
                             >
-                              <CheckCircle2 className="w-3.5 h-3.5 text-rose-400" />
+                              <CheckCircle2 className="w-3.5 h-3.5" />
                               <span>End Session & Feedback</span>
                             </button>
                           )}
@@ -2047,9 +2058,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                               handleToggleAutoDelete(activeSession.id);
                               setIsHeaderMenuOpen(false);
                             }}
-                            className="w-full text-left px-4 py-2 hover:bg-white/10 text-slate-300 flex items-center gap-2 cursor-pointer"
+                            className="w-full text-left px-4 py-2 hover:bg-white/5 text-slate-200 flex items-center gap-2 cursor-pointer"
                           >
-                            <ShieldAlert className="w-3.5 h-3.5" />
+                            <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
                             <span>Auto-delete ({activeSession.autoDeleteOnEnd ? 'ON' : 'OFF'})</span>
                           </button>
                           <button
@@ -2057,9 +2068,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                               showFeedback('Chat exported to download folder.');
                               setIsHeaderMenuOpen(false);
                             }}
-                            className="w-full text-left px-4 py-2 hover:bg-white/10 text-slate-300 flex items-center gap-2 cursor-pointer"
+                            className="w-full text-left px-4 py-2 hover:bg-white/5 text-slate-200 flex items-center gap-2 cursor-pointer"
                           >
-                            <Download className="w-3.5 h-3.5" />
+                            <Download className="w-3.5 h-3.5 text-slate-400" />
                             <span>Export Chat</span>
                           </button>
                         </div>
@@ -2070,14 +2081,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
                 {/* Pending Acceptance Notice Banner */}
                 {activeSession.status === 'PENDING_ACCEPTANCE' && (
-                  <div className="p-3 bg-amber-950/60 border-b border-amber-500/30 px-6 z-20 flex items-center justify-between">
+                  <div className="p-3 bg-amber-500/10 border-b border-amber-500/20 px-6 z-20 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <Clock className="w-4 h-4 text-amber-400 animate-spin shrink-0" />
                       <div>
-                        <p className="text-xs font-bold text-amber-200">
+                        <p className="text-xs font-bold text-amber-300">
                           Request Sent to {activeSession.name}'s Account
                         </p>
-                        <p className="text-[10px] text-slate-300 font-mono">
+                        <p className="text-[11px] text-slate-400">
                           Communication will unlock automatically once {activeSession.name} accepts your request.
                         </p>
                       </div>
@@ -2086,21 +2097,15 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                 )}
 
                 {/* Messages Stream */}
-                <div 
-                  className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-3 relative"
-                  style={{
-                    backgroundImage: `radial-gradient(circle at center, rgba(17, 27, 33, 0.4) 0%, rgba(11, 20, 26, 0.95) 100%), url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')`,
-                    backgroundBlendMode: 'overlay',
-                  }}
-                >
+                <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-3 bg-[#080A15]/90">
                   <div className="flex justify-center my-2">
-                    <span className="px-3 py-1 rounded-lg bg-[#182229] border border-white/5 text-[11px] font-mono text-slate-400 shadow-md">
-                      TODAY
+                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] text-slate-400 shadow-xs">
+                      Today
                     </span>
                   </div>
 
                   {chatLoading && (
-                    <div className="text-center py-4 text-xs font-mono text-slate-400">
+                    <div className="text-center py-4 text-xs text-slate-400">
                       Loading messages...
                     </div>
                   )}
@@ -2112,18 +2117,18 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     return (
                       <div key={m.id || idx} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
                         <div
-                          className={`max-w-[85%] sm:max-w-[72%] px-3.5 py-2 rounded-2xl text-xs leading-relaxed relative shadow-md ${
+                          className={`max-w-[85%] sm:max-w-[72%] px-4 py-3 rounded-2xl text-xs leading-relaxed relative shadow-md ${
                             isMe
-                              ? 'bg-[#005c4b] text-white rounded-tr-none'
-                              : 'bg-[#202c33] text-slate-100 rounded-tl-none border border-white/[0.05]'
+                              ? 'bg-[#6D3DF5] text-white rounded-tr-xs'
+                              : 'bg-[#14192E] text-slate-100 rounded-tl-xs border border-white/10'
                           }`}
                         >
                           {renderMessageContent(m.text, isMe)}
 
-                          <div className="flex items-center justify-end gap-1 mt-1 text-[10px] font-mono text-slate-300/80">
+                          <div className={`flex items-center justify-end gap-1 mt-1 text-[10px] ${isMe ? 'text-white/70' : 'text-slate-400'}`}>
                             <span>{timeStr}</span>
                             {isMe && activeSession.status === 'ACTIVE' && (
-                              <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" />
+                              <CheckCheck className="w-3.5 h-3.5 text-white/90" />
                             )}
                           </div>
                         </div>
@@ -2134,12 +2139,12 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                 </div>
 
                 {/* Input Bar */}
-                <form onSubmit={handleSendMessage} className="p-3 bg-[#202c33] flex items-center gap-2 border-t border-white/[0.05] z-10">
+                <form onSubmit={handleSendMessage} className="p-3 bg-[#0F1326]/90 flex items-center gap-2 border-t border-white/[0.08] z-10">
                   <button
                     type="button"
                     disabled={activeSession.status === 'PENDING_ACCEPTANCE'}
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-amber-300 transition-colors cursor-pointer disabled:opacity-30"
+                    className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer disabled:opacity-30"
                     title="Emojis"
                   >
                     <Smile className="w-5 h-5" />
@@ -2149,7 +2154,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     type="button"
                     disabled={activeSession.status === 'PENDING_ACCEPTANCE'}
                     onClick={() => setShowAttachMenu(!showAttachMenu)}
-                    className="p-2 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer disabled:opacity-30"
+                    className="p-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer disabled:opacity-30"
                     title="Attach File, Image or Meeting"
                   >
                     <Paperclip className="w-5 h-5" />
@@ -2161,19 +2166,19 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder={
                       activeSession.status === 'PENDING_ACCEPTANCE'
-                        ? `🔒 Waiting for ${activeSession.name} to accept your request before communication unlocks...`
+                        ? `🔒 Waiting for ${activeSession.name} to accept your request...`
                         : pendingAttachment
                         ? `Add caption for ${pendingAttachment.name}...`
-                        : "Type a message or paste a meeting link..."
+                        : "Type a message..."
                     }
                     disabled={sendingMsg || activeSession.status === 'PENDING_ACCEPTANCE'}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-[#2a3942] border-none text-xs text-white placeholder-slate-400 focus:outline-none font-sans disabled:opacity-50"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] disabled:opacity-50"
                   />
 
                   <button
                     type="submit"
                     disabled={sendingMsg || (!chatInput.trim() && !pendingAttachment) || activeSession.status === 'PENDING_ACCEPTANCE'}
-                    className="p-2.5 rounded-full bg-[#00a884] hover:bg-[#008f72] text-[#111b21] transition-all cursor-pointer shadow-lg shadow-emerald-500/20 shrink-0 disabled:opacity-30"
+                    className="p-2.5 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white transition-all cursor-pointer shadow-lg shadow-purple-900/30 shrink-0 disabled:opacity-30"
                     title="Send message"
                   >
                     <Send className="w-4 h-4" />
@@ -2182,11 +2187,11 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
               </div>
             ) : (
-              <div className="lg:col-span-8 flex flex-col items-center justify-center bg-[#0b141a] p-8 text-center space-y-3">
-                <MessageSquare className="w-12 h-12 text-slate-600 opacity-40" />
-                <h4 className="text-base font-bold text-white font-heading">Skillora Web for Peer Mentorship</h4>
+              <div className="lg:col-span-8 flex flex-col items-center justify-center bg-[#0B0E1D]/80 p-8 text-center space-y-3">
+                <MessageSquare className="w-12 h-12 text-slate-500 opacity-30" />
+                <h4 className="text-base font-bold text-white">Skillora Peer Mentorship Chat</h4>
                 <p className="text-xs text-slate-400 max-w-sm">
-                  Select a chat on the left to send messages, documents, code files, and instant video meetings.
+                  Select a conversation on the left to review messages, documents, code files, and video meeting invites.
                 </p>
               </div>
             )}
@@ -2201,13 +2206,13 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
           <div className="space-y-5">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by name, skill, or branch…"
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] focus:border-emerald-500/30 text-xs text-white placeholder-slate-500 focus:outline-none transition-all"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[#0F1326]/80 border border-white/10 focus:border-[#6D3DF5] text-xs text-white placeholder-slate-400 focus:outline-none transition-all shadow-md"
                 />
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -2215,10 +2220,10 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   <button
                     key={f}
                     onClick={() => setSelectedFilter(f)}
-                    className={`px-3 py-2 rounded-xl text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       selectedFilter === f
-                        ? 'bg-emerald-600 text-white border border-emerald-500 shadow-md shadow-emerald-500/15'
-                        : 'bg-white/[0.03] text-slate-400 border border-white/[0.06] hover:text-slate-200'
+                        ? 'bg-[#6D3DF5] text-white shadow-sm'
+                        : 'bg-[#12162A]/80 text-slate-400 border border-white/10 hover:text-white hover:bg-white/[0.05]'
                     }`}
                   >
                     {f}
@@ -2231,44 +2236,44 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               {filteredPeers.map((peer) => (
                 <div
                   key={peer.id}
-                  className="p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:border-emerald-500/30 transition-all space-y-4 shadow-lg"
+                  className="p-5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md hover:border-purple-500/40 transition-all space-y-4 shadow-xl"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center text-lg">
+                      <div className="w-10 h-10 rounded-xl bg-[#6D3DF5]/20 border border-[#6D3DF5]/30 flex items-center justify-center text-lg">
                         {peer.avatar || '🧑‍💻'}
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-white font-heading flex items-center gap-1.5">
+                        <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
                           <span>{peer.name}</span>
                           <span>{peer.reputationMark}</span>
                         </h4>
-                        <p className="text-[10px] font-mono text-slate-400">{peer.year} • {peer.branch}</p>
+                        <p className="text-xs text-slate-400">{peer.year} • {peer.branch}</p>
                       </div>
                     </div>
 
-                    <span className="text-xs font-mono font-bold text-amber-300 flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-amber-300" />
+                    <span className="text-xs font-semibold text-amber-400 flex items-center gap-1 bg-amber-500/15 px-2 py-0.5 rounded-lg border border-amber-500/30">
+                      <Star className="w-3 h-3 fill-amber-400" />
                       <span>{peer.rating}</span>
                     </span>
                   </div>
 
-                  <div className="space-y-2 text-xs">
+                  <div className="space-y-2.5 text-xs">
                     <div>
-                      <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold">Can Guide:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Can Guide:</span>
+                      <div className="flex flex-wrap gap-1">
                         {peer.canTeach.map((t) => (
-                          <span key={t} className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-[10px] font-mono">
+                          <span key={t} className="px-2 py-0.5 rounded-md bg-[#6D3DF5]/15 text-purple-300 border border-[#6D3DF5]/25 text-[11px] font-medium">
                             {t}
                           </span>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <span className="text-[10px] font-mono text-cyan-400 uppercase font-bold">Eager to Learn:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block mb-1">Eager to Learn:</span>
+                      <div className="flex flex-wrap gap-1">
                         {peer.wantsToLearn.map((l) => (
-                          <span key={l} className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[10px] font-mono">
+                          <span key={l} className="px-2 py-0.5 rounded-md bg-white/[0.05] text-slate-300 border border-white/10 text-[11px] font-medium">
                             {l}
                           </span>
                         ))}
@@ -2281,7 +2286,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                       setSkill(peer.canTeach[0] || 'Programming');
                       setIsCreateModalOpen(true);
                     }}
-                    className="w-full py-2 rounded-xl bg-white/[0.04] hover:bg-emerald-600 text-slate-200 hover:text-white font-mono text-xs font-bold transition-all border border-white/[0.06] hover:border-emerald-500 cursor-pointer"
+                    className="w-full py-2.5 rounded-xl bg-white/[0.06] hover:bg-[#6D3DF5] text-white text-xs font-semibold transition-all border border-white/10 hover:border-[#6D3DF5] cursor-pointer shadow-md"
                   >
                     Request Session →
                   </button>
@@ -2296,15 +2301,15 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
         {/* ============================================================ */}
         {activeTab === 'videos' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                  <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest font-bold">
+                  <span className="text-[11px] text-purple-400 uppercase tracking-widest font-semibold">
                     PeerVault Video Repository
                   </span>
                 </div>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2 font-heading">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <Film className="w-5 h-5 text-purple-400" />
                   <span>PeerVault — Self-Made Learning Videos</span>
                 </h3>
@@ -2315,7 +2320,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
               <button
                 onClick={() => setIsUploadVideoModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:opacity-95 text-white text-xs font-bold shadow-lg shadow-purple-600/30 transition-all cursor-pointer shrink-0"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 transition-all cursor-pointer shrink-0"
               >
                 <UploadCloud className="w-4 h-4" />
                 <span>Upload to PeerVault</span>
@@ -2325,13 +2330,13 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
             {/* Search & Domain Filter Bar */}
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={videoSearchQuery}
                   onChange={(e) => setVideoSearchQuery(e.target.value)}
                   placeholder="Search PeerVault by topic, skill, student name, or concepts..."
-                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] focus:border-purple-500/40 text-xs text-white placeholder-slate-500 focus:outline-none font-sans"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[#0F1326]/80 border border-white/10 focus:border-[#6D3DF5] text-xs text-white placeholder-slate-400 focus:outline-none shadow-md font-sans"
                 />
               </div>
 
@@ -2340,10 +2345,10 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   <button
                     key={dom}
                     onClick={() => setVideoDomainFilter(dom)}
-                    className={`px-3 py-2 rounded-xl text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                       videoDomainFilter === dom
-                        ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                        : 'bg-white/[0.03] text-slate-400 border border-white/[0.06] hover:text-white'
+                        ? 'bg-[#6D3DF5] text-white shadow-sm'
+                        : 'bg-[#12162A]/80 text-slate-400 border border-white/10 hover:text-white hover:bg-white/[0.05]'
                     }`}
                   >
                     {dom === 'ALL' ? 'All Domains' : dom}
@@ -2354,15 +2359,15 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
             {/* Videos Grid */}
             {videosLoading ? (
-              <div className="p-12 text-center text-xs font-mono text-slate-400">Loading PeerVault video library...</div>
+              <div className="p-12 text-center text-xs text-slate-400">Loading PeerVault video library...</div>
             ) : filteredVideos.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-500 space-y-3 glass-card rounded-3xl border border-white/10 bg-slate-950/40">
-                <Film className="w-10 h-10 text-slate-600 mx-auto opacity-50" />
-                <h4 className="text-base font-bold text-white font-heading">No Peer Videos in Vault</h4>
+              <div className="p-12 text-center text-xs text-slate-400 space-y-3 bg-[#12162A]/80 rounded-3xl border border-white/10 shadow-xl">
+                <Film className="w-10 h-10 text-slate-500 mx-auto opacity-40" />
+                <h4 className="text-base font-bold text-white">No Peer Videos in Vault</h4>
                 <p className="text-xs text-slate-400">Record a video of what you have learned and upload it directly!</p>
                 <button
                   onClick={() => setIsUploadVideoModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold font-mono"
+                  className="px-4 py-2 rounded-xl bg-[#6D3DF5] text-white text-xs font-semibold"
                 >
                   + Upload to PeerVault
                 </button>
@@ -2372,7 +2377,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                 {filteredVideos.map((vid) => (
                   <div
                     key={vid.id}
-                    className="rounded-3xl border border-white/[0.08] bg-[#0d0f1a] overflow-hidden shadow-2xl flex flex-col justify-between group hover:border-purple-500/40 transition-all"
+                    className="rounded-3xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md overflow-hidden shadow-xl flex flex-col justify-between group hover:border-purple-500/40 transition-all"
                   >
                     {/* HTML5 Direct Video Player */}
                     <div className="relative w-full aspect-video bg-black overflow-hidden border-b border-white/10">
@@ -2390,60 +2395,60 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     <div className="p-5 space-y-4">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${DOMAIN_CHIP[vid.domain] || 'bg-white/10 text-white'}`}>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${DOMAIN_CHIP[vid.domain] || 'bg-white/5 text-slate-300'}`}>
                             {vid.domain}
                           </span>
-                          <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-300 border border-purple-500/20 text-[9px] font-mono">
+                          <span className="px-2 py-0.5 rounded-md bg-white/5 text-slate-400 border border-white/10 text-[11px]">
                             🎬 {vid.video_size || 'Video File'}
                           </span>
                         </div>
 
                         {/* Credits & Star Rating */}
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-bold text-amber-300 flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
-                            <Star className="w-3 h-3 fill-amber-300" />
+                          <span className="text-xs font-semibold text-amber-400 flex items-center gap-1 bg-amber-500/15 px-2 py-0.5 rounded-lg border border-amber-500/30">
+                            <Star className="w-3 h-3 fill-amber-400" />
                             <span>{vid.average_rating}</span>
                           </span>
-                          <span className="text-xs font-mono font-bold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20">
+                          <span className="text-xs font-semibold text-purple-300 bg-[#6D3DF5]/15 px-2 py-0.5 rounded-lg border border-[#6D3DF5]/30">
                             +{vid.creator_credits} Credits
                           </span>
                         </div>
                       </div>
 
                       <div>
-                        <h4 className="text-base font-bold text-white font-heading leading-snug">
+                        <h4 className="text-base font-bold text-white leading-snug">
                           {vid.title}
                         </h4>
-                        <p className="text-xs text-purple-300 font-mono mt-0.5">Topic: {vid.topic}</p>
-                        <p className="text-xs text-slate-400 font-sans mt-2 line-clamp-3 leading-relaxed">
+                        <p className="text-xs text-purple-400 font-medium mt-0.5">Topic: {vid.topic}</p>
+                        <p className="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
                           {vid.description}
                         </p>
                       </div>
 
                       {/* Author Student Card with Call & Email */}
-                      <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-2">
+                      <div className="p-3.5 rounded-2xl bg-[#090C19] border border-white/5 space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-sm shadow-md">
+                            <div className="w-8 h-8 rounded-full bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center text-sm font-bold border border-[#6D3DF5]/30">
                               👨‍💻
                             </div>
                             <div>
-                              <p className="text-xs font-bold text-white font-sans">{vid.student_name}</p>
-                              <p className="text-[10px] font-mono text-slate-400">{vid.google_email}</p>
+                              <p className="text-xs font-bold text-white">{vid.student_name}</p>
+                              <p className="text-[10px] text-slate-400 font-mono">{vid.google_email}</p>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-1.5">
                             <a
                               href={`tel:${vid.phone_number}`}
-                              className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 transition-colors border border-emerald-500/20 cursor-pointer"
+                              className="p-2 rounded-xl bg-white/5 hover:bg-emerald-500/20 text-emerald-400 transition-colors border border-white/10 cursor-pointer"
                               title={`Call ${vid.phone_number}`}
                             >
                               <Phone className="w-3.5 h-3.5" />
                             </a>
                             <a
                               href={`mailto:${vid.google_email}`}
-                              className="p-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 transition-colors border border-cyan-500/20 cursor-pointer"
+                              className="p-2 rounded-xl bg-white/5 hover:bg-purple-500/20 text-purple-400 transition-colors border border-white/10 cursor-pointer"
                               title={`Email ${vid.google_email}`}
                             >
                               <Mail className="w-3.5 h-3.5" />
@@ -2451,16 +2456,16 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-1 border-t border-white/5">
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 border-t border-white/5">
                           <span>Phone: {vid.phone_number}</span>
-                          <span className="text-amber-300 font-bold">Leaderboard: {vid.leaderboard_points} Pts</span>
+                          <span className="text-amber-400 font-semibold">Leaderboard: {vid.leaderboard_points} Pts</span>
                         </div>
                       </div>
 
                       {/* Reviews Summary */}
-                      <div className="space-y-2.5 pt-2 border-t border-white/10">
+                      <div className="space-y-2.5 pt-2 border-t border-white/[0.08]">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-300 font-mono flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-white flex items-center gap-1.5">
                             <MessageCircle className="w-3.5 h-3.5 text-purple-400" />
                             <span>Public Peer Reviews ({vid.reviews.length})</span>
                           </span>
@@ -2470,7 +2475,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                               setFeedbackRating(5);
                               setFeedbackText('');
                             }}
-                            className="text-xs text-purple-400 hover:text-purple-300 font-mono font-bold cursor-pointer"
+                            className="text-xs text-purple-400 hover:text-purple-300 font-semibold cursor-pointer"
                           >
                             + Post Review
                           </button>
@@ -2481,27 +2486,27 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                             {vid.reviews.map((rev) => (
                               <div
                                 key={rev.id}
-                                className="p-2.5 rounded-xl bg-white/[0.02] border border-white/5 space-y-1 text-xs"
+                                className="p-2.5 rounded-xl bg-[#090C19] border border-white/5 space-y-1 text-xs"
                               >
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="font-bold text-white font-mono text-[11px]">{rev.reviewer_name}</span>
+                                    <span className="font-bold text-white text-[11px]">{rev.reviewer_name}</span>
                                     <span className="text-amber-400 font-bold text-[10px]">{'★'.repeat(rev.rating)}</span>
                                   </div>
-                                  <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-bold ${
-                                    rev.credit_impact >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${
+                                    rev.credit_impact >= 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'
                                   }`}>
                                     {rev.credit_impact >= 0 ? `+${rev.credit_impact} Creds` : `${rev.credit_impact} Creds`}
                                   </span>
                                 </div>
-                                <p className="text-[11px] text-slate-300 font-sans leading-relaxed">
+                                <p className="text-xs text-slate-300 leading-relaxed">
                                   {rev.feedback_text}
                                 </p>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-[11px] text-slate-500 italic">No reviews posted yet. Be the first to review and boost the creator's credits!</p>
+                          <p className="text-xs text-slate-400 italic">No reviews posted yet. Be the first to review and boost the creator's credits!</p>
                         )}
                       </div>
 
@@ -2509,7 +2514,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                       <div className="pt-2">
                         <button
                           onClick={() => handleOpenQueryModal(vid)}
-                          className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:opacity-95 text-white font-mono text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
+                          className="w-full py-2.5 px-4 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30 transition-all cursor-pointer"
                         >
                           <Inbox className="w-3.5 h-3.5" />
                           <span>Send Query Request to {vid.student_name}'s Account →</span>
@@ -2528,9 +2533,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
         {/* ============================================================ */}
         {activeTab === 'achievements' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
               <div>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2 font-heading">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-amber-400" />
                   <span>Skillora Achievements</span>
                 </h3>
@@ -2539,35 +2544,35 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0 bg-white/[0.03] border border-white/[0.06] p-3 rounded-2xl">
+              <div className="flex items-center gap-3 shrink-0 bg-[#0F1326]/80 border border-white/10 p-3 rounded-2xl shadow-xl backdrop-blur-md">
                 <div className="text-center px-2">
-                  <p className="text-xl font-bold text-emerald-400 font-mono">{unlockedCount + ghEvaluation.unlockedCount}</p>
-                  <p className="text-[10px] text-slate-400 font-mono uppercase">Earned</p>
+                  <p className="text-xl font-bold text-emerald-400">{unlockedCount + ghEvaluation.unlockedCount}</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Earned</p>
                 </div>
-                <div className="w-px h-6 bg-white/[0.08]" />
+                <div className="w-px h-6 bg-white/10" />
                 <div className="text-center px-2">
-                  <p className="text-xl font-bold text-slate-500 font-mono">
+                  <p className="text-xl font-bold text-slate-400">
                     {(totalBadgesCount + ghEvaluation.totalCount) - (unlockedCount + ghEvaluation.unlockedCount)}
                   </p>
-                  <p className="text-[10px] text-slate-500 font-mono uppercase">Locked</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Locked</p>
                 </div>
-                <div className="w-px h-6 bg-white/[0.08]" />
+                <div className="w-px h-6 bg-white/10" />
                 <div className="text-center px-2">
-                  <p className="text-xl font-bold text-amber-400 font-mono">
+                  <p className="text-xl font-bold text-purple-400">
                     {Math.round(((unlockedCount + ghEvaluation.unlockedCount) / (totalBadgesCount + ghEvaluation.totalCount)) * 100)}%
                   </p>
-                  <p className="text-[10px] text-slate-400 font-mono uppercase">Progress</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Progress</p>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 p-1.5 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-3 p-1.5 bg-[#0F1326]/80 border border-white/[0.08] rounded-2xl shadow-xl backdrop-blur-md">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   onClick={() => setAchievementSubTab('all')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                     achievementSubTab === 'all'
-                      ? 'bg-emerald-600 text-white shadow-md'
+                      ? 'bg-[#6D3DF5] text-white shadow-md shadow-purple-600/30'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -2577,9 +2582,9 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
                 <button
                   onClick={() => setAchievementSubTab('skillbarter')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                     achievementSubTab === 'skillbarter'
-                      ? 'bg-emerald-600 text-white shadow-md'
+                      ? 'bg-[#6D3DF5] text-white shadow-md shadow-purple-600/30'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -2741,45 +2746,47 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 1: SEND QUERY REQUEST TO AUTHOR'S ACCOUNT              */}
       {/* ============================================================ */}
       {queryTargetVideo && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <form onSubmit={handleSubmitQueryRequest} className="relative w-full max-w-lg glass-panel p-6 rounded-3xl border border-emerald-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <form onSubmit={handleSubmitQueryRequest} className="relative w-full max-w-lg bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-4 font-sans text-white">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <Inbox className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-base font-bold text-white font-heading">
+                <div className="w-8 h-8 rounded-lg bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center">
+                  <Inbox className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-white">
                   Request Query Session with {queryTargetVideo.student_name}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setQueryTargetVideo(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1 text-xs">
+            <div className="p-3.5 rounded-xl bg-[#090C19] border border-white/10 space-y-1 text-xs">
               <p className="font-bold text-white">Video: {queryTargetVideo.title}</p>
-              <p className="text-[11px] font-mono text-emerald-300">Topic: {queryTargetVideo.topic} • Author: {queryTargetVideo.student_name}</p>
+              <p className="text-[11px] text-slate-400">Topic: <span className="font-semibold text-white">{queryTargetVideo.topic}</span> • Author: <span className="font-semibold text-purple-400">{queryTargetVideo.student_name}</span></p>
             </div>
 
-            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs font-mono text-amber-300 flex items-start gap-2">
-              <Lock className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-start gap-2">
+              <Lock className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
               <span>
                 This request will be sent to <strong>{queryTargetVideo.student_name}'s</strong> account. 1:1 communication will unlock only after they review and accept your request.
               </span>
             </div>
 
             <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Your Query / Introduction Note</label>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Your Query / Introduction Note</label>
               <textarea
                 required
                 rows={4}
                 value={queryCustomMessage}
                 onChange={(e) => setQueryCustomMessage(e.target.value)}
                 placeholder="Explain what queries you have regarding the topic..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-sans"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E] transition-colors font-sans"
               />
             </div>
 
@@ -2787,14 +2794,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               <button
                 type="button"
                 onClick={() => setQueryTargetVideo(null)}
-                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={sendingQueryRequest || !queryCustomMessage.trim()}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-mono font-bold shadow-lg shadow-emerald-600/30 cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
                 <span>{sendingQueryRequest ? 'Sending to Account...' : 'Send Request to Author →'}</span>
@@ -2808,8 +2815,8 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 2: UPLOAD DIRECT VIDEO TO PEERVAULT                    */}
       {/* ============================================================ */}
       {isUploadVideoModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <form onSubmit={handleUploadVideo} className="relative w-full max-w-lg glass-panel p-6 rounded-3xl border border-purple-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <form onSubmit={handleUploadVideo} className="relative w-full max-w-lg bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-4 font-sans text-white max-h-[90vh] overflow-y-auto">
             
             <input
               type="file"
@@ -2821,15 +2828,17 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <Film className="w-5 h-5 text-purple-400" />
-                <h3 className="text-base font-bold text-white font-heading">
+                <div className="w-8 h-8 rounded-lg bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center">
+                  <Film className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-white">
                   Upload Self-Recorded Video to PeerVault
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsUploadVideoModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
@@ -2841,22 +2850,22 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
             <div
               onClick={() => videoFileInputRef.current?.click()}
-              className={`p-4 rounded-2xl border-2 border-dashed transition-all cursor-pointer text-center space-y-2 ${
+              className={`p-5 rounded-2xl border-2 border-dashed transition-all cursor-pointer text-center space-y-2 ${
                 uploadedVideoFile
-                  ? 'border-purple-500/60 bg-purple-950/30'
-                  : 'border-white/20 hover:border-purple-500/50 bg-white/[0.02]'
+                  ? 'border-purple-500 bg-purple-950/20'
+                  : 'border-white/15 hover:border-purple-500/50 bg-white/[0.02]'
               }`}
             >
               {uploadedVideoFile ? (
                 <div className="space-y-1.5">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center mx-auto">
+                  <div className="w-10 h-10 rounded-xl bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center mx-auto">
                     <Film className="w-5 h-5" />
                   </div>
-                  <p className="text-xs font-bold text-white font-mono truncate max-w-xs mx-auto">
+                  <p className="text-xs font-bold text-white truncate max-w-xs mx-auto">
                     {uploadedVideoFile.name}
                   </p>
-                  <p className="text-[10px] font-mono text-purple-300">
-                    {uploadedVideoFile.size} • Ready to Publish (Tap to change)
+                  <p className="text-[11px] font-semibold text-purple-400">
+                    {uploadedVideoFile.size} • Ready to Publish (Click to change)
                   </p>
                 </div>
               ) : (
@@ -2865,7 +2874,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   <p className="text-xs font-bold text-white">
                     Click to select your self-recorded video file
                   </p>
-                  <p className="text-[10px] font-mono text-slate-400">
+                  <p className="text-[11px] text-slate-400">
                     Supports MP4, WebM, MOV, MKV (device recording)
                   </p>
                 </div>
@@ -2874,49 +2883,49 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Your Full Name</label>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Your Full Name</label>
                 <input
                   type="text"
                   required
                   value={vidStudentName}
                   onChange={(e) => setVidStudentName(e.target.value)}
                   placeholder="e.g. Rahul Sharma"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Google Account Email</label>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Google Account Email</label>
                 <input
                   type="email"
                   required
                   value={vidGoogleEmail}
                   onChange={(e) => setVidGoogleEmail(e.target.value)}
                   placeholder="name@gmail.com or @rvce.edu.in"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E]"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Contact Phone Number</label>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Contact Phone Number</label>
                 <input
                   type="tel"
                   required
                   value={vidPhoneNumber}
                   onChange={(e) => setVidPhoneNumber(e.target.value)}
                   placeholder="+91 98450 12345"
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-mono"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E]"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Domain</label>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Domain</label>
                 <select
                   value={vidDomain}
                   onChange={(e) => setVidDomain(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-purple-500"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white focus:outline-none focus:border-[#6D3DF5]"
                 >
                   <option value="Web Development">Web Development</option>
                   <option value="Artificial Intelligence & ML">Artificial Intelligence & ML</option>
@@ -2927,37 +2936,37 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
             </div>
 
             <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Video Title</label>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Video Title</label>
               <input
                 type="text"
                 required
                 value={vidTitle}
                 onChange={(e) => setVidTitle(e.target.value)}
                 placeholder="e.g. PostgreSQL B-Tree Indexing & EXPLAIN ANALYZE Demystified"
-                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E]"
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Topic / Specific Skill Covered</label>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Topic / Specific Skill Covered</label>
               <input
                 type="text"
                 required
                 value={vidTopic}
                 onChange={(e) => setVidTopic(e.target.value)}
                 placeholder="e.g. Database Systems, React Server Components, Microservices"
-                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                className="w-full px-3.5 py-2 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E]"
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Key Takeaways & Description</label>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Key Takeaways & Description</label>
               <textarea
                 rows={2}
                 value={vidDescription}
                 onChange={(e) => setVidDescription(e.target.value)}
                 placeholder="Summarize what peers will learn from this video walkthrough..."
-                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-sans"
+                className="w-full px-3.5 py-2 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E] font-sans"
               />
             </div>
 
@@ -2965,14 +2974,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               <button
                 type="button"
                 onClick={() => setIsUploadVideoModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={uploadingVideo || !uploadedVideoFile}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:opacity-95 text-white text-xs font-mono font-bold shadow-lg shadow-purple-600/30 cursor-pointer flex items-center gap-1.5 disabled:opacity-40"
+                className="px-4 py-2 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-40"
               >
                 <UploadCloud className="w-3.5 h-3.5" />
                 <span>{uploadingVideo ? 'Publishing...' : 'Publish to PeerVault →'}</span>
@@ -2986,16 +2995,16 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 3: ADD REVIEW & FEEDBACK (IMPACTS LEADERBOARD/CREDITS) */}
       {/* ============================================================ */}
       {feedbackVideoTarget && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <form onSubmit={handleAddReview} className="relative w-full max-w-md glass-panel p-6 rounded-3xl border border-purple-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <form onSubmit={handleAddReview} className="relative w-full max-w-md bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-4 font-sans text-white">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-base font-bold text-white font-heading">
+              <h3 className="text-base font-bold text-white">
                 Add Review for {feedbackVideoTarget.student_name}
               </h3>
               <button
                 type="button"
                 onClick={() => setFeedbackVideoTarget(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
@@ -3006,7 +3015,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
             </p>
 
             <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1.5">Rating (1 to 5 Stars)</label>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Rating (1 to 5 Stars)</label>
               <div className="flex items-center gap-2">
                 {[1, 2, 3, 4, 5].map((starNum) => (
                   <button
@@ -3020,21 +3029,21 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     </span>
                   </button>
                 ))}
-                <span className="text-xs font-mono font-bold text-purple-300 ml-2">
+                <span className="text-xs font-semibold text-purple-300 ml-2">
                   {feedbackRating >= 4 ? '👍 Positive (+15 Credits)' : feedbackRating === 3 ? '👌 Neutral (+5 Credits)' : '👎 Critical (-10 Credits)'}
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Public Feedback Comment</label>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Public Feedback Comment</label>
               <textarea
                 required
                 rows={3}
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
                 placeholder="What did you learn from this video? What was great and what can be improved?"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 font-sans"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E] transition-colors font-sans"
               />
             </div>
 
@@ -3042,14 +3051,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               <button
                 type="button"
                 onClick={() => setFeedbackVideoTarget(null)}
-                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submittingFeedback}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 text-white text-xs font-mono font-bold shadow-lg shadow-purple-600/30 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 transition-colors cursor-pointer"
               >
                 {submittingFeedback ? 'Posting...' : 'Post Public Review →'}
               </button>
@@ -3062,30 +3071,32 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 4: SEND MEETING LINK MODAL                             */}
       {/* ============================================================ */}
       {isMeetingModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md glass-panel p-6 rounded-3xl border border-emerald-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="relative w-full max-w-md bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-4 font-sans text-white">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <Video className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-base font-bold text-white font-heading">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                  <Video className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-white">
                   Send Video Meeting Link
                 </h3>
               </div>
               <button
                 onClick={() => setIsMeetingModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-300">
               Generate an instant Google Meet link or provide your custom meeting URL for this 1:1 session with <strong className="text-white">{activeSession?.name || 'Peer'}</strong>.
             </p>
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1.5 font-bold">
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
                   Choose Platform
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -3094,10 +3105,10 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                       key={plt}
                       type="button"
                       onClick={() => setMeetingPlatform(plt)}
-                      className={`py-2 px-3 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer text-center ${
+                      className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer text-center ${
                         meetingPlatform === plt
-                          ? 'bg-emerald-600 text-white border-emerald-400 shadow-md shadow-emerald-600/30'
-                          : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                          ? 'bg-emerald-600 text-white border-emerald-500 shadow-md'
+                          : 'bg-[#090C19] border-white/10 text-slate-400 hover:text-white'
                       }`}
                     >
                       {plt}
@@ -3108,7 +3119,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
               {meetingPlatform === 'Custom' ? (
                 <div>
-                  <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1.5 font-bold">
+                  <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
                     Custom Meeting URL
                   </label>
                   <input
@@ -3116,13 +3127,13 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     value={customMeetingUrl}
                     onChange={(e) => setCustomMeetingUrl(e.target.value)}
                     placeholder="https://meet.google.com/xyz or https://zoom.us/j/..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-[#12162E]"
                   />
                 </div>
               ) : (
-                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs font-mono text-emerald-300 flex items-center justify-between">
-                  <span>Instant {meetingPlatform} Link Generator</span>
-                  <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded font-bold">Auto-Gen</span>
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center justify-between">
+                  <span className="font-semibold">Instant {meetingPlatform} Link Generator</span>
+                  <span className="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded font-bold text-emerald-300">Auto-Gen</span>
                 </div>
               )}
             </div>
@@ -3131,14 +3142,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               <button
                 type="button"
                 onClick={() => setIsMeetingModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleSendMeetingLink(meetingPlatform === 'Custom' ? customMeetingUrl : undefined, meetingPlatform)}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-mono font-bold shadow-lg shadow-emerald-600/30 flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md flex items-center gap-1.5 cursor-pointer transition-colors"
               >
                 <Video className="w-3.5 h-3.5" />
                 <span>Send to Chat →</span>
@@ -3152,10 +3163,10 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 5: FULLSCREEN IMAGE PREVIEW                           */}
       {/* ============================================================ */}
       {previewImageModal && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
           <div className="relative max-w-3xl w-full p-4 space-y-3">
-            <div className="flex items-center justify-between text-white font-mono text-xs">
-              <span className="truncate max-w-sm">{previewImageModal.name}</span>
+            <div className="flex items-center justify-between text-white text-xs">
+              <span className="truncate max-w-sm font-semibold">{previewImageModal.name}</span>
               <div className="flex items-center gap-2">
                 <a
                   href={previewImageModal.url}
@@ -3190,16 +3201,16 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 6: CREATE SKILL REQUEST                                */}
       {/* ============================================================ */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <form onSubmit={handleCreateRequest} className="relative w-full max-w-md glass-panel p-6 rounded-3xl border border-emerald-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <form onSubmit={handleCreateRequest} className="relative w-full max-w-md bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-4 font-sans text-white">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-base font-bold text-white font-heading">
+              <h3 className="text-base font-bold text-white">
                 Request a Peer Mentorship Session
               </h3>
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
@@ -3207,23 +3218,23 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Skill or Topic</label>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Skill or Topic</label>
                 <input
                   type="text"
                   required
                   value={skill}
                   onChange={(e) => setSkill(e.target.value)}
                   placeholder="e.g. Next.js App Router, Docker Compose, PostgreSQL Indexing"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Domain</label>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Domain</label>
                 <select
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white focus:outline-none focus:border-[#6D3DF5]"
                 >
                   <option value="Web Development">Web Development</option>
                   <option value="Artificial Intelligence & ML">Artificial Intelligence & ML</option>
@@ -3233,14 +3244,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               </div>
 
               <div>
-                <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Description</label>
+                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Description</label>
                 <textarea
                   required
                   rows={3}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Describe what help you need or what you'd like to practice together..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-sans"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E] transition-colors font-sans"
                 />
               </div>
             </div>
@@ -3249,14 +3260,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
               <button
                 type="button"
                 onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={creatingRequest}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-mono font-bold shadow-lg shadow-emerald-600/30 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 transition-colors cursor-pointer"
               >
                 {creatingRequest ? 'Publishing...' : 'Publish Request →'}
               </button>
@@ -3269,43 +3280,43 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 7: OFFER MENTORSHIP RESPONSE                          */}
       {/* ============================================================ */}
       {respondingRequestId && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md glass-panel p-6 rounded-3xl border border-emerald-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="relative w-full max-w-md bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-4 font-sans text-white">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-base font-bold text-white font-heading">
+              <h3 className="text-base font-bold text-white">
                 Offer Mentorship to Peer
               </h3>
               <button
                 onClick={() => setRespondingRequestId(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
             <div>
-              <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Your Intro / Response</label>
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Your Intro / Response</label>
               <textarea
                 required
                 rows={3}
                 value={responseMessage}
                 onChange={(e) => setResponseMessage(e.target.value)}
                 placeholder="Hi! I can help you with this topic. Let's connect for a 1:1 session..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-sans"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E] transition-colors font-sans"
               />
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/10">
               <button
                 onClick={() => setRespondingRequestId(null)}
-                className="px-4 py-2 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleSendResponse(respondingRequestId)}
                 disabled={respondingLoading || !responseMessage.trim()}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-mono font-bold shadow-lg shadow-emerald-600/30 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 transition-colors cursor-pointer"
               >
                 {respondingLoading ? 'Sending...' : 'Send Offer →'}
               </button>
@@ -3318,42 +3329,42 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 8: BADGE INSPECT MODAL                                 */}
       {/* ============================================================ */}
       {selectedBadgeDetail && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md glass-panel p-6 rounded-3xl border border-emerald-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="relative w-full max-w-md bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-4 font-sans text-white">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-xs font-mono text-emerald-400 font-bold">
+              <span className="text-xs font-semibold text-purple-400">
                 Milestone #{selectedBadgeDetail.badgeNumber}
               </span>
               <button
                 onClick={() => setSelectedBadgeDetail(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
             <div className="text-center space-y-2 py-2">
-              <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-2xl bg-gradient-to-br ${
-                selectedBadgeDetail.isUnlocked ? selectedBadgeDetail.color : 'from-slate-800 to-slate-900 border border-white/10'
+              <div className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center text-4xl shadow-lg border border-white/10 ${
+                selectedBadgeDetail.isUnlocked ? 'bg-[#12162E]' : 'bg-white/5 opacity-50'
               }`}>
                 {selectedBadgeDetail.icon}
               </div>
-              <h3 className="text-xl font-extrabold text-white font-heading">
+              <h3 className="text-lg font-bold text-white">
                 {selectedBadgeDetail.name}
               </h3>
-              <p className="text-xs text-emerald-300 font-mono">
+              <p className="text-xs text-slate-400">
                 {selectedBadgeDetail.category}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 text-xs">
+            <div className="p-4 rounded-xl bg-[#090C19] border border-white/10 space-y-3 text-xs">
               <div>
-                <span className="text-slate-400 font-mono uppercase block text-[10px]">Requirement:</span>
-                <p className="text-white font-semibold mt-0.5">{selectedBadgeDetail.requirement}</p>
+                <span className="text-slate-400 uppercase tracking-wider block text-[10px] font-semibold">Requirement:</span>
+                <p className="text-white font-medium mt-0.5">{selectedBadgeDetail.requirement}</p>
               </div>
               <div>
-                <span className="text-slate-400 font-mono uppercase block text-[10px]">Status:</span>
-                <p className={`font-bold mt-0.5 font-mono ${
+                <span className="text-slate-400 uppercase tracking-wider block text-[10px] font-semibold">Status:</span>
+                <p className={`font-semibold mt-0.5 ${
                   selectedBadgeDetail.isUnlocked ? 'text-emerald-400' : 'text-amber-400'
                 }`}>
                   {selectedBadgeDetail.isUnlocked ? '✓ Unlocked & Earned in Skillora' : '🔒 Locked — Progressive Milestone'}
@@ -3364,7 +3375,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedBadgeDetail(null)}
-                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -3377,40 +3388,40 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 9: GRAND MASTER BADGE INSPECT MODAL                    */}
       {/* ============================================================ */}
       {selectedGhBadgeDetail && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative w-full max-w-md glass-panel p-6 rounded-3xl border border-cyan-500/40 shadow-2xl space-y-4 bg-gradient-to-b from-slate-900 to-black font-sans">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <div className="relative w-full max-w-md bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-4 font-sans text-white">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <span className="text-xs font-mono text-cyan-400 font-bold flex items-center gap-1">
-                <Crown className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-xs text-amber-400 font-bold flex items-center gap-1.5">
+                <Crown className="w-4 h-4 text-amber-400" />
                 <span>Grand Master Prestige Badge</span>
               </span>
               <button
                 onClick={() => setSelectedGhBadgeDetail(null)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
             <div className="text-center space-y-2 py-2">
-              <div className={`w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-5xl shadow-2xl ${
-                selectedGhBadgeDetail.isUnlocked ? 'bg-cyan-500/20 border border-cyan-500/40' : 'bg-white/5 border border-white/10 grayscale'
+              <div className={`w-20 h-20 rounded-2xl mx-auto flex items-center justify-center text-4xl shadow-lg border border-white/10 ${
+                selectedGhBadgeDetail.isUnlocked ? 'bg-[#12162E]' : 'bg-white/5 opacity-50'
               }`}>
                 {selectedGhBadgeDetail.icon}
               </div>
-              <h3 className="text-xl font-extrabold text-white font-heading">
+              <h3 className="text-lg font-bold text-white">
                 {selectedGhBadgeDetail.name}
               </h3>
-              <p className="text-xs text-cyan-300 font-mono">
+              <p className="text-xs text-slate-400">
                 {selectedGhBadgeDetail.category}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 text-xs">
+            <div className="p-4 rounded-xl bg-[#090C19] border border-white/10 space-y-2 text-xs">
               <p className="text-slate-300 leading-relaxed">{selectedGhBadgeDetail.description}</p>
-              <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono">
+              <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px]">
                 <span className="text-slate-400">Status:</span>
-                <span className={selectedGhBadgeDetail.isUnlocked ? 'text-emerald-400 font-bold' : 'text-slate-500'}>
+                <span className={selectedGhBadgeDetail.isUnlocked ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
                   {selectedGhBadgeDetail.isUnlocked ? '✓ Grand Achievement Earned' : '🔒 Locked — High-Stakes Milestone'}
                 </span>
               </div>
@@ -3419,7 +3430,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedGhBadgeDetail(null)}
-                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-mono text-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-xs transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -3433,22 +3444,22 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       {/* MODAL 10: END SESSION & GIVE FEEDBACK MODAL                  */}
       {/* ============================================================ */}
       {isEndSessionModalOpen && endSessionTarget && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
           <form
             onSubmit={handleSubmitEndSessionFeedback}
-            className="relative w-full max-w-lg glass-panel p-6 sm:p-7 rounded-3xl border border-emerald-500/40 shadow-2xl space-y-5 bg-gradient-to-b from-slate-900 to-[#07080f] font-sans"
+            className="relative w-full max-w-lg bg-[#0F1326] p-6 sm:p-7 rounded-2xl border border-white/10 shadow-2xl space-y-5 font-sans text-white"
           >
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-inner">
-                  <Star className="w-5 h-5 fill-emerald-400" />
+                <div className="w-8 h-8 rounded-lg bg-[#6D3DF5]/20 text-purple-400 flex items-center justify-center">
+                  <Star className="w-4 h-4 fill-purple-400" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white font-heading">
+                  <h3 className="text-base font-bold text-white">
                     End Session & Rate Experience
                   </h3>
-                  <p className="text-[11px] text-slate-400 font-mono">
-                    Session with {endSessionTarget.name || 'Peer'} ({endSessionTarget.skill})
+                  <p className="text-[11px] text-slate-400">
+                    Session with <span className="font-semibold text-white">{endSessionTarget.name || 'Peer'}</span> ({endSessionTarget.skill})
                   </p>
                 </div>
               </div>
@@ -3458,15 +3469,15 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   setIsEndSessionModalOpen(false);
                   setEndSessionTarget(null);
                 }}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Star Rating Selector (Golden ONLY upon selection/hover) */}
-            <div className="text-center space-y-2 py-2 bg-white/[0.02] p-4 rounded-2xl border border-white/5">
-              <span className="text-[11px] font-mono text-slate-300 uppercase tracking-wide block">
+            {/* Star Rating Selector */}
+            <div className="text-center space-y-2 py-3 bg-[#090C19] p-4 rounded-xl border border-white/10">
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
                 How would you rate this barter exchange?
               </span>
               <div
@@ -3482,12 +3493,12 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                       type="button"
                       onMouseEnter={() => setEndSessionHoverRating(star)}
                       onClick={() => setEndSessionRating(star)}
-                      className="p-1.5 transition-all duration-150 hover:scale-125 cursor-pointer focus:outline-none"
+                      className="p-1.5 transition-all duration-150 hover:scale-110 cursor-pointer focus:outline-none"
                     >
                       <Star
-                        className={`w-8 h-8 transition-colors ${
+                        className={`w-7 h-7 transition-colors ${
                           isGold
-                            ? 'text-amber-400 fill-amber-400 filter drop-shadow-[0_0_10px_rgba(251,191,36,0.7)]'
+                            ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]'
                             : 'text-slate-700 fill-transparent hover:text-slate-500'
                         }`}
                       />
@@ -3495,7 +3506,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   );
                 })}
               </div>
-              <div className="text-xs font-mono min-h-[20px] flex items-center justify-center">
+              <div className="text-xs min-h-[20px] flex items-center justify-center font-medium">
                 {(() => {
                   const effectiveRating = endSessionHoverRating || endSessionRating;
                   if (effectiveRating === 0) {
@@ -3508,7 +3519,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     return <span className="text-amber-400 font-bold">★★★★☆ Great Session (+15 Credits)</span>;
                   }
                   if (effectiveRating === 3) {
-                    return <span className="text-amber-300 font-bold">★★★☆☆ Good / Neutral (+5 Credits)</span>;
+                    return <span className="text-slate-300 font-bold">★★★☆☆ Good / Neutral (+5 Credits)</span>;
                   }
                   if (effectiveRating === 2) {
                     return <span className="text-rose-400 font-bold">★★☆☆☆ Needs Improvement (-10 Credits)</span>;
@@ -3520,7 +3531,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
             {/* Feedback Comment Textarea */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300 font-sans block">
+              <label className="text-xs font-semibold text-slate-200 block">
                 Feedback & Review Comments:
               </label>
               <textarea
@@ -3529,13 +3540,13 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                 value={endSessionFeedbackText}
                 onChange={(e) => setEndSessionFeedbackText(e.target.value)}
                 placeholder="Describe what you learned, query solutions provided, and helpfulness of the peer..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 font-sans leading-relaxed"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#090C19] border border-white/10 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-[#6D3DF5] focus:bg-[#12162E] font-sans leading-relaxed"
               />
             </div>
 
             {/* Live Progress & PeerVault Sync Info Notice */}
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-1 text-xs text-emerald-200">
-              <div className="flex items-center gap-1.5 font-bold font-mono text-emerald-300">
+            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-1 text-xs text-emerald-300">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-400">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Automatic Dual-Progress & PeerVault Sync:</span>
               </div>
@@ -3554,14 +3565,14 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   setIsEndSessionModalOpen(false);
                   setEndSessionTarget(null);
                 }}
-                className="px-4 py-2.5 rounded-xl bg-white/10 text-slate-300 hover:text-white text-xs font-mono cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={endingSessionLoading}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white text-xs font-mono font-bold shadow-lg shadow-emerald-600/30 flex items-center gap-1.5 cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 flex items-center gap-1.5 cursor-pointer transition-colors"
               >
                 <Check className="w-4 h-4" />
                 <span>{endingSessionLoading ? 'Submitting...' : 'Submit Feedback & Complete Session →'}</span>
