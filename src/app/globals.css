@@ -733,3 +733,23 @@ body {
 
 
 
+
+
+/* Dashboard layout: use the available viewport instead of an artificial centered canvas. */
+html, body {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* Compact scrollbar for horizontal dashboard navigation. */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 999px;
+}

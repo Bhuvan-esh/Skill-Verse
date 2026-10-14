@@ -395,6 +395,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
   const [videoQueryRequests, setVideoQueryRequests] = useState<VideoQueryRequest[]>(SEED_VIDEO_QUERIES);
   const [requestsSubFilter, setRequestsSubFilter] = useState<'ALL' | 'GENERAL' | 'VIDEO_QUERIES'>('ALL');
   const [acceptingQueryId, setAcceptingQueryId] = useState<string | null>(null);
+  const [expandedRequestCardId, setExpandedRequestCardId] = useState<string | null>(null);
 
   const [msg, setMsg] = useState<string | null>(null);
   const [msgType, setMsgType] = useState<'success' | 'error'>('success');
@@ -1536,7 +1537,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
     <div className="min-h-screen bg-[#0A0C16] text-slate-100 font-sans pb-16 relative overflow-hidden">
       
       {/* Subtle Ambient Radial Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-purple-900/15 via-transparent to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-gradient-to-b from-purple-900/15 via-transparent to-transparent blur-3xl pointer-events-none" />
 
       {/* Hidden File Inputs */}
       <input
@@ -1556,7 +1557,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
 
       {/* Hero Banner */}
       <div className="relative border-b border-white/[0.08] bg-[#0F1326]/70 backdrop-blur-xl px-4 sm:px-6 py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+        <div className="w-full px-6 lg:px-8 xl:px-10 flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
@@ -1601,7 +1602,7 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
       </div>
 
       {/* Main Content Area */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6 relative z-10">
+      <div className="w-full px-5 sm:px-6 lg:px-8 xl:px-10 py-6 space-y-6 relative z-10">
 
         {/* Navigation Tabs */}
         <div className="flex items-center gap-1.5 p-1.5 bg-[#0F1326]/80 backdrop-blur-md border border-white/[0.08] rounded-2xl overflow-x-auto shadow-xl">
@@ -1678,15 +1679,17 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                   </h3>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
                   {videoQueryRequests.map((vq) => {
                     const isPending = vq.status === 'PENDING';
                     const isAccepted = vq.status === 'ACCEPTED';
+                    const cardId = `video-${vq.id}`;
+                    const isExpanded = expandedRequestCardId === cardId;
 
                     return (
                       <div
                         key={vq.id}
-                        className={`p-5 rounded-2xl border transition-all space-y-3 shadow-xl bg-[#12162A]/80 backdrop-blur-md ${
+                        className={`rounded-2xl border transition-all shadow-xl bg-[#12162A]/80 backdrop-blur-md ${
                           isAccepted
                             ? 'border-emerald-500/30'
                             : isPending
@@ -1694,72 +1697,89 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                             : 'border-white/10 opacity-70'
                         }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#6D3DF5]/15 text-purple-300 border border-[#6D3DF5]/30 flex items-center gap-1">
-                            <Film className="w-3 h-3" />
-                            <span>{vq.topic}</span>
+                        <button
+                          type="button"
+                          aria-expanded={isExpanded}
+                          aria-controls={`${cardId}-details`}
+                          onClick={() => setExpandedRequestCardId(isExpanded ? null : cardId)}
+                          className="flex w-full items-center justify-between gap-2.5 p-3 text-left cursor-pointer"
+                        >
+                          <span className="min-w-0 space-y-1.5">
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#6D3DF5]/15 text-purple-300 border border-[#6D3DF5]/30 flex items-center gap-1 truncate">
+                                <Film className="w-3 h-3 shrink-0" />
+                                <span className="truncate">{vq.topic}</span>
+                              </span>
+                            </span>
+                            <span className="block truncate text-[11px] font-semibold text-white">{vq.requester_name}</span>
                           </span>
-
-                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
-                            isAccepted
-                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                              : isPending
-                              ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-                              : 'bg-white/5 text-slate-400 border-white/10'
-                          }`}>
-                            {isAccepted ? '✓ ACCEPTED' : isPending ? '⏳ AWAITING ACCEPTANCE' : 'DECLINED'}
+                          <span className="flex shrink-0 items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold border ${
+                              isAccepted
+                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                                : isPending
+                                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                                  : 'bg-white/5 text-slate-400 border-white/10'
+                            }`}>
+                              {isAccepted ? 'ACCEPTED' : isPending ? 'AWAITING' : 'DECLINED'}
+                            </span>
+                            <ChevronRight className={`h-4 w-4 text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                           </span>
-                        </div>
+                        </button>
 
-                        <div>
-                          <h4 className="text-xs font-semibold text-slate-400">
-                            Video: <span className="text-white font-bold">{vq.video_title}</span>
-                          </h4>
-                          <p className="text-xs text-slate-200 mt-2 leading-relaxed p-3.5 rounded-xl bg-[#090C19] border border-white/5">
-                            "{vq.query_message}"
-                          </p>
-                        </div>
-
-                        <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center text-xs font-bold border border-[#6D3DF5]/30">
-                              {vq.requester_name[0] || 'S'}
-                            </div>
+                        {isExpanded && (
+                          <div id={`${cardId}-details`} className="space-y-3 px-4 pb-4">
                             <div>
-                              <p className="text-xs font-bold text-white">{vq.requester_name}</p>
-                              <p className="text-[10px] text-slate-400 font-mono">{vq.requester_email}</p>
+                              <h4 className="text-xs font-semibold text-slate-400">
+                                Video: <span className="text-white font-bold">{vq.video_title}</span>
+                              </h4>
+                              <p className="text-xs text-slate-200 mt-2 leading-relaxed p-3.5 rounded-xl bg-[#090C19] border border-white/5">
+                                &quot;{vq.query_message}&quot;
+                              </p>
+                            </div>
+
+                            <div className="pt-2 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center text-xs font-bold border border-[#6D3DF5]/30">
+                                  {vq.requester_name[0] || 'S'}
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-white">{vq.requester_name}</p>
+                                  <p className="text-[10px] text-slate-400 font-mono">{vq.requester_email}</p>
+                                </div>
+                              </div>
+
+                              {isPending ? (
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => handleDeclineVideoQuery(vq.id)}
+                                    className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 text-xs font-medium cursor-pointer transition-colors"
+                                  >
+                                    Decline
+                                  </button>
+                                  <button
+                                    onClick={() => handleAcceptVideoQuery(vq)}
+                                    disabled={acceptingQueryId === vq.id}
+                                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm flex items-center gap-1 cursor-pointer transition-colors"
+                                  >
+                                    <UserCheck className="w-3.5 h-3.5" />
+                                    <span>{acceptingQueryId === vq.id ? 'Accepting...' : 'Accept & Start Chat'}</span>
+                                  </button>
+                                </div>
+                              ) : isAccepted ? (
+                                <button
+                                  onClick={() => {
+                                    if (vq.session_id) setActiveSessionId(vq.session_id);
+                                    setActiveTab('sessions');
+                                  }}
+                                  className="px-3.5 py-1.5 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <span>Open Chat →</span>
+                                </button>
+                              ) : null}
                             </div>
                           </div>
-
-                          {isPending ? (
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={() => handleDeclineVideoQuery(vq.id)}
-                                className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 text-xs font-medium cursor-pointer transition-colors"
-                              >
-                                Decline
-                              </button>
-                              <button
-                                onClick={() => handleAcceptVideoQuery(vq)}
-                                disabled={acceptingQueryId === vq.id}
-                                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm flex items-center gap-1 cursor-pointer transition-colors"
-                              >
-                                <UserCheck className="w-3.5 h-3.5" />
-                                <span>{acceptingQueryId === vq.id ? 'Accepting...' : 'Accept & Start Chat'}</span>
-                              </button>
-                            </div>
-                          ) : isAccepted ? (
-                            <button
-                              onClick={() => {
-                                if (vq.session_id) setActiveSessionId(vq.session_id);
-                                setActiveTab('sessions');
-                              }}
-                              className="px-3.5 py-1.5 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                            >
-                              <span>Open Chat →</span>
-                            </button>
-                          ) : null}
-                        </div>
+                        )}
                       </div>
                     );
                   })}
@@ -1785,51 +1805,70 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
                     <p>No open general requests found right now.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {requests.map((req) => (
-                      <div
-                        key={req.id}
-                        className="p-5 rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md hover:border-purple-500/40 transition-all space-y-3 shadow-xl"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${DOMAIN_CHIP[req.domain] || 'bg-white/5 text-slate-300'}`}>
-                            {req.domain}
-                          </span>
-                          <span className="text-[11px] text-slate-400">
-                            {new Date(req.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                    {requests.map((req) => {
+                      const cardId = `general-${req.id}`;
+                      const isExpanded = expandedRequestCardId === cardId;
 
-                        <div>
-                          <h4 className="text-sm font-bold text-white">{req.skill}</h4>
-                          <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                            {req.message}
-                          </p>
-                        </div>
-
-                        <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center text-xs font-bold border border-[#6D3DF5]/30">
-                              {(req.requester?.name || 'S')[0]}
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-white">{req.requester?.name || 'Student'}</p>
-                              <p className="text-[10px] text-slate-400 font-mono">{req.requester?.usn}</p>
-                            </div>
-                          </div>
-
+                      return (
+                        <div
+                          key={req.id}
+                          className="rounded-2xl border border-white/[0.08] bg-[#12162A]/80 backdrop-blur-md hover:border-purple-500/40 transition-all shadow-xl"
+                        >
                           <button
-                            onClick={() => {
-                              setRespondingRequestId(req.id);
-                              setResponseMessage(`Hi ${req.requester?.name || 'Peer'}! I can help you with ${req.skill}. Let's connect!`);
-                            }}
-                            className="px-3.5 py-1.5 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                            type="button"
+                            aria-expanded={isExpanded}
+                            aria-controls={`${cardId}-details`}
+                            onClick={() => setExpandedRequestCardId(isExpanded ? null : cardId)}
+                            className="flex w-full items-center justify-between gap-2.5 p-3 text-left cursor-pointer"
                           >
-                            Offer Help →
+                            <span className="min-w-0 space-y-1.5">
+                              <span className={`inline-flex max-w-full px-2 py-0.5 rounded-full text-[11px] font-medium border ${DOMAIN_CHIP[req.domain] || 'bg-white/5 text-slate-300'}`}>
+                                <span className="truncate">{req.domain}</span>
+                              </span>
+                              <span className="block truncate text-xs font-bold text-white">{req.skill}</span>
+                              <span className="block truncate text-[10px] text-slate-400">{req.requester?.name || 'Student'}</span>
+                            </span>
+                            <span className="flex shrink-0 items-center gap-2">
+                              <span className="hidden text-[11px] text-slate-400 sm:inline">
+                                {new Date(req.created_at).toLocaleDateString()}
+                              </span>
+                              <ChevronRight className={`h-4 w-4 text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                            </span>
                           </button>
+
+                          {isExpanded && (
+                            <div id={`${cardId}-details`} className="space-y-3 px-4 pb-4">
+                              <p className="text-xs text-slate-300 leading-relaxed p-3.5 rounded-xl bg-[#090C19] border border-white/5">
+                                {req.message}
+                              </p>
+
+                              <div className="pt-2 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-7 h-7 rounded-lg bg-[#6D3DF5]/20 text-purple-300 flex items-center justify-center text-xs font-bold border border-[#6D3DF5]/30">
+                                    {(req.requester?.name || 'S')[0]}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-white">{req.requester?.name || 'Student'}</p>
+                                    <p className="text-[10px] text-slate-400 font-mono">{req.requester?.usn}</p>
+                                  </div>
+                                </div>
+
+                                <button
+                                  onClick={() => {
+                                    setRespondingRequestId(req.id);
+                                    setResponseMessage(`Hi ${req.requester?.name || 'Peer'}! I can help you with ${req.skill}. Let's connect!`);
+                                  }}
+                                  className="px-3.5 py-1.5 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                                >
+                                  Offer Help →
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

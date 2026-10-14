@@ -24,6 +24,8 @@ interface NavbarProps {
   user: any;
   activeRole: string;
   activeTab: string;
+  pageTitle?: string;
+  pageSubtitle?: string;
   setActiveTab: (tab: string) => void;
   onLogout: () => void;
   onOpenLoginModal?: () => void;
@@ -37,6 +39,8 @@ export default function Navbar({
   user,
   activeRole,
   activeTab,
+  pageTitle,
+  pageSubtitle,
   setActiveTab,
   onLogout,
   unreadNotifications,
@@ -45,42 +49,71 @@ export default function Navbar({
   setCodingSubTab,
 }: NavbarProps) {
   const router = useRouter();
+  const profileInitials = user?.name
+    ?.trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part: string) => part[0])
+    .join('')
+    .toUpperCase() || 'U';
+  const profileRoleLabel = user?.role === 'FOUNDER'
+    ? 'Visual Architect'
+    : user?.role === 'MENTOR'
+      ? 'Mentor'
+      : user?.role === 'VOLUNTEER'
+        ? 'Community Ambassador'
+        : 'Participant';
+  const profileAccent = user?.role === 'FOUNDER'
+    ? 'bg-purple-400 text-purple-950'
+    : user?.role === 'MENTOR'
+      ? 'bg-blue-400 text-blue-950'
+      : user?.role === 'VOLUNTEER'
+        ? 'bg-emerald-400 text-emerald-950'
+        : 'bg-indigo-400 text-indigo-950';
+  const profileRoleBadge = user?.role === 'FOUNDER'
+    ? 'border-purple-400/25 bg-purple-400/10 text-purple-200'
+    : user?.role === 'MENTOR'
+      ? 'border-blue-400/25 bg-blue-400/10 text-blue-200'
+      : user?.role === 'VOLUNTEER'
+        ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-200'
+        : 'border-indigo-400/25 bg-indigo-400/10 text-indigo-200';
 
   return (
-    <header className="sticky top-0 z-50 glass-panel border-b border-white/10 px-4 lg:px-8 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-50 glass-panel border-b border-white/10 px-3 sm:px-5 lg:px-7 py-2.5">
+      <div className="w-full grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 lg:gap-4">
 
         {/* Brand Logo & Title with Back to Horizon Button */}
-        <div className="flex items-center space-x-4">
+        <div className="flex min-w-0 items-center gap-2.5 lg:gap-3.5">
           {user && (
             <button
               onClick={() => router.push('/horizon')}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 text-xs font-bold font-mono transition-all cursor-pointer shadow-sm group"
+              aria-label="Return to Horizon"
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 transition-all cursor-pointer shadow-sm group"
               title="Return to 3D Horizon view"
             >
-              <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-              <span>Back to Horizon</span>
+              <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
             </button>
           )}
 
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-amber-400 p-0.5 shadow-lg shadow-blue-500/20">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5">
+            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-amber-400 p-0.5 shadow-lg shadow-blue-500/20">
               <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
                 <Lightbulb className="w-5 h-5 text-amber-400" />
               </div>
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-purple-400 bg-clip-text text-transparent font-heading">
-                {activeTab === 'competitions' ? 'Coding Arena' : 'Home Page'}
+              <h1 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-purple-400 bg-clip-text text-transparent font-heading">
+                {pageTitle || (activeTab === 'competitions' ? 'Coding Arena' : activeTab === 'skillbarter' ? 'Skillora' : 'Home Page')}
               </h1>
-              <p className="text-xs text-slate-400 font-medium">Student Innovation & Credit Engine</p>
+              <p className="text-[10px] lg:text-xs text-slate-400 font-medium truncate">{pageSubtitle || (activeTab === 'skillbarter' ? 'Peer Skill Exchange & Video Hub' : 'Student Innovation & Credit Engine')}</p>
             </div>
           </Link>
         </div>
 
         {/* Navigation Tabs based on Active Context */}
         {user && (
-          <nav className="hidden md:flex items-center space-x-1 bg-slate-900/80 p-1.5 rounded-xl border border-white/5">
+          <nav className="hidden md:flex min-w-0 max-w-[min(58vw,760px)] items-center gap-0.5 bg-slate-900/80 p-1 rounded-xl border border-white/5 overflow-x-auto justify-self-center scrollbar-thin">
             {activeTab === 'competitions' ? (
               /* Coding Challenge Arena Sub-Tabs */
               <>
@@ -335,7 +368,7 @@ export default function Navbar({
         )}
 
         {/* User Session & Role Badge & Logout */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-end gap-2 lg:gap-2.5 min-w-0">
 
           {/* Notifications Button */}
           {user && (
@@ -355,26 +388,22 @@ export default function Navbar({
 
           {/* User Role Badge & Logout */}
           {user ? (
-            <div className="flex items-center space-x-3">
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-sm font-bold text-white">{user.name}</span>
-                <span
-                  className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${user.role === 'FOUNDER'
-                      ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                      : user.role === 'MENTOR'
-                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                        : user.role === 'VOLUNTEER'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                          : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                    }`}
-                >
-                  {user.role === 'FOUNDER'
-                    ? 'VISUAL ARCHITECT 🔒'
-                    : user.role === 'MENTOR'
-                    ? 'MENTOR 🔒'
-                    : user.role === 'VOLUNTEER'
-                    ? 'COMMUNITY AMBASSADOR 🔒'
-                    : 'PARTICIPANT 🔒'} {user.usn ? `(${user.usn})` : ''}
+            <div className="flex items-center gap-2.5">
+              <div
+                className="flex min-w-0 items-center gap-2.5 rounded-full border border-white/10 bg-slate-900/80 py-1.5 pl-1.5 pr-3.5"
+                title={`${user.name} · ${profileRoleLabel}${user.usn ? ` · ${user.usn}` : ''}`}
+                aria-label={`${user.name}, ${profileRoleLabel}${user.usn ? `, ${user.usn}` : ''}`}
+              >
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${profileAccent}`}>
+                  {profileInitials}
+                </span>
+                <span className="flex min-w-0 flex-col items-start gap-1">
+                  <span className="max-w-[100px] truncate text-sm font-semibold leading-tight text-white sm:max-w-[140px]">
+                    {user.name}
+                  </span>
+                  <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[8px] font-bold uppercase leading-none tracking-wide sm:px-2 sm:text-[9px] ${profileRoleBadge}`}>
+                    {user.role || 'STUDENT'}
+                  </span>
                 </span>
               </div>
 

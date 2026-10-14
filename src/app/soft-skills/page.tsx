@@ -1,10 +1,12 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import Navbar from '@/components/Navbar'
+import { useAuth } from '@/context/AuthContext'
 import {
   Sparkles,
-  ArrowLeft,
+  ArrowUpRight,
   Video,
   Play,
   Award,
@@ -217,6 +219,8 @@ const PAST_COMPETITIONS_DATA = [
 ]
 
 export default function SoftSkillsArenaPage() {
+  const { user, logout } = useAuth()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'competitions' | 'videos' | 'founder' | 'simulator' | 'judge' | 'audit'>('competitions')
   
   // Competitions state
@@ -229,10 +233,13 @@ export default function SoftSkillsArenaPage() {
   const [registerModalEvent, setRegisterModalEvent] = useState<any>(null)
   const [teamModalEvent, setTeamModalEvent] = useState<any>(null)
   const [selectedRetrospective, setSelectedRetrospective] = useState<any>(null)
+  const [competitionDetailsEvent, setCompetitionDetailsEvent] = useState<any>(null)
 
   // Videos state
   const [videos, setVideos] = useState<any[]>([])
   const [loadingVideos, setLoadingVideos] = useState(false)
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null)
+  const [showAllVideos, setShowAllVideos] = useState(false)
 
   // Reports state
   const [reports, setReports] = useState<any[]>([])
@@ -487,7 +494,12 @@ export default function SoftSkillsArenaPage() {
     try {
       const res = await fetch(`/api/soft-skills/events/${id}`)
       const data = await res.json()
-      if (res.ok && data.event) setSelectedEvent(data.event)
+      if (res.ok && data.event) {
+        setSelectedEvent(data.event)
+        setCompetitionDetailsEvent((current: any) =>
+          current?.id === id ? { ...current, ...data.event } : current
+        )
+      }
 
       const partRes = await fetch(`/api/soft-skills/events/${id}/participants`)
       const partData = await partRes.json()
@@ -499,6 +511,11 @@ export default function SoftSkillsArenaPage() {
     } catch (e) {
       console.error(e)
     }
+  }
+
+  const openCompetitionDetails = (event: any) => {
+    setCompetitionDetailsEvent(event)
+    setSelectedEventId(event.id)
   }
 
   const fetchVideos = async () => {
@@ -985,44 +1002,35 @@ export default function SoftSkillsArenaPage() {
   const publicReports = reports.filter((r) => r.is_public)
 
   return (
-    <div className="min-h-screen bg-[#08070d] text-slate-100 selection:bg-purple-500 selection:text-white p-4 sm:p-6 lg:p-8 relative overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-[#08070d] text-slate-100 selection:bg-purple-500 selection:text-white relative overflow-x-hidden">
       <div 
         className="fixed inset-0 pointer-events-none -z-10"
         style={{ background: 'radial-gradient(circle at 50% 30%, rgba(167, 139, 250, 0.12) 0%, rgba(8, 7, 13, 0.98) 75%)' }}
       />
 
-      {/* Header */}
-      <header className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl border border-white/10 mb-8 shadow-2xl">
-        <div className="flex items-center space-x-4">
-          <Link
-            href="/horizon"
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-xs font-mono text-purple-300 hover:text-white border border-white/10 transition-all cursor-pointer group"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Horizon</span>
-          </Link>
+      <Navbar
+        user={user}
+        activeRole={user?.role || 'STUDENT'}
+        activeTab="soft-skills"
+        pageTitle="Soft Skills Arena"
+        pageSubtitle="Student Innovation & Credit Engine"
+        setActiveTab={(tab) => router.push(`/dashboard?tab=${encodeURIComponent(tab)}`)}
+        onLogout={async () => {
+          await logout()
+          router.push('/join')
+        }}
+        unreadNotifications={softSkillsNotifs.filter((notification) => !notification.read).length}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
+      />
 
-          <div>
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-slate-200 to-purple-400 bg-clip-text text-transparent font-heading">
-                Soft Skill
-              </h1>
-            </div>
-            <p className="text-xs text-slate-400 font-mono">
-              Student Innovation & Credit Engine
-            </p>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-white/10">
+      <nav className="w-full px-3 sm:px-5 lg:px-7 xl:px-9 pt-4">
+        <div className="flex items-center gap-1.5 p-1.5 bg-[#0F1326]/80 backdrop-blur-md border border-white/[0.08] rounded-2xl overflow-x-auto shadow-xl">
           <button
             onClick={() => setActiveTab('competitions')}
-            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'competitions'
-                ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-md shadow-purple-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
             <Trophy className="w-3.5 h-3.5 text-amber-300" />
@@ -1031,10 +1039,10 @@ export default function SoftSkillsArenaPage() {
 
           <button
             onClick={() => setActiveTab('videos')}
-            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'videos'
-                ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-md shadow-purple-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
             <Video className="w-3.5 h-3.5 text-purple-300" />
@@ -1046,10 +1054,10 @@ export default function SoftSkillsArenaPage() {
               setActiveTab('audit')
               fetchLeaderboard()
             }}
-            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'audit'
-                ? 'bg-gradient-to-r from-purple-600 to-emerald-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-md shadow-purple-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
             <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
@@ -1058,31 +1066,17 @@ export default function SoftSkillsArenaPage() {
 
           <button
             onClick={() => setActiveTab('judge')}
-            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold font-mono transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'judge'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#6D3DF5] text-white shadow-md shadow-purple-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
             }`}
           >
             <User className="w-3.5 h-3.5 text-purple-300" />
             <span>Profile</span>
           </button>
-
-          {/* Soft Skills Notification Bell */}
-          <button
-            onClick={() => setIsNotificationsOpen(true)}
-            className="relative p-2 rounded-lg bg-white/5 hover:bg-purple-500/20 text-purple-300 border border-white/10 hover:border-purple-400/40 transition-all cursor-pointer flex items-center justify-center"
-            title="Soft Skills Notifications"
-          >
-            <Bell className="w-4 h-4 text-purple-300" />
-            {softSkillsNotifs.filter((n) => !n.read).length > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-black text-[9px] font-mono font-extrabold rounded-full flex items-center justify-center animate-pulse">
-                {softSkillsNotifs.filter((n) => !n.read).length}
-              </span>
-            )}
-          </button>
         </div>
-      </header>
+      </nav>
 
       {/* Slide-Over Notification Modal */}
       {isNotificationsOpen && (
@@ -1199,7 +1193,7 @@ export default function SoftSkillsArenaPage() {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto space-y-8">
+      <main className="flex-1 w-full min-w-0 space-y-8 py-4 sm:py-5 lg:py-6 px-3 sm:px-5 lg:px-7 xl:px-9">
         {actionMessage && (
           <div
             className={`p-4 rounded-xl border flex items-center justify-between text-xs font-medium animate-in fade-in duration-300 ${
@@ -1271,7 +1265,17 @@ export default function SoftSkillsArenaPage() {
                   return (
                     <div
                       key={evt.id}
-                      className={`glass-panel p-6 rounded-3xl flex flex-col justify-between space-y-5 border transition-all relative overflow-hidden ${
+                      onClick={() => openCompetitionDetails(evt)}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          openCompetitionDetails(evt)
+                        }
+                      }}
+                      tabIndex={0}
+                      aria-label={`View details for ${evt.public_event_name}`}
+                      className={`glass-panel p-6 rounded-3xl flex flex-col justify-between space-y-5 border transition-all relative overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${
                         isRegistered
                           ? 'border-purple-500/60 bg-purple-950/20 shadow-lg shadow-purple-500/10'
                           : 'border-white/10 hover:border-purple-500/40 bg-slate-950/40'
@@ -1334,7 +1338,10 @@ export default function SoftSkillsArenaPage() {
                             </div>
                             {isTeam && (
                               <button
-                                onClick={() => setTeamModalEvent(evt)}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  setTeamModalEvent(evt)
+                                }}
                                 className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-purple-200 text-xs font-mono font-bold transition-all flex items-center justify-center space-x-1 cursor-pointer"
                               >
                                 <Users className="w-3.5 h-3.5" />
@@ -1344,7 +1351,8 @@ export default function SoftSkillsArenaPage() {
                           </div>
                         ) : (
                           <button
-                            onClick={() => {
+                            onClick={(event) => {
+                              event.stopPropagation()
                               setRegisterModalEvent(evt)
                               setSelectedEventId(evt.id)
                             }}
@@ -1360,6 +1368,153 @@ export default function SoftSkillsArenaPage() {
                 })}
               </div>
             </div>
+
+            {competitionDetailsEvent && (
+              <div
+                className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+                onClick={() => setCompetitionDetailsEvent(null)}
+              >
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="soft-skills-competition-details-title"
+                  className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-purple-500/30 bg-gradient-to-b from-slate-900 via-slate-950 to-black p-6 sm:p-8 shadow-2xl"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+                    <div className="space-y-2">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                        competitionDetailsEvent.status === 'LIVE' || competitionDetailsEvent.status === 'IN_PROGRESS'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                          : competitionDetailsEvent.status === 'COMPLETED'
+                            ? 'bg-slate-700/60 text-slate-300 border border-white/10'
+                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      }`}>
+                        {String(competitionDetailsEvent.status || 'UPCOMING').replace(/_/g, ' ')}
+                      </span>
+                      <h2 id="soft-skills-competition-details-title" className="text-xl sm:text-2xl font-bold text-white font-heading">
+                        {competitionDetailsEvent.public_event_name}
+                      </h2>
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        {competitionDetailsEvent.description || 'Explore event details and participation information.'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCompetitionDetailsEvent(null)}
+                      aria-label="Close competition details"
+                      className="shrink-0 rounded-xl p-2 text-slate-400 hover:text-white hover:bg-white/10"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 py-5">
+                    {[
+                      {
+                        label: 'Competition format',
+                        value: competitionDetailsEvent.team_based
+                          ? `Team · ${competitionDetailsEvent.team_size || 4} members`
+                          : 'Individual',
+                      },
+                      { label: 'Credits reward', value: `+${competitionDetailsEvent.credits_reward || 50} Credits` },
+                      {
+                        label: 'Event date',
+                        value: competitionDetailsEvent.event_date
+                          ? new Date(competitionDetailsEvent.event_date).toLocaleString()
+                          : 'To be announced',
+                      },
+                      {
+                        label: 'Registration closes',
+                        value: competitionDetailsEvent.registration_close_time
+                          ? new Date(competitionDetailsEvent.registration_close_time).toLocaleString()
+                          : 'Not specified',
+                      },
+                      { label: 'Location', value: competitionDetailsEvent.event_location || 'To be announced' },
+                      {
+                        label: 'Participants',
+                        value: `${competitionDetailsEvent.registration_count ?? competitionDetailsEvent.registrations?.length ?? 0} / ${competitionDetailsEvent.participant_limit || 'Open'}`,
+                      },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+                        <span className="block text-[10px] uppercase tracking-wider text-slate-500">{item.label}</span>
+                        <span className="mt-1 block text-xs font-semibold text-slate-100">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {competitionDetailsEvent.eligibility && (
+                    <div className="mb-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-purple-300">Eligibility</h3>
+                      <p className="text-xs leading-relaxed text-slate-300">{competitionDetailsEvent.eligibility}</p>
+                    </div>
+                  )}
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-purple-300">Challenge</h3>
+                    <p className="text-xs leading-relaxed text-slate-300">
+                      {competitionDetailsEvent.actual_challenge_revealed
+                        ? competitionDetailsEvent.internal_challenge_type
+                        : 'Mystery challenge — details are hidden until the organizers reveal them.'}
+                    </p>
+                    {competitionDetailsEvent.event_twists?.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {competitionDetailsEvent.event_twists.map((eventTwist: any) => (
+                          <div key={eventTwist.id} className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
+                            <span className="block text-xs font-semibold text-amber-200">{eventTwist.twist?.title}</span>
+                            <p className="mt-1 text-[11px] leading-relaxed text-slate-300">{eventTwist.twist?.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-5 flex flex-col-reverse gap-2 border-t border-white/10 pt-4 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setCompetitionDetailsEvent(null)}
+                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/10"
+                    >
+                      Close
+                    </button>
+                    {registeredEventIds.includes(competitionDetailsEvent.id) ||
+                    competitionDetailsEvent.registrations?.some(
+                      (registration: any) =>
+                        (currentUser?.id && registration.student_id === currentUser.id) ||
+                        (currentUser?.usn && registration.usn?.toUpperCase() === currentUser.usn.toUpperCase()) ||
+                        registration.student_id === 'demo-current-user'
+                    ) ? (
+                      competitionDetailsEvent.team_based && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const event = competitionDetailsEvent
+                            setCompetitionDetailsEvent(null)
+                            setTeamModalEvent(event)
+                          }}
+                          className="rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-purple-600/25 hover:opacity-95"
+                        >
+                          View My Team
+                        </button>
+                      )
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const event = competitionDetailsEvent
+                          setCompetitionDetailsEvent(null)
+                          setRegisterModalEvent(event)
+                          setSelectedEventId(event.id)
+                        }}
+                        className="rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-purple-600/25 hover:opacity-95"
+                      >
+                        Register for Competition
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* SECTION 2: RECENTLY HAPPENED COMPETITIONS */}
             <div className="space-y-5 pt-4">
@@ -1592,49 +1747,112 @@ export default function SoftSkillsArenaPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {videos.map((vid) => (
-                  <div
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                {videos.slice(0, showAllVideos ? videos.length : 6).map((vid) => (
+                  <button
                     key={vid.id}
-                    className="glass-panel p-6 rounded-3xl border border-white/10 hover:border-purple-500/40 bg-slate-950/60 flex flex-col justify-between space-y-5 shadow-xl transition-all group"
+                    type="button"
+                    onClick={() => setSelectedVideoId(vid.id)}
+                    aria-label={`View details for ${vid.title} by ${vid.shared_by_name}`}
+                    className="group relative isolate flex min-h-[190px] w-full flex-col justify-between overflow-hidden rounded-3xl border border-white/[0.09] bg-gradient-to-br from-slate-900 via-[#101426] to-[#0c1020] p-5 text-left shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:border-purple-400/50 hover:shadow-xl hover:shadow-purple-950/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
                   >
-                    <div className="space-y-3.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-7 h-7 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-xs font-bold text-purple-300">
-                            {vid.shared_by_name?.charAt(0) || 'V'}
-                          </div>
-                          <div>
-                            <span className="text-xs font-bold text-slate-200 block leading-tight">{vid.shared_by_name}</span>
-                            <span className="text-[10px] font-mono text-purple-400">{vid.shared_by_role}</span>
-                          </div>
-                        </div>
+                    <span className="pointer-events-none absolute -right-10 -top-12 -z-10 h-36 w-36 rounded-full bg-purple-500/[0.09] blur-2xl transition-all duration-300 group-hover:bg-purple-400/[0.18]" />
+                    <span className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent opacity-60" />
 
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-white/10">
-                          {vid.duration || '10:00'}
+                    <span className="flex w-full items-center justify-between gap-3">
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-purple-300/20 bg-gradient-to-br from-purple-500/25 to-indigo-500/10 text-sm font-bold text-purple-200 shadow-inner shadow-purple-300/10">
+                          {vid.shared_by_name?.charAt(0) || 'V'}
                         </span>
-                      </div>
+                        <span className="truncate text-sm font-semibold text-slate-200 transition-colors group-hover:text-white">
+                          {vid.shared_by_name}
+                        </span>
+                      </span>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 transition-all group-hover:border-purple-400/30 group-hover:bg-purple-500/15 group-hover:text-purple-200">
+                        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                      </span>
+                    </span>
 
-                      <div>
-                        <span className="text-[10px] font-mono text-amber-400 font-bold uppercase block">{vid.video_type}</span>
-                        <h4 className="text-base font-bold text-white font-heading mt-1 group-hover:text-purple-200 transition-colors">
-                          {vid.title}
+                    <span className="mt-6 block text-base font-bold leading-snug text-white font-heading transition-colors group-hover:text-purple-100 line-clamp-2">
+                      {vid.title}
+                    </span>
+
+                    <span className="mt-4 block h-1 w-12 rounded-full bg-gradient-to-r from-purple-500 to-indigo-400 transition-all duration-300 group-hover:w-20" />
+                  </button>
+                ))}
+              </div>
+
+              {videos.length > 6 && (
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAllVideos((showAll) => !showAll)}
+                    aria-expanded={showAllVideos}
+                    className="inline-flex items-center gap-2 rounded-xl border border-purple-400/25 bg-purple-500/10 px-5 py-2.5 text-xs font-semibold text-purple-200 transition-colors hover:border-purple-300/50 hover:bg-purple-500/20 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                  >
+                    {showAllVideos ? 'Show less' : `See more videos (${videos.length - 6} more)`}
+                    <ArrowUpRight className={`h-3.5 w-3.5 transition-transform ${showAllVideos ? '-rotate-45' : ''}`} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {selectedVideoId && (() => {
+              const selectedVideo = videos.find((video) => video.id === selectedVideoId)
+              if (!selectedVideo) return null
+
+              return (
+                <div
+                  className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+                  onClick={() => setSelectedVideoId(null)}
+                >
+                  <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="soft-skills-video-details-title"
+                    className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl border border-purple-500/30 bg-gradient-to-b from-slate-900 via-slate-950 to-black p-6 sm:p-8 shadow-2xl space-y-5"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+                      <div className="space-y-2">
+                        <span className="text-xs font-bold text-slate-200">{selectedVideo.shared_by_name}</span>
+                        <h4 id="soft-skills-video-details-title" className="text-lg font-bold text-white font-heading leading-snug">
+                          {selectedVideo.title}
                         </h4>
-                        <p className="text-[11px] font-mono text-slate-400 mt-1">🏷️ {vid.topic_tags}</p>
                       </div>
-
-                      <div className="p-3.5 rounded-2xl bg-gradient-to-b from-purple-950/40 to-slate-900 border border-purple-500/25 space-y-1 text-xs">
-                        <div className="flex items-center space-x-1.5 text-purple-300 font-mono font-bold text-[11px]">
-                          <Eye className="w-3.5 h-3.5 text-purple-400" />
-                          <span>Mentor's Note: What to Notice</span>
-                        </div>
-                        <p className="text-slate-300 text-xs leading-relaxed font-sans italic">&ldquo;{vid.what_to_notice}&rdquo;</p>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedVideoId(null)}
+                        aria-label="Close video details"
+                        className="shrink-0 rounded-xl p-2 text-slate-400 hover:text-white hover:bg-white/10"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
                     </div>
 
-                    <div className="space-y-2 pt-2 border-t border-white/10">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-mono text-purple-400">{selectedVideo.shared_by_role}</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-white/10">
+                        {selectedVideo.duration || '10:00'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-mono text-amber-400 font-bold uppercase block">{selectedVideo.video_type}</span>
+                      <p className="text-[11px] font-mono text-slate-400 mt-1">🏷️ {selectedVideo.topic_tags}</p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-b from-purple-950/40 to-slate-900 border border-purple-500/25 space-y-1 text-xs">
+                      <div className="flex items-center space-x-1.5 text-purple-300 font-mono font-bold text-[11px]">
+                        <Eye className="w-3.5 h-3.5 text-purple-400" />
+                        <span>Mentor&apos;s Note: What to Notice</span>
+                      </div>
+                      <p className="text-slate-300 text-xs leading-relaxed font-sans italic">&ldquo;{selectedVideo.what_to_notice}&rdquo;</p>
+                    </div>
+
+                    <div className="space-y-2 border-t border-white/10 pt-4">
                       <a
-                        href={vid.video_url}
+                        href={selectedVideo.video_url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs font-mono transition-all flex items-center justify-center space-x-2 cursor-pointer shadow-md"
@@ -1646,7 +1864,8 @@ export default function SoftSkillsArenaPage() {
                       <button
                         onClick={() => {
                           setIsReportFormOpen(true)
-                          setReportForm((prev) => ({ ...prev, video_id: vid.id, video_title: vid.title }))
+                          setReportForm((prev) => ({ ...prev, video_id: selectedVideo.id, video_title: selectedVideo.title }))
+                          setSelectedVideoId(null)
                           setTimeout(() => {
                             document.getElementById('submit-report-section')?.scrollIntoView({ behavior: 'smooth' })
                           }, 100)
@@ -1658,9 +1877,9 @@ export default function SoftSkillsArenaPage() {
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )
+            })()}
 
             {/* Weekly Report Submission */}
             <div id="submit-report-section" className="space-y-5 pt-4">

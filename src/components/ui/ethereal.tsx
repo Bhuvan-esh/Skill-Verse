@@ -6,18 +6,11 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
 import { useRouter } from 'next/navigation';
 import AboutUsSection from '@/components/ui/about-us-section';
 import { ContactPage } from '@/components/ui/contact-page';
 import { SignInPage } from '@/components/ui/sign-in-flow-1';
 import LoginModal from '@/components/LoginModal';
-
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 export interface SectionItem {
   id: string;
@@ -643,60 +636,47 @@ export default function ScrollHero({
     init();
   }, [colorPalette]);
 
-  // Scroll logic
+  // Keep the page visually static and drive the 3D orb from wheel movement only.
   useEffect(() => {
-    if (!isLoaded || !containerRef.current) return;
+    if (!isLoaded) return;
 
-    let lastY = window.scrollY;
-    let vel = 0;
-    let velTimeout: NodeJS.Timeout;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
-    const st = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: 'top top',
-      end: 'bottom bottom',
-      scrub: true,
-      onUpdate: (self) => {
-        scrollRef.current.progress = self.progress;
+    const handleWheel = (event: WheelEvent) => {
+      const delta = event.deltaY || event.deltaX || 0;
+      if (delta === 0) return;
 
-        const y = window.scrollY;
-        vel = (y - lastY) * 0.01;
-        lastY = y;
-        scrollRef.current.velocity = THREE.MathUtils.clamp(vel, -1, 1);
+      const nextProgress = THREE.MathUtils.clamp(
+        scrollRef.current.progress + (delta > 0 ? 0.025 : -0.025),
+        0,
+        1
+      );
 
-        scrollRef.current.targetRotationX = self.progress * Math.PI * 3.0;
-        scrollRef.current.targetRotationY = self.progress * Math.PI * 4.5;
+      scrollRef.current.progress = nextProgress;
+      scrollRef.current.velocity = THREE.MathUtils.clamp(delta / 1200, -1, 1);
+      scrollRef.current.targetRotationX = nextProgress * Math.PI * 3.0;
+      scrollRef.current.targetRotationY = nextProgress * Math.PI * 4.5;
 
-        clearTimeout(velTimeout);
-        velTimeout = setTimeout(() => {
-          scrollRef.current.velocity = 0;
-        }, 120);
+      const nextSection = Math.min(
+        sections.length - 1,
+        Math.max(0, Math.round(nextProgress * (sections.length - 1)))
+      );
+      setActiveSection(nextSection);
 
-        if (progressRef.current) {
-          progressRef.current.style.transform = `scaleY(${self.progress})`;
-        }
+      if (progressRef.current) {
+        progressRef.current.style.transform = `scaleY(${nextProgress})`;
       }
-    });
+    };
 
-    sections.forEach((section, idx) => {
-      const el = sectionsRef.current[idx];
-      if (!el) return;
-
-      ScrollTrigger.create({
-        trigger: el,
-        start: 'top center',
-        end: 'bottom center',
-        onToggle: (self) => {
-          if (self.isActive) {
-            setActiveSection(idx);
-          }
-        }
-      });
-    });
+    window.addEventListener('wheel', handleWheel, { passive: false });
 
     return () => {
-      st.kill();
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      window.removeEventListener('wheel', handleWheel);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [isLoaded, sections]);
 
