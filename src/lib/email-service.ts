@@ -1,6 +1,16 @@
 import { db } from '@/lib/db';
 import nodemailer from 'nodemailer';
 
+/**
+ * Single source of truth for the Visual Architect inbox.
+ * Set VISUAL_ARCHITECT_EMAIL in .env — defaults to Bandana's address.
+ * ALL admin alerts, access requests, winner confirmations, and sign-in
+ * security copies route through this function — never to any other email.
+ */
+export function getVAEmail(): string {
+  return (process.env.VISUAL_ARCHITECT_EMAIL || 'b.11.08.bandana@gmail.com').toLowerCase().trim();
+}
+
 export interface EmailSendOptions {
   type:
     | 'ACCOUNT_APPROVAL'
@@ -460,13 +470,13 @@ export async function sendLoginSecurityEmail({
     htmlContent: html,
   });
 
-  // Always send alert to primary Visual Architect (b.11.08.bandana@gmail.com) if recipient is different
-  const vaPrimaryEmail = 'b.11.08.bandana@gmail.com';
-  if (recipientEmail.toLowerCase() !== vaPrimaryEmail.toLowerCase()) {
+  // Always send alert copy to Visual Architect inbox ONLY — never to anyone else
+  const vaPrimaryEmail = getVAEmail();
+  if (recipientEmail.toLowerCase() !== vaPrimaryEmail) {
     const adminAlertHtml = buildHackCultureEmail({
       title: 'Real-Time User Sign-In Alert 🔔',
       preheader: `Sign-in alert: ${studentName} (${recipientEmail}) logged in at ${loginTime}`,
-      greetingName: 'Visual Architect Admin',
+      greetingName: 'Visual Architect',
       badgeText: '● Active Session Alert',
       badgeColor: '#a78bfa',
       mainContentHtml: `
@@ -481,14 +491,14 @@ export async function sendLoginSecurityEmail({
         </div>
       `,
       ctaText: 'View Dashboard / Control Panel',
-      ctaUrl: portalUrl,
-      footerNote: 'Routed to primary Visual Architect (b.11.08.bandana@gmail.com) for real-time monitoring.',
+      ctaUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      footerNote: `Routed exclusively to Visual Architect inbox (${vaPrimaryEmail}) for real-time monitoring.`,
     });
 
     sendClubEmail({
       type: 'ADMIN_ALERT',
       recipientEmail: vaPrimaryEmail,
-      recipientName: 'Visual Architect Admin',
+      recipientName: 'Visual Architect',
       subject: `[Sign-In Alert] ${studentName} (${recipientEmail}) logged in`,
       htmlContent: adminAlertHtml,
     }).catch((e) => console.error('[VA Alert Dispatch Error]:', e));

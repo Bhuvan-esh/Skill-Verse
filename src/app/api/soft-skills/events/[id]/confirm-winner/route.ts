@@ -1,5 +1,5 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { confirmWinnerByFounder, rejectOrReviewResult } from '@/lib/soft-skills/winnerConfirmationService';
 
 export async function POST(
@@ -7,9 +7,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession();
-    const founderId = session?.id || 'lead-founder-system';
-    const founderName = session?.name || 'Lead Founder';
+    // Winner ratification is exclusively a Visual Architect (FOUNDER) action
+    const session = await requireAuth(['FOUNDER']);
+    const founderId = session.id;
+    const founderName = session.name;
 
     const body = await req.json();
     const { result_id, action, founder_remarks } = body;

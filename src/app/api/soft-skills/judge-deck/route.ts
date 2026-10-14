@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth } from '@/lib/auth';
 
 export interface SoftSkillEvaluationRow {
   id: string;
@@ -23,6 +24,9 @@ let GLOBAL_SOFT_SKILL_JUDGE_ROWS: SoftSkillEvaluationRow[] = [];
 
 export async function GET() {
   try {
+    // Read access: Volunteers (acting as Mentors) can view; Founders see all
+    await requireAuth(['VOLUNTEER', 'FOUNDER']);
+
     const topPerformers = GLOBAL_SOFT_SKILL_JUDGE_ROWS
       .filter((r) => r.total_score >= 80)
       .sort((a, b) => b.total_score - a.total_score)
@@ -60,8 +64,16 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    // Write access: Volunteers (Mentors) can save/update rows; only Founders can submit to Visual Architects
+    const session = await requireAuth(['VOLUNTEER', 'FOUNDER']);
+
     const body = await req.json();
     const { action, judgeRows, singleRow } = body;
+
+    if (action === 'SUBMIT_TO_VISUAL_ARCHITECTS' && session.role !== 'FOUNDER') {
+      return NextResponse.json({ success: false, error: 'Only Visual Architects (Founders) can submit scores to architect review.' }, { status: 403 });
+    }
+
 
     if (action === 'SUBMIT_TO_VISUAL_ARCHITECTS') {
       GLOBAL_SOFT_SKILL_JUDGE_ROWS = GLOBAL_SOFT_SKILL_JUDGE_ROWS.map((r) => ({

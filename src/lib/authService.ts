@@ -28,12 +28,19 @@ export interface UserDoc {
   email: string;
   authProvider: "google" | "apple" | "password";
   role: "visual_architect" | "community_ambassador" | "mentor" | "participant" | null;
-  status: "pending_role" | "pending_approval" | "approved";
+  status: "pending_role" | "pending_approval" | "approved" | "rejected" | "suspended";
   emailOptOut: boolean;
   agreedToTerms: true;
   createdAt: Timestamp;
+  updatedAt?: Timestamp | null;
   approvedAt: Timestamp | null;
   approvedBy: string | null;
+  rejectedAt?: Timestamp | null;
+  rejectedBy?: string | null;
+  rejectionReason?: string | null;
+  suspendedAt?: Timestamp | null;
+  suspendedBy?: string | null;
+  suspensionReason?: string | null;
 }
 
 const AUTO_APPROVED_ROLES = ["visual_architect"];
@@ -247,6 +254,44 @@ export async function approveUser(targetUid: string, approverUid: string) {
     status: "approved",
     approvedAt: serverTimestamp(),
     approvedBy: approverUid,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function rejectUser(targetUid: string, rejectorUid: string, reason: string) {
+  await updateDoc(userRef(targetUid), {
+    status: 'rejected',
+    rejectedBy: rejectorUid,
+    rejectedAt: serverTimestamp(),
+    rejectionReason: reason,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function suspendUser(targetUid: string, suspenderUid: string, reason: string) {
+  await updateDoc(userRef(targetUid), {
+    status: 'suspended',
+    suspendedBy: suspenderUid,
+    suspendedAt: serverTimestamp(),
+    suspensionReason: reason,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export function listenToAllUsers(onChange: (users: UserDoc[]) => void) {
+  return onSnapshot(collection(db, 'users'), (snap) => {
+    onChange(snap.docs.map((d) => d.data() as UserDoc));
+  });
+}
+
+export async function getUserByUid(uid: string): Promise<UserDoc | null> {
+  const snap = await getDoc(userRef(uid));
+  return snap.exists() ? (snap.data() as UserDoc) : null;
+}
+
+export function listenToUserStatus(uid: string, onChange: (data: UserDoc | null) => void) {
+  return onSnapshot(userRef(uid), (snap) => {
+    onChange(snap.exists() ? (snap.data() as UserDoc) : null);
   });
 }
 

@@ -389,11 +389,11 @@ export default function Navbar({
             </div>
           ) : (
             <Link
-              href="/join"
+              href="/login"
               className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 transition-all"
             >
               <UserCheck className="w-4 h-4" />
-              <span>Enter / Select Role</span>
+              <span>Sign In / Join</span>
             </Link>
           )}
         </div>

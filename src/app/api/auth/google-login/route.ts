@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { signToken } from '@/lib/auth';
-import { sendAdminAccessRequestEmail, sendLoginSecurityEmail } from '@/lib/email-service';
+import { sendAdminAccessRequestEmail, sendLoginSecurityEmail, getVAEmail } from '@/lib/email-service';
 
 export async function POST(req: Request) {
   try {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       // First-time signup: Layer 2 requires founder approval
-      const isFounder = ['b.11.08.bandana@gmail.com'].includes(email.toLowerCase());
+      const isFounder = [getVAEmail()].includes(email.toLowerCase());
       const initialApproval = isFounder ? 'APPROVED' : 'PENDING';
       const initialRole = isFounder ? 'FOUNDER' : (role as any) || 'STUDENT';
 
@@ -53,12 +53,10 @@ export async function POST(req: Request) {
         update: {},
       });
 
-      // Alert Visual Architect about new access request
+      // Alert Visual Architect about new access request — goes to VA inbox ONLY
       if (initialApproval === 'PENDING') {
-        const founderEmail = 'b.11.08.bandana@gmail.com';
-
         sendAdminAccessRequestEmail({
-          adminEmail: founderEmail,
+          adminEmail: getVAEmail(),
           studentName: user.name,
           studentEmail: user.college_email,
           usn: user.usn,
@@ -68,7 +66,7 @@ export async function POST(req: Request) {
     } else if (user.approval_status === 'PENDING') {
       // Re-trigger alert to Visual Architect on subsequent pending sign-in
       sendAdminAccessRequestEmail({
-        adminEmail: 'b.11.08.bandana@gmail.com',
+        adminEmail: getVAEmail(),
         studentName: user.name,
         studentEmail: user.college_email,
         usn: user.usn,

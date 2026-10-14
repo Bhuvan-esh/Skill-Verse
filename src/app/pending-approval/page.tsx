@@ -333,25 +333,7 @@ function PendingApprovalContent() {
       />
 
 
-      {/* 1. Role switch bar (dev/demo preview only) */}
-      <div className="w-full max-w-[460px] mb-6 p-1 bg-[#131119]/80 border border-[rgba(255,255,255,0.09)] backdrop-blur-md rounded-2xl flex items-center justify-between text-xs font-mono relative z-10 shadow-lg">
-        {(['participant', 'ambassador', 'mentor'] as RoleType[]).map((r) => (
-          <button
-            key={r}
-            type="button"
-            onClick={() => setActiveRole(r)}
-            className={`flex-1 py-2 px-2 sm:px-3 rounded-xl font-medium text-[11px] sm:text-xs transition-all text-center cursor-pointer truncate ${
-              activeRole === r
-                ? 'bg-[#a78bfa]/20 text-[#a78bfa] border border-[#a78bfa]/40 shadow-sm'
-                : 'text-[#9d97ab] hover:text-[#f2eef7] hover:bg-white/[0.03]'
-            }`}
-          >
-            {r === 'participant' ? 'Participant' : r === 'ambassador' ? 'Community Ambassador' : 'Mentor'}
-          </button>
-        ))}
-      </div>
-
-      {/* 2. Main Glassmorphic Card (Max Width ~460px) */}
+      {/* Main Glassmorphic Card (Max Width ~460px) */}
       <div className="w-full max-w-[460px] glass-approval-card p-6 sm:p-8 shadow-2xl animate-pending-card relative z-10">
         <div className="relative z-10 space-y-6">
 
@@ -538,17 +520,6 @@ function PendingApprovalContent() {
                   <span>Refresh status</span>
                 </>
               )}
-            </button>
-
-            {/* Demo Button: Simulate Approval */}
-            <button
-              type="button"
-              onClick={handleSimulateApprove}
-              disabled={isCheckingLogin}
-              className="w-full py-2 px-4 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 active:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-sans font-medium text-[12.5px] transition-all flex items-center justify-center space-x-1.5 cursor-pointer disabled:opacity-60"
-            >
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>⚡ Approve Access (Visual Architect Demo)</span>
             </button>
           </div>
         </div>

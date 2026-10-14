@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
 const DEFAULT_PUBLIC_REPORT = {
   student_id: 'stu-sample-kavya',
@@ -29,6 +30,12 @@ const DEFAULT_PUBLIC_REPORT = {
 
 export async function GET(req: NextRequest) {
   try {
+    // Must be authenticated to access student performance reports
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const publicOnly = searchParams.get('publicOnly') === 'true';
     const studentId = searchParams.get('studentId');

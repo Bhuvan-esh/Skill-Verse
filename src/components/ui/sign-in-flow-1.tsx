@@ -620,6 +620,18 @@ export const SignInPage = ({ className, onClose }: SignInPageProps) => {
         await refreshUser();
         triggerSuccessState();
       } else if (oauthStatus === "pending_approval") {
+        try {
+          await fetch("/api/auth/select-role", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              role: oauthRole || "participant",
+              email: email,
+              name: fullNameEntered,
+              firebase_uid: firebaseUid,
+            }),
+          });
+        } catch (_) {}
         router.push(
           `/pending-approval?role=participant&name=${encodeURIComponent(fullNameEntered)}&email=${encodeURIComponent(email || '')}`
         );

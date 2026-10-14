@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAuth, getSession } from '@/lib/auth';
 
 export interface EvaluationRow {
   id: string;
@@ -24,6 +25,9 @@ let GLOBAL_JUDGE_ROWS: EvaluationRow[] = [];
 
 export async function GET() {
   try {
+    // Read access: Volunteers (acting as Mentors) and Founders (Visual Architects) only
+    await requireAuth(['VOLUNTEER', 'FOUNDER']);
+
     const topPerformers = GLOBAL_JUDGE_ROWS
       .filter((r) => r.test_accuracy >= 80)
       .sort((a, b) => b.total_score - a.total_score)
@@ -62,8 +66,17 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    // Write access: Volunteers (Mentors) can save/update rows; only Founders can submit to VA
+    const session = await requireAuth(['VOLUNTEER', 'FOUNDER']);
+
     const body = await req.json();
     const { action, judgeRows, singleRow } = body;
+
+    // SUBMIT_TO_VISUAL_ARCHITECTS is a FOUNDER-only elevated action
+    if (action === 'SUBMIT_TO_VISUAL_ARCHITECTS' && session.role !== 'FOUNDER') {
+      return NextResponse.json({ success: false, error: 'Only Visual Architects (Founders) can submit to architect review.' }, { status: 403 });
+    }
+
 
     if (action === 'SUBMIT_TO_VISUAL_ARCHITECTS') {
       // Mark all evaluated rows as submitted to Visual Architects and recalculate points

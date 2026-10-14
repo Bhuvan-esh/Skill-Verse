@@ -115,11 +115,11 @@ export async function POST(req: Request) {
       session.role === 'FOUNDER' ||
       (session.name && (session.name.toUpperCase().includes('ARCHITECT') || session.name.toUpperCase().includes('FOUNDER')));
 
-    // Action 1: Visual Architect replying to a query
+    // Action 1: Visual Architect replying to a query — FOUNDER role only
     if (body.action === 'REPLY') {
-      if (!isVisualArchitect) {
+      if (session.role !== 'FOUNDER') {
         return NextResponse.json(
-          { error: 'Forbidden: Only Visual Architects can reply to student queries.' },
+          { error: 'Forbidden: Only Visual Architects (Founders) can reply to student queries.' },
           { status: 403 }
         );
       }
@@ -127,6 +127,9 @@ export async function POST(req: Request) {
       const { queryId, replyText } = body;
       if (!queryId || !replyText?.trim()) {
         return NextResponse.json({ error: 'Query ID and reply text are required.' }, { status: 400 });
+      }
+      if (replyText.trim().length > 2000) {
+        return NextResponse.json({ error: 'Reply too long (max 2000 characters).' }, { status: 400 });
       }
 
       const queryIdx = QUERIES_STORE.findIndex((q) => q.id === queryId);

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { signToken, verifyPassword, hashPassword } from '@/lib/auth';
-import { sendAdminAccessRequestEmail, sendLoginSecurityEmail } from '@/lib/email-service';
+import { sendAdminAccessRequestEmail, sendLoginSecurityEmail, getVAEmail } from '@/lib/email-service';
 
 export async function POST(req: Request) {
   try {
@@ -17,21 +17,21 @@ export async function POST(req: Request) {
     let defaultName  = inputName ? inputName.trim() : '';
 
     const normalizedRole = (role || '').toLowerCase();
-    const isDefaultArchitectEmail = ['b.11.08.bandana@gmail.com'].includes((defaultEmail || '').toLowerCase());
+    const isDefaultArchitectEmail = [getVAEmail()].includes((defaultEmail || '').toLowerCase());
 
     if (normalizedRole.includes('founder') || normalizedRole.includes('visual')) {
       if (!isDefaultArchitectEmail) {
         return NextResponse.json(
-          { error: 'Visual Architect access is restricted. Only b.11.08.bandana@gmail.com can sign in under Visual Architects.' },
+          { error: `Visual Architect access is restricted. Only the registered Visual Architect email can sign in under Visual Architects.` },
           { status: 403 }
         );
       }
       targetRole   = 'FOUNDER';
-      defaultEmail = inputEmail || 'b.11.08.bandana@gmail.com';
+      defaultEmail = inputEmail || getVAEmail();
       defaultName  = inputName ? inputName.trim() : '';
     } else if (isDefaultArchitectEmail) {
       targetRole   = 'FOUNDER';
-      defaultEmail = inputEmail || 'b.11.08.bandana@gmail.com';
+      defaultEmail = inputEmail || getVAEmail();
       defaultName  = inputName ? inputName.trim() : '';
     } else if (normalizedRole.includes('architect') || normalizedRole.includes('ambassador')) {
       targetRole   = 'VOLUNTEER';
@@ -100,9 +100,8 @@ export async function POST(req: Request) {
       });
 
       if (initialApproval === 'PENDING') {
-        const founderEmail = 'b.11.08.bandana@gmail.com';
         sendAdminAccessRequestEmail({
-          adminEmail: founderEmail,
+          adminEmail: getVAEmail(),
           studentName: user.name,
           studentEmail: user.college_email,
           usn: user.usn,
@@ -113,9 +112,8 @@ export async function POST(req: Request) {
 
     // ─── Also fire admin email when an EXISTING PENDING user logs in ─────────
     if (user && user.approval_status === 'PENDING' && !isFirstTime) {
-      const founderEmail = 'b.11.08.bandana@gmail.com';
       sendAdminAccessRequestEmail({
-        adminEmail: founderEmail,
+        adminEmail: getVAEmail(),
         studentName: user.name,
         studentEmail: user.college_email,
         usn: user.usn,
@@ -151,8 +149,8 @@ export async function POST(req: Request) {
       college_email: user.college_email,
     });
 
-    // Send login security email ONLY for approved users
-    if (user.approval_status === 'APPROVED' && user.college_email) {
+    // Send login security email to user whenever a login session is established
+    if (user.college_email) {
       sendLoginSecurityEmail({
         recipientEmail: user.college_email,
         studentName: sessionName,

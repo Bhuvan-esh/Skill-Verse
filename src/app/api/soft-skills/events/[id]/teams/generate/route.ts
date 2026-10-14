@@ -1,5 +1,5 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 import { generateMixedYearTeams } from '@/lib/soft-skills/teamFormationService';
 
 export async function POST(
@@ -7,9 +7,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession();
-    const actorId = session?.id || 'founder-system';
-    const actorRole = session?.role || 'FOUNDER';
+    // AI team generation is a Visual Architect (FOUNDER) privilege only
+    const session = await requireAuth(['FOUNDER']);
+    const actorId = session.id;
+    const actorRole = session.role;
 
     let customTeamSize: number | undefined = undefined;
     try {

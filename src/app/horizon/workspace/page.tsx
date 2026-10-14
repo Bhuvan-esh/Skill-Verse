@@ -27,6 +27,10 @@ import MentorCodingJudgeDeck from '@/components/coding/MentorCodingJudgeDeck'
 import MentorSoftSkillsJudgeDeck from '@/components/soft-skills/MentorSoftSkillsJudgeDeck'
 import CommunityAmbassadorCodingView from '@/components/coding/CommunityAmbassadorCodingView'
 import CommunityAmbassadorSoftSkillsView from '@/components/soft-skills/CommunityAmbassadorSoftSkillsView'
+import BizLinkMentorshipTracker from '@/components/BizLinkMentorshipTracker'
+import FounderCodingCommandDeck from '@/components/coding/FounderCodingCommandDeck'
+import FounderSoftSkillsCommandDeck from '@/components/soft-skills/FounderSoftSkillsCommandDeck'
+import FounderIdeaHubCurationDesk from '@/components/idea-hub/FounderIdeaHubCurationDesk'
 import LockedWaitingForKey from '@/components/events/LockedWaitingForKey'
 
 type WorkspaceRole = 'FOUNDER' | 'MENTOR' | 'AMBASSADOR'
@@ -213,14 +217,28 @@ function HorizonWorkspaceContent() {
           ) : (
             <VolunteerSkillBarterView user={user} onRefresh={() => {}} />
           )
-        ) : activeSection === 'coding-challenge' && activeRole === 'MENTOR' ? (
-          <MentorCodingJudgeDeck user={user} onBack={() => {}} />
-        ) : activeSection === 'coding-challenge' && activeRole === 'AMBASSADOR' ? (
-          <CommunityAmbassadorCodingView user={user} onBack={() => {}} />
-        ) : activeSection === 'soft-skills' && activeRole === 'MENTOR' ? (
-          <MentorSoftSkillsJudgeDeck user={user} onBack={() => {}} />
-        ) : activeSection === 'soft-skills' && activeRole === 'AMBASSADOR' ? (
-          <CommunityAmbassadorSoftSkillsView user={user} onBack={() => {}} />
+        ) : activeSection === 'coding-challenge' ? (
+          activeRole === 'MENTOR' ? (
+            <MentorCodingJudgeDeck user={user} onBack={() => {}} />
+          ) : activeRole === 'FOUNDER' ? (
+            <FounderCodingCommandDeck user={user} onBack={() => {}} />
+          ) : (
+            <CommunityAmbassadorCodingView user={user} onBack={() => {}} />
+          )
+        ) : activeSection === 'soft-skills' ? (
+          activeRole === 'MENTOR' ? (
+            <MentorSoftSkillsJudgeDeck user={user} onBack={() => {}} />
+          ) : activeRole === 'FOUNDER' ? (
+            <FounderSoftSkillsCommandDeck user={user} onBack={() => {}} />
+          ) : (
+            <CommunityAmbassadorSoftSkillsView user={user} onBack={() => {}} />
+          )
+        ) : activeSection === 'idea-hub' ? (
+          activeRole === 'FOUNDER' ? (
+            <FounderIdeaHubCurationDesk user={user} onBack={() => {}} />
+          ) : (
+            <BizLinkMentorshipTracker user={user} />
+          )
         ) : (
           <div className="flex items-center justify-center">
             <LockedWaitingForKey

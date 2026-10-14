@@ -1,6 +1,6 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getSession } from '@/lib/auth';
+import { getSession, requireAuth } from '@/lib/auth';
 import { createAuditLog } from '@/lib/soft-skills/audit';
 
 export async function GET(
@@ -40,9 +40,10 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession();
-    const actorId = session?.id || 'founder-system';
-    const actorRole = session?.role || 'FOUNDER';
+    // Team approval and locking are Visual Architect (FOUNDER) only operations
+    const session = await requireAuth(['FOUNDER']);
+    const actorId = session.id;
+    const actorRole = session.role;
 
     const body = await req.json();
     const action = body.action || 'APPROVE'; // APPROVE, LOCK
@@ -108,9 +109,10 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession();
-    const actorId = session?.id || 'founder-system';
-    const actorRole = session?.role || 'FOUNDER';
+    // Team roster modifications are Visual Architect (FOUNDER) only
+    const session = await requireAuth(['FOUNDER']);
+    const actorId = session.id;
+    const actorRole = session.role;
 
     const body = await req.json();
     const { action, memberId, fromTeamId, toTeamId, newTeamName } = body;

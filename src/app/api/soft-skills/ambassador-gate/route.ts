@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth, getSession } from '@/lib/auth';
 
 interface ArchitectDispatch {
   id: string;
@@ -58,6 +59,11 @@ let SOFT_SKILLS_GATE_STATE = {
 
 export async function GET() {
   try {
+    // Any authenticated platform user can read stage gate state
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 });
+    }
     return NextResponse.json({
       success: true,
       gate: SOFT_SKILLS_GATE_STATE,
@@ -70,6 +76,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    // Stage gate write operations are FOUNDER-only
+    await requireAuth(['FOUNDER']);
+
     const body = await req.json();
     const { action, isUnlocked, newDispatch } = body;
 

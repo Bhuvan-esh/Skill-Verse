@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getSession, requireAuth } from '@/lib/auth';
 
 export interface VideoQueryRequest {
   id: string;
@@ -56,16 +57,31 @@ const GLOBAL_VIDEO_QUERIES: VideoQueryRequest[] = [
 
 export async function GET(req: Request) {
   try {
+    // Must be authenticated — Founders see all, students/mentors see their own
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const author_email = searchParams.get('author_email');
     const requester_email = searchParams.get('requester_email');
 
     let queries = [...GLOBAL_VIDEO_QUERIES];
 
-    if (author_email) {
-      queries = queries.filter(q => q.author_email.toLowerCase() === author_email.toLowerCase());
-    } else if (requester_email) {
-      queries = queries.filter(q => q.requester_email.toLowerCase() === requester_email.toLowerCase());
+    // Founders (Visual Architects) see everything — no filter applied
+    if (session.role !== 'FOUNDER') {
+      if (author_email) {
+        queries = queries.filter(q => q.author_email.toLowerCase() === author_email.toLowerCase());
+      } else if (requester_email) {
+        queries = queries.filter(q => q.requester_email.toLowerCase() === requester_email.toLowerCase());
+      } else {
+        // Non-founders without a filter only see their own queries
+        queries = queries.filter(q =>
+          q.author_email.toLowerCase() === session.college_email.toLowerCase() ||
+          q.requester_email.toLowerCase() === session.college_email.toLowerCase()
+        );
+      }
     }
 
     return NextResponse.json({
@@ -80,6 +96,9 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    // Must be authenticated to send a video query
+    const session = await requireAuth(['STUDENT', 'FOUNDER', 'VOLUNTEER']);
+
     const body = await req.json();
     const {
       video_id,
@@ -101,6 +120,11 @@ export async function POST(req: Request) {
       );
     }
 
+    // Prevent excessively long payloads
+    if (query_message.trim().length > 1000) {
+      return NextResponse.json({ error: 'Query message too long (max 1000 characters).' }, { status: 400 });
+    }
+
     const newQuery: VideoQueryRequest = {
       id: `vq-${Date.now()}`,
       video_id,
@@ -109,8 +133,8 @@ export async function POST(req: Request) {
       author_name,
       author_email: author_email || 'author@rvce.edu.in',
       author_phone,
-      requester_name,
-      requester_email: requester_email || 'requester@rvce.edu.in',
+      requester_name: session.name || requester_name,
+      requester_email: session.college_email || requester_email || 'requester@rvce.edu.in',
       requester_phone,
       query_message: query_message.trim(),
       status: 'PENDING',
@@ -125,6 +149,7 @@ export async function POST(req: Request) {
       message: `✓ Request sent to ${author_name}'s account! Communication will unlock once ${author_name} accepts your request.`,
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to send query request' }, { status: 500 });
+    const status = error.message === 'UNAUTHORIZED' ? 401 : error.message === 'FORBIDDEN' ? 403 : 500;
+    return NextResponse.json({ error: error.message || 'Failed to send query request' }, { status });
   }
 }

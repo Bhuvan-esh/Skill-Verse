@@ -6,6 +6,9 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     pool: 'forks',
+    env: {
+      DATABASE_URL: 'file:./dev.db',
+    },
   },
   resolve: {
     alias: {
