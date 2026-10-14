@@ -62,7 +62,7 @@ export default function VolunteerTaskBoard({ user }: VolunteerTaskBoardProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-5">
       
       {/* Header Banner */}
       <div className="glass-panel p-6 rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900 to-slate-900 flex flex-col md:flex-row md:items-center justify-between gap-4">

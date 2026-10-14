@@ -276,7 +276,7 @@ export default function DashboardPage() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="flex-1 w-full min-w-0 py-4 sm:py-5 lg:py-6 space-y-5 sm:space-y-6 px-3 sm:px-5 lg:px-7 xl:px-9">
 
         {/* Student Credit Summary Banner (Hidden in Coding Challenge section) */}
         {user.role === 'STUDENT' && credits && activeTab !== 'competitions' && (
@@ -348,7 +348,7 @@ export default function DashboardPage() {
 
       {/* Footer */}
       <footer className="glass-panel border-t border-white/10 py-6 mt-12 text-center text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="w-full px-3 sm:px-5 lg:px-7 xl:px-9 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>© 2026 Club Idea Hub — Active {user.role} Session</p>
           <div className="flex space-x-4">
             <span className="text-slate-400">Skill League</span>

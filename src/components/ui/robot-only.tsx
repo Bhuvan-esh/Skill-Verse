@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useRef, useMemo, useState, useEffect, useCallback } from "react";
-import { Canvas, useFrame, ThreeEvent } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 export interface RobotOnlyProps {
   color?: string;
@@ -13,6 +13,30 @@ export interface RobotOnlyProps {
   blinkCycle?: number;
   metalness?: number;
   className?: string;
+}
+
+function StudioEnvironment() {
+  const { gl, scene } = useThree();
+
+  useEffect(() => {
+    const environment = new RoomEnvironment();
+    const pmremGenerator = new THREE.PMREMGenerator(gl);
+    const environmentTarget = pmremGenerator.fromScene(environment);
+    const previousEnvironment = scene.environment;
+
+    scene.environment = environmentTarget.texture;
+    environment.dispose();
+    pmremGenerator.dispose();
+
+    return () => {
+      if (scene.environment === environmentTarget.texture) {
+        scene.environment = previousEnvironment;
+      }
+      environmentTarget.dispose();
+    };
+  }, [gl, scene]);
+
+  return null;
 }
 
 // Procedural subtle ceramic texture generator for Glossy/Chic Porcelain White finish
@@ -482,7 +506,7 @@ export function RobotOnly({
         <ambientLight intensity={0.75} />
         <directionalLight position={[5, 8, 5]} intensity={0.9} color="#ffffff" />
         <directionalLight position={[-5, -2, -5]} intensity={0.4} color="#60a5fa" />
-        <Environment preset="studio" />
+        <StudioEnvironment />
         <RobotMesh
           color={color}
           scale={scale}

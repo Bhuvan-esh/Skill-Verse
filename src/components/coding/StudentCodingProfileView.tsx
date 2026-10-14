@@ -337,7 +337,7 @@ export default function StudentCodingProfileView({
   );
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto py-2 font-sans">
+    <div className="w-full space-y-6 py-1 font-sans">
 
       {/* Feedback Banner */}
       {feedbackMsg && (

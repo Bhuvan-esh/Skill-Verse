@@ -378,6 +378,7 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [eventDetail, setEventDetail] = useState<any | null>(null);
   const [selectedChallenge, setSelectedChallenge] = useState<any | null>(null);
+  const [selectedCompetition, setSelectedCompetition] = useState<any | null>(null);
 
   // Registration Modal State
   const [registerModalEvent, setRegisterModalEvent] = useState<any | null>(null);
@@ -535,6 +536,11 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
     setRegYear((user as any)?.year || '3rd Year');
     setRegPhone((user as any)?.phone || '+91 98450 12345');
     setRegDept((user as any)?.department === 'AIML' ? 'AIML' : 'AIDS');
+  };
+
+  const openCompetitionDetails = (event: any) => {
+    setSelectedCompetition(event);
+    setSelectedEventId(event.id);
   };
 
   const handleExtractRegFromSkillBarter = async () => {
@@ -762,7 +768,17 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
                   return (
                     <div
                       key={evt.id}
-                      className={`glass-card p-6 rounded-3xl flex flex-col justify-between space-y-5 border transition-all relative overflow-hidden ${
+                      onClick={() => openCompetitionDetails(evt)}
+                      onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return;
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          openCompetitionDetails(evt);
+                        }
+                      }}
+                      tabIndex={0}
+                      aria-label={`View details for ${evt.title}`}
+                      className={`glass-card p-6 rounded-3xl flex flex-col justify-between space-y-5 border transition-all relative overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 ${
                         isRegistered
                           ? 'border-purple-500/60 bg-purple-950/20 shadow-lg shadow-purple-500/10'
                           : 'border-white/10 hover:border-purple-500/40 bg-slate-950/40'
@@ -822,7 +838,8 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
                         {isRegistered ? (
                           <div className="flex flex-col sm:flex-row gap-2">
                             <button
-                              onClick={() => {
+                              onClick={(event) => {
+                                event.stopPropagation();
                                 setSelectedEventId(evt.id);
                                 setActiveTab('workspace');
                               }}
@@ -833,7 +850,10 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
                             </button>
                             {isTeam && (
                               <button
-                                onClick={() => setActiveTab('team')}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setActiveTab('team');
+                                }}
                                 className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-purple-200 text-xs font-mono font-bold transition-all flex items-center justify-center space-x-1 cursor-pointer"
                                 title="View Team Allocation"
                               >
@@ -844,7 +864,10 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
                           </div>
                         ) : (
                           <button
-                            onClick={() => handleOpenRegisterModal(evt)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleOpenRegisterModal(evt);
+                            }}
                             className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:opacity-95 text-white font-bold text-xs font-mono shadow-lg shadow-purple-600/25 transition-all flex items-center justify-center space-x-2 cursor-pointer"
                           >
                             <Sparkles className="w-4 h-4 text-amber-300" />
@@ -858,6 +881,143 @@ export default function StudentCodingHub({ user, onRefresh, subTab, setSubTab }:
               </div>
             )}
           </div>
+
+          {selectedCompetition && (
+            <div
+              className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+              onClick={() => setSelectedCompetition(null)}
+            >
+              <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="competition-details-title"
+                className="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-purple-500/30 bg-gradient-to-b from-slate-900 via-slate-950 to-black p-6 sm:p-8 shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+                  <div className="space-y-2">
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                      selectedCompetition.status === 'LIVE'
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        : selectedCompetition.status === 'COMPLETED'
+                          ? 'bg-slate-700/60 text-slate-300 border border-white/10'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                    }`}>
+                      {String(selectedCompetition.status || 'UPCOMING').replace(/_/g, ' ')}
+                    </span>
+                    <h2 id="competition-details-title" className="text-xl sm:text-2xl font-bold text-white font-heading">
+                      {selectedCompetition.title}
+                    </h2>
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {selectedCompetition.description}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCompetition(null)}
+                    aria-label="Close competition details"
+                    className="shrink-0 rounded-xl p-2 text-slate-400 hover:text-white hover:bg-white/10"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-5">
+                  {[
+                    { label: 'Category', value: selectedCompetition.category || 'Coding' },
+                    { label: 'Difficulty', value: selectedCompetition.difficulty || '—' },
+                    { label: 'Format', value: selectedCompetition.is_team ? `Team · ${selectedCompetition.team_size || 4} members` : 'Individual' },
+                    { label: 'Reward', value: `+${selectedCompetition.credits_reward || 100} Credits` },
+                    { label: 'Event date', value: selectedCompetition.event_date ? new Date(selectedCompetition.event_date).toLocaleString() : 'To be announced' },
+                    { label: 'Registration deadline', value: selectedCompetition.registration_deadline ? new Date(selectedCompetition.registration_deadline).toLocaleString() : 'Not specified' },
+                    { label: 'Participants', value: String(selectedCompetition._count?.registrations ?? selectedCompetition.registrations?.length ?? 0) },
+                    { label: 'Capacity', value: selectedCompetition.max_participants ? String(selectedCompetition.max_participants) : 'Open' },
+                  ].map((item) => (
+                    <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+                      <span className="block text-[10px] uppercase tracking-wider text-slate-500">{item.label}</span>
+                      <span className="mt-1 block text-xs font-semibold text-slate-100">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-4">
+                  {selectedCompetition.eligibility && (
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <h3 className="mb-1 text-xs font-bold uppercase tracking-wider text-purple-300">Eligibility</h3>
+                      <p className="text-xs leading-relaxed text-slate-300">{selectedCompetition.eligibility}</p>
+                    </div>
+                  )}
+
+                  {selectedCompetition.rules && (
+                    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                      <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-purple-300">Rules & Guidelines</h3>
+                      <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-slate-300">{selectedCompetition.rules}</pre>
+                    </div>
+                  )}
+
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-purple-300">Challenges</h3>
+                    {selectedCompetition.challenges?.filter((challenge: any) => challenge.status !== 'DRAFT').length ? (
+                      <div className="space-y-2">
+                        {selectedCompetition.challenges
+                          .filter((challenge: any) => challenge.status !== 'DRAFT')
+                          .map((challenge: any) => (
+                            <div key={challenge.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <h4 className="text-sm font-semibold text-white">{challenge.title}</h4>
+                                <span className="text-[10px] font-mono text-amber-300">
+                                  {challenge.difficulty || 'MEDIUM'} · {challenge.points ?? 0} pts · {challenge.time_limit ?? '—'} min
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs leading-relaxed text-slate-400">{challenge.description}</p>
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400">Challenge problems will be announced by the organizers.</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-5 flex flex-col-reverse gap-2 border-t border-white/10 pt-4 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCompetition(null)}
+                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-semibold text-slate-300 hover:bg-white/10"
+                  >
+                    Close
+                  </button>
+                  {selectedCompetition.status !== 'COMPLETED' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const competition = selectedCompetition;
+                        setSelectedCompetition(null);
+                        const isRegistered = competition.registrations?.some(
+                          (registration: any) =>
+                            (registration.student_id === user?.id || registration.student_id === 'demo-current-user') &&
+                            registration.status === 'REGISTERED'
+                        );
+                        if (isRegistered) {
+                          setSelectedEventId(competition.id);
+                          setActiveTab('workspace');
+                        } else {
+                          handleOpenRegisterModal(competition);
+                        }
+                      }}
+                      className="rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 px-4 py-2.5 text-xs font-bold text-white shadow-lg shadow-purple-600/25 hover:opacity-95"
+                    >
+                      {selectedCompetition.registrations?.some(
+                        (registration: any) =>
+                          (registration.student_id === user?.id || registration.student_id === 'demo-current-user') &&
+                          registration.status === 'REGISTERED'
+                      ) ? 'Enter Workspace' : 'Register for Competition'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ========================================================= */}
           {/* SECTION 2: RECENTLY HAPPENED COMPETITIONS (RETROSPECTIVES) */}

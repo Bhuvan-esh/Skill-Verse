@@ -271,7 +271,7 @@ export default function PrivateFounderChannel({ user }: PrivateChannelProps) {
   }, [newTopic, newQueryText, publicAnsweredQueries]);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="w-full space-y-5">
       {/* ── Open Desk Header ─────────────────────────────────────────────── */}
       <div className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-2xl">
         <div>

@@ -10,6 +10,7 @@ interface BizLinkMentorshipTrackerProps {
 export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrackerProps = {}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
 
   const displayName = user?.name || 'Anusha A';
   const displayInitials = displayName
@@ -269,6 +270,75 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
   const filteredCol4 = col4Cards.filter(matchFilter);
 
   const totalVisible = filteredCol1.length + filteredCol2.length + filteredCol3.length + filteredCol4.length;
+  const expandedCardId = activeCardId;
+
+  const renderCardDetails = (card: any, sectionType: 'mentor' | 'learn' | 'feedback-in' | 'feedback-out') => {
+    const profileLine = sectionType === 'mentor' ? 'Mentoring detail' :
+      sectionType === 'learn' ? 'Learning detail' :
+      sectionType === 'feedback-in' ? 'Peer feedback detail' : 'Feedback given detail';
+
+    return (
+      <div className="mt-3 rounded-xl border border-white/10 bg-[#0f1220]/80 p-3 space-y-2.5 text-[11px] text-slate-200">
+        <div className="flex items-center justify-between text-[9.5px] uppercase tracking-[0.12em] text-[#A9A9AE] font-mono">
+          <span>{profileLine}</span>
+          <span>{card.date}</span>
+        </div>
+
+        {card.tags && (
+          <div className="flex flex-wrap gap-1.5">
+            {(card.tags as any[]).map((tag: any) => (
+              <span key={tag} className="px-2 py-0.5 rounded-md bg-[#20242F] border border-[#2E3241] text-[10px] text-[#E8B84B] bizlink-mono">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <p className="text-[12px] leading-relaxed text-slate-100">
+          {card.text || card.heading || card.role || 'Detailed context for this profile.'}
+        </p>
+
+        {card.progressText && (
+          <div className="pt-1">
+            <div className="flex items-center justify-between text-[10px] text-[#A9A9AE] font-mono">
+              <span>{card.progressText}</span>
+              <span className="text-[#4FD1C5] font-bold">{card.progressPct}%</span>
+            </div>
+            <div className="mt-1.5 w-full h-1.5 rounded-full bg-[#20242F] overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#4FD1C5] to-[#38B2AC] rounded-full"
+                style={{ width: `${card.progressPct}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {card.feedbacks && card.feedbacks[0] && (
+          <div className="rounded-lg border border-[#2E3241] bg-[#12141C]/80 p-2.5 space-y-1">
+            <div className="flex items-center justify-between text-[9.5px] text-[#E8B84B] font-bold font-mono">
+              <span>{card.feedbacks[0].label}</span>
+              <span>{card.feedbacks[0].rating}</span>
+            </div>
+            <p className="text-[11.5px] text-slate-200 leading-relaxed">
+              “{card.feedbacks[0].text}”
+            </p>
+            {card.feedbacks[0].credits && (
+              <div className="text-[9.5px] text-emerald-400 font-mono font-bold">
+                {card.feedbacks[0].credits}
+              </div>
+            )}
+          </div>
+        )}
+
+        {card.creditImpact && (
+          <div className="rounded-lg border border-[#2E3241] bg-[#12141C]/80 p-2.5 text-[11.5px] text-slate-200">
+            <span className="text-[9.5px] uppercase tracking-[0.12em] text-[#A9A9AE] block mb-1 font-mono">Outcome</span>
+            {card.creditImpact}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -290,6 +360,19 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
       <style>{`
         .bizlink-serif { fontFamily: 'Fraunces', serif; }
         .bizlink-mono { fontFamily: 'JetBrains Mono', monospace; }
+
+        .bizlink-panel {
+          background: linear-gradient(180deg, rgba(26, 29, 40, 0.94) 0%, rgba(19, 22, 31, 0.96) 100%);
+          border: 1px solid rgba(46, 50, 65, 0.9);
+          box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+        }
+
+        .bizlink-card {
+          background: linear-gradient(180deg, rgba(26, 29, 40, 0.9), rgba(20, 23, 32, 0.92));
+          border: 1px solid rgba(46, 50, 65, 0.9);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
+          transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
 
         .hatched-bar {
           background: repeating-linear-gradient(
@@ -465,305 +548,92 @@ export default function BizLinkMentorshipTracker({ user }: BizLinkMentorshipTrac
           </div>
         )}
 
-        {/* 3. Four-column Board */}
+        {/* 3. Organized four-column board */}
         {totalVisible === 0 ? (
           <div id="noResults" className="py-16 text-center text-[#A9A9AE] bizlink-serif text-lg">
             No cards match your search.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
-            
-            {/* ============================================================ */}
-            {/* COLUMN 1: Mentoring already delivered                       */}
-            {/* ============================================================ */}
-            {filteredCol1.length > 0 && (
-              <div className="space-y-4">
-                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1 flex items-center gap-2">
-                  <Film className="w-4 h-4 text-[#E8B84B]" />
-                  <span>Mentoring already delivered</span>
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-5">
+            {[
+              { key: 'col1', items: filteredCol1 as any[], title: 'Mentoring already delivered', icon: Film, tint: 'text-[#E8B84B]' },
+              { key: 'col2', items: filteredCol2 as any[], title: 'Classes learnt so far', icon: BookOpen, tint: 'text-[#4FD1C5]' },
+              { key: 'col3', items: filteredCol3 as any[], title: 'Feedback exchanged', icon: Star, tint: 'text-[#E8B84B]' },
+              { key: 'col4', items: filteredCol4 as any[], title: 'Feedback given to other participants', icon: CheckCheck, tint: 'text-[#9E92F0]' },
+            ].map(({ key, items, title, icon: Icon, tint }) => (
+              <section key={key} className="bizlink-panel rounded-2xl p-3 sm:p-4 flex flex-col gap-4">
+                <div className="flex items-center gap-2 px-1.5 pb-1 border-b border-[#22252F]">
+                  <Icon className={`w-4 h-4 ${tint}`} />
+                  <h3 className="text-base font-semibold text-[#F1EFE6] bizlink-serif leading-snug">
+                    {title}
+                  </h3>
                 </div>
-                {filteredCol1.map((c) => (
-                  <div
-                    key={c.id}
-                    data-search={c.search}
-                    className="card bg-[#1A1D28] border border-[#2E3241] rounded-[14px] p-[15px_16px_13px] space-y-3 shadow-md hover:border-[#E8B84B]/50 transition-all"
-                  >
-                    <div className="card-top flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
-                          style={{ background: c.avatarBg, color: c.avatarColor }}
-                        >
-                          {c.avatar}
-                        </div>
-                        <div>
-                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight font-sans">
-                            {c.name}
-                          </div>
-                          <div className="text-[11px] text-[#6E6E77] font-mono">{c.role}</div>
-                        </div>
-                      </div>
-                      <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer" />
-                    </div>
 
-                    <p className="text-[12.5px] text-slate-300 leading-relaxed font-sans">
-                      {c.text}
-                    </p>
-
-                    {/* Tags */}
-                    {c.tags && (
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {c.tags.map((t) => (
-                          <span
-                            key={t}
-                            className="px-2 py-0.5 rounded-md bg-[#20242F] border border-[#2E3241] text-[10px] text-[#E8B84B] bizlink-mono"
+                <div className="space-y-4">
+                  {(items as any[]).map((c: any) => (
+                    <article
+                      key={c.id}
+                      data-search={c.search}
+                      tabIndex={0}
+                      role="button"
+                      aria-expanded={expandedCardId === c.id}
+                      onClick={() => setActiveCardId((prev) => prev === c.id ? null : c.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setActiveCardId((prev) => prev === c.id ? null : c.id);
+                        }
+                      }}
+                      className={`bizlink-card cursor-pointer rounded-2xl p-4 space-y-3 ${c.isHighlight ? 'border-[#8A6B2B] bg-[linear-gradient(150deg,#2A2417_0%,#20242F_100%)]' : ''} ${expandedCardId === c.id ? 'ring-1 ring-[#E8B84B]/60 shadow-[0_0_0_1px_rgba(232,184,75,0.2)]' : ''}`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
+                            style={{ background: c.avatarBg, color: c.avatarColor }}
                           >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="card-meta flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
-                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
-                        {c.date}
-                      </span>
-                      <div className="flex items-center space-x-3 text-[#6E6E77] bizlink-mono text-[10px]">
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" /> {c.comments}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Paperclip className="w-3 h-3" /> {c.attachments}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* COLUMN 2: Classes learnt so far                             */}
-            {/* ============================================================ */}
-            {filteredCol2.length > 0 && (
-              <div className="space-y-4">
-                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1 flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-[#4FD1C5]" />
-                  <span>Classes learnt so far</span>
-                </div>
-                {filteredCol2.map((c) => (
-                  <div
-                    key={c.id}
-                    data-search={c.search}
-                    className="card bg-[#1A1D28] border border-[#2E3241] rounded-[14px] p-[15px_16px_13px] space-y-3 shadow-md hover:border-[#4FD1C5]/50 transition-all"
-                  >
-                    <div className="card-top flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
-                          style={{ background: c.avatarBg, color: c.avatarColor }}
-                        >
-                          {c.avatar}
-                        </div>
-                        <div>
-                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight font-sans">
-                            {c.name}
+                            {c.avatar}
                           </div>
-                          <div className="text-[11px] text-[#4FD1C5] font-mono">{c.role}</div>
-                        </div>
-                      </div>
-                      <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer" />
-                    </div>
-
-                    <p className="text-[12.5px] text-slate-300 leading-relaxed font-sans">
-                      {c.text}
-                    </p>
-
-                    {/* Progress Bar */}
-                    <div className="space-y-1.5 pt-1">
-                      <div className="text-[10.5px] text-[#A9A9AE] bizlink-mono flex items-center justify-between">
-                        <span>{c.progressText}</span>
-                        <span className="text-[#4FD1C5] font-bold">{c.progressPct}%</span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full bg-[#20242F] overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-[#4FD1C5] to-[#38B2AC] rounded-full"
-                          style={{ width: `${c.progressPct}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="card-meta flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
-                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
-                        {c.date}
-                      </span>
-                      <div className="flex items-center space-x-3 text-[#6E6E77] bizlink-mono text-[10px]">
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" /> {c.comments}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Paperclip className="w-3 h-3" /> {c.attachments}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* COLUMN 3: Feedback exchanged (Other Peers gave You)          */}
-            {/* ============================================================ */}
-            {filteredCol3.length > 0 && (
-              <div className="space-y-4">
-                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1 flex items-center gap-2">
-                  <Star className="w-4 h-4 text-[#E8B84B] fill-[#E8B84B]" />
-                  <span>Feedback exchanged</span>
-                </div>
-                {filteredCol3.map((c) => (
-                  <div
-                    key={c.id}
-                    data-search={c.search}
-                    className={`card rounded-[14px] p-[15px_16px_13px] space-y-3 shadow-md transition-all ${
-                      c.isHighlight
-                        ? 'border border-[#8A6B2B]'
-                        : 'bg-[#1A1D28] border border-[#2E3241] hover:border-[#E8B84B]/50'
-                    }`}
-                    style={
-                      c.isHighlight
-                        ? { background: 'linear-gradient(150deg, #2A2417 0%, #20242F 100%)' }
-                        : {}
-                    }
-                  >
-                    <div className="card-top flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
-                          style={{ background: c.avatarBg, color: c.avatarColor }}
-                        >
-                          {c.avatar}
-                        </div>
-                        <div>
-                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight font-sans">
-                            {c.heading}
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-[#F1EFE6] truncate leading-tight font-sans">
+                              {c.name || c.heading}
+                            </div>
+                            <div className="text-[11px] text-[#A9A9AE] font-mono truncate">
+                              {c.role || c.subheading}
+                            </div>
                           </div>
-                          <div className="text-[11px] text-[#A9A9AE] font-mono">{c.subheading}</div>
                         </div>
+                        <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer shrink-0" />
                       </div>
-                      <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer" />
-                    </div>
 
-                    <div className="space-y-2">
-                      {c.feedbacks?.map((f: any, idx: number) => (
-                        <div
-                          key={idx}
-                          className="bg-[#12141C]/70 p-2.5 rounded-lg border border-[#2E3241]/70 space-y-1.5"
-                        >
-                          <div className="flex items-center justify-between text-[10px] text-[#E8B84B] font-bold font-mono">
-                            <span className="flex items-center gap-1">
-                              <ThumbsUp className="w-3 h-3 text-[#E8B84B]" />
-                              <span>{f.label}</span>
-                            </span>
-                            <span className="text-[#E8B84B]">{f.rating}</span>
-                          </div>
-                          <p className="text-[11.5px] text-slate-200 leading-relaxed font-sans">
-                            &quot;{f.text}&quot;
-                          </p>
-                          {f.credits && (
-                            <div className="text-[9.5px] font-mono text-emerald-400 font-bold pt-0.5">
-                              {f.credits}
+                      {expandedCardId === c.id && (
+                        <>
+                          {c.rating && (
+                            <div className="flex items-center justify-end text-[10px] text-amber-400 font-bold font-mono">
+                              <span>{c.rating}</span>
                             </div>
                           )}
-                        </div>
-                      ))}
-                    </div>
 
-                    {c.date && (
-                      <div className="card-meta flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
-                        <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
-                          {c.date}
-                        </span>
-                        <div className="flex items-center space-x-3 text-[#6E6E77] bizlink-mono text-[10px]">
-                          <span className="flex items-center gap-1">
-                            <MessageSquare className="w-3 h-3" /> {c.comments}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Paperclip className="w-3 h-3" /> {c.attachments}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* ============================================================ */}
-            {/* COLUMN 4: Feedback given to other participants              */}
-            {/* ============================================================ */}
-            {filteredCol4.length > 0 && (
-              <div className="space-y-4">
-                <div className="text-base font-semibold text-[#F1EFE6] bizlink-serif pb-1 flex items-center gap-2">
-                  <CheckCheck className="w-4 h-4 text-[#9E92F0]" />
-                  <span>Feedback given to other participants</span>
-                </div>
-                {filteredCol4.map((c) => (
-                  <div
-                    key={c.id}
-                    data-search={c.search}
-                    className="card bg-[#1A1D28] border border-[#2E3241] rounded-[14px] p-[15px_16px_13px] space-y-3 shadow-md hover:border-[#9E92F0]/50 transition-all"
-                  >
-                    <div className="card-top flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-md"
-                          style={{ background: c.avatarBg, color: c.avatarColor }}
-                        >
-                          {c.avatar}
-                        </div>
-                        <div>
-                          <div className="text-[14px] font-semibold text-[#F1EFE6] leading-tight font-sans">
-                            {c.name}
-                          </div>
-                          <div className="text-[11px] text-[#9E92F0] font-mono">{c.role}</div>
-                        </div>
-                      </div>
-                      <MoreVertical className="w-4 h-4 text-[#6E6E77] cursor-pointer" />
-                    </div>
-
-                    <div className="bg-[#12141C]/70 p-2.5 rounded-lg border border-[#2E3241]/70 space-y-1.5">
-                      <div className="flex items-center justify-between text-[10px] text-amber-400 font-bold font-mono">
-                        <span>Feedback Given by You</span>
-                        <span>{c.rating}</span>
-                      </div>
-                      <p className="text-[11.5px] text-slate-200 leading-relaxed font-sans">
-                        {c.text}
-                      </p>
-                      {c.creditImpact && (
-                        <div className="text-[9.5px] font-mono text-purple-400 font-bold pt-0.5">
-                          {c.creditImpact}
-                        </div>
+                          {renderCardDetails(c, key === 'col1' ? 'mentor' : key === 'col2' ? 'learn' : key === 'col3' ? 'feedback-in' : 'feedback-out')}
+                        </>
                       )}
-                    </div>
 
-                    <div className="card-meta flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
-                      <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
-                        {c.date}
-                      </span>
-                      <div className="flex items-center space-x-3 text-[#6E6E77] bizlink-mono text-[10px]">
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" /> {c.comments}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Paperclip className="w-3 h-3" /> {c.attachments}
-                        </span>
+                      <div className="flex items-center justify-between pt-2 border-t border-[#22252F] text-[11px] text-[#A9A9AE]">
+                        {expandedCardId !== c.id && (
+                          <span className="px-2 py-0.5 rounded-[7px] bg-[#272B38] border border-[#2E3241] bizlink-mono text-[10px]">
+                            {c.date}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-3 text-[#6E6E77] bizlink-mono text-[10px]">
+                          <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> {c.comments}</span>
+                          <span className="flex items-center gap-1"><Paperclip className="w-3 h-3" /> {c.attachments}</span>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         )}
 

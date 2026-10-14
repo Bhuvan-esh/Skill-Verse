@@ -356,7 +356,7 @@ export default function StudentProfileView({ user }: StudentProfileViewProps) {
   const earnedReputationMark = highestBadge ? highestBadge.icon : '🧑‍🏫';
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto py-2 font-sans">
+    <div className="w-full space-y-5 font-sans">
       
       {/* Feedback Banner */}
       {feedbackMsg && (
