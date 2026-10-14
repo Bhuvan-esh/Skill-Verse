@@ -80,352 +80,268 @@ export default function Navbar({
         : 'border-indigo-400/25 bg-indigo-400/10 text-indigo-200';
 
   return (
-    <header className="sticky top-0 z-50 glass-panel border-b border-white/10 px-3 sm:px-5 lg:px-7 py-2.5">
-      <div className="w-full grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 lg:gap-4">
+    <header className="sticky top-0 z-50 w-full bg-[#080A12]/90 backdrop-blur-xl border-b border-white/[0.08] transition-all">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-4">
 
-        {/* Brand Logo & Title with Back to Horizon Button */}
-        <div className="flex min-w-0 items-center gap-2.5 lg:gap-3.5">
-          {user && (
+          {/* ── Brand: Skillora Peer Network ── */}
+          <div className="flex items-center gap-3 shrink-0">
+            {user && (
+              <button
+                onClick={() => router.push('/horizon')}
+                aria-label="Return to Horizon"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white border border-white/[0.08] transition-all cursor-pointer group"
+                title="Return to 3D Horizon view"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+              </button>
+            )}
+
             <button
-              onClick={() => router.push('/horizon')}
-              aria-label="Return to Horizon"
-              className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-white border border-purple-500/30 transition-all cursor-pointer shadow-sm group"
-              title="Return to 3D Horizon view"
+              onClick={() => setActiveTab('skillbarter')}
+              className="flex items-center gap-2.5 text-left group transition-all"
             >
-              <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
-            </button>
-          )}
-
-          <Link href="/" className="flex min-w-0 items-center gap-2.5">
-            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-amber-400 p-0.5 shadow-lg shadow-blue-500/20">
-              <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Lightbulb className="w-5 h-5 text-amber-400" />
+              <div className="w-8 h-8 rounded-lg bg-[#6D3DF5] flex items-center justify-center shadow-sm shadow-[#6D3DF5]/30">
+                <Users className="w-4 h-4 text-white" />
               </div>
-            </div>
-            <div>
-              <h1 className="text-lg lg:text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-purple-400 bg-clip-text text-transparent font-heading">
-                {pageTitle || (activeTab === 'competitions' ? 'Coding Arena' : activeTab === 'skillbarter' ? 'Skillora' : 'Home Page')}
-              </h1>
-              <p className="text-[10px] lg:text-xs text-slate-400 font-medium truncate">{pageSubtitle || (activeTab === 'skillbarter' ? 'Peer Skill Exchange & Video Hub' : 'Student Innovation & Credit Engine')}</p>
-            </div>
-          </Link>
-        </div>
+              <div className="flex flex-col">
+                <span className="text-[13px] font-semibold text-white tracking-tight flex items-center gap-1.5">
+                  Skillora <span className="text-white/40 font-normal text-xs">Peer Network</span>
+                </span>
+                <span className="text-[10px] text-white/40 font-medium tracking-wide">
+                  {pageTitle || (activeTab === 'skillbarter' ? 'Participant Portal' : activeTab === 'competitions' ? 'Coding Arena' : 'Innovation Hub')}
+                </span>
+              </div>
+            </button>
+          </div>
 
-        {/* Navigation Tabs based on Active Context */}
-        {user && (
-          <nav className="hidden md:flex min-w-0 max-w-[min(58vw,760px)] items-center gap-0.5 bg-slate-900/80 p-1 rounded-xl border border-white/5 overflow-x-auto justify-self-center scrollbar-thin">
-            {activeTab === 'competitions' ? (
-              /* Coding Challenge Arena Sub-Tabs */
-              <>
-                <button
-                  onClick={() => setCodingSubTab && setCodingSubTab('events')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    codingSubTab === 'events'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                >
-                  <Trophy className="w-4 h-4 text-amber-400" />
-                  <span>Competitions</span>
-                </button>
-
-                <button
-                  onClick={() => setCodingSubTab && setCodingSubTab('workspace')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    codingSubTab === 'workspace'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                >
-                  <Code className="w-4 h-4 text-blue-400" />
-                  <span>Code Workspace</span>
-                </button>
-
-                <button
-                  onClick={() => setCodingSubTab && setCodingSubTab('team')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    codingSubTab === 'team'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                >
-                  <Users className="w-4 h-4 text-indigo-400" />
-                  <span>My Peers</span>
-                </button>
-
-                <button
-                  onClick={() => setCodingSubTab && setCodingSubTab('leaderboard')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    codingSubTab === 'leaderboard'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                >
-                  <Award className="w-4 h-4 text-amber-400" />
-                  <span>Leaderboard</span>
-                </button>
-
-                <button
-                  onClick={() => setCodingSubTab && setCodingSubTab('history')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                    codingSubTab === 'history'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/40 border border-purple-400/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  }`}
-                >
-                  <User className="w-4 h-4 text-emerald-400" />
-                  <span>Profile</span>
-                </button>
-              </>
-            ) : (
-              /* Standard Platform Sub-Tabs for Student */
-              activeRole === 'STUDENT' && (
+          {/* ── Center Navigation: Progress, Leaderboard, Open Desk, Profile ── */}
+          {user && (
+            <nav className="hidden md:flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.06]" aria-label="Participant Navigation">
+              {activeTab === 'competitions' ? (
+                /* Coding Challenge Context */
                 <>
                   <button
-                    onClick={() => setActiveTab('skillbarter')}
-                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      activeTab === 'skillbarter'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    onClick={() => setCodingSubTab && setCodingSubTab('events')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      codingSubTab === 'events'
+                        ? 'bg-white/[0.1] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80'
                     }`}
                   >
-                    <Users className="w-4 h-4" />
-                    <span>Skillora</span>
+                    <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Competitions</span>
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('ideas')}
-                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      activeTab === 'ideas'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    onClick={() => setCodingSubTab && setCodingSubTab('workspace')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      codingSubTab === 'workspace'
+                        ? 'bg-white/[0.1] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80'
                     }`}
                   >
-                    <TrendingUp className="w-4 h-4" />
-                    <span>Progress</span>
+                    <Code className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Workspace</span>
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('leaderboard')}
-                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      activeTab === 'leaderboard'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    onClick={() => setCodingSubTab && setCodingSubTab('team')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      codingSubTab === 'team'
+                        ? 'bg-white/[0.1] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80'
                     }`}
                   >
-                    <Award className="w-4 h-4 text-amber-400" />
+                    <Users className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>My Peers</span>
+                  </button>
+
+                  <button
+                    onClick={() => setCodingSubTab && setCodingSubTab('leaderboard')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      codingSubTab === 'leaderboard'
+                        ? 'bg-white/[0.1] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80'
+                    }`}
+                  >
+                    <Award className="w-3.5 h-3.5 text-amber-400" />
                     <span>Leaderboard</span>
                   </button>
 
                   <button
-                    onClick={() => setActiveTab('privatechat')}
-                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                      activeTab === 'privatechat'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                    onClick={() => setCodingSubTab && setCodingSubTab('history')}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      codingSubTab === 'history'
+                        ? 'bg-white/[0.1] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80'
                     }`}
                   >
-                    <MessageSquare className="w-4 h-4" />
-                    <span>Open Desk</span>
+                    <User className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Profile</span>
+                  </button>
+                </>
+              ) : (
+                /* Skillora Peer Network Primary Navigation */
+                <>
+                  <button
+                    onClick={() => setActiveTab('ideas')}
+                    className={`relative px-4 py-1.5 text-xs font-medium tracking-tight rounded-lg transition-all duration-150 cursor-pointer ${
+                      activeTab === 'ideas'
+                        ? 'bg-white/[0.08] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80 hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    Progress
+                    {activeTab === 'ideas' && (
+                      <span className="absolute inset-x-2 bottom-0 h-[1.5px] rounded-full bg-[#6D3DF5]" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('leaderboard')}
+                    className={`relative px-4 py-1.5 text-xs font-medium tracking-tight rounded-lg transition-all duration-150 cursor-pointer ${
+                      activeTab === 'leaderboard'
+                        ? 'bg-white/[0.08] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80 hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    Leaderboard
+                    {activeTab === 'leaderboard' && (
+                      <span className="absolute inset-x-2 bottom-0 h-[1.5px] rounded-full bg-[#6D3DF5]" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('privatechat')}
+                    className={`relative px-4 py-1.5 text-xs font-medium tracking-tight rounded-lg transition-all duration-150 cursor-pointer ${
+                      activeTab === 'privatechat'
+                        ? 'bg-white/[0.08] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80 hover:bg-white/[0.02]'
+                    }`}
+                  >
+                    Open Desk
+                    {activeTab === 'privatechat' && (
+                      <span className="absolute inset-x-2 bottom-0 h-[1.5px] rounded-full bg-[#6D3DF5]" />
+                    )}
                   </button>
 
                   <button
                     onClick={() => setActiveTab('profile')}
-                    className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                    className={`relative px-4 py-1.5 text-xs font-medium tracking-tight rounded-lg transition-all duration-150 cursor-pointer ${
                       activeTab === 'profile'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                        ? 'bg-white/[0.08] text-white shadow-sm'
+                        : 'text-white/45 hover:text-white/80 hover:bg-white/[0.02]'
                     }`}
                   >
-                    <User className="w-4 h-4" />
-                    <span>Profile</span>
+                    Profile
+                    {activeTab === 'profile' && (
+                      <span className="absolute inset-x-2 bottom-0 h-[1.5px] rounded-full bg-[#6D3DF5]" />
+                    )}
                   </button>
                 </>
-              )
-            )}
-
-            {activeRole === 'FOUNDER' && (
-              <>
-                <button
-                  onClick={() => setActiveTab('founder_panel')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'founder_panel'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <Zap className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Control Panel</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('skillbarter')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'skillbarter'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>Skillora</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('ideas')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'ideas'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  <span>Progress</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('leaderboard')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'leaderboard'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <Award className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Leaderboard</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('profile')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'profile'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>Profile</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('volunteer_tasks')}
-                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${activeTab === 'volunteer_tasks'
-                      ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Volunteer Tasks</span>
-                </button>
-              </>
-            )}
-
-            {activeRole === 'MENTOR' && (
-              <>
-                <button
-                  onClick={() => setActiveTab('skillbarter')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'skillbarter'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <Users className="w-4 h-4" />
-                  <span>Skillora</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab('leaderboard')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'leaderboard'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <Award className="w-4 h-4 text-amber-400" />
-                  <span>Leaderboard</span>
-                </button>
-              </>
-            )}
-
-            {activeRole === 'VOLUNTEER' && (
-              <>
-                <button
-                  onClick={() => setActiveTab('volunteer_tasks')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'volunteer_tasks'
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <UserCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Gated Task Board</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('skillbarter')}
-                  className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'skillbarter'
-                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                    }`}
-                >
-                  <Users className="w-4 h-4 text-emerald-400" />
-                  <span>Skillora</span>
-                </button>
-              </>
-            )}
-          </nav>
-        )}
-
-        {/* User Session & Role Badge & Logout */}
-        <div className="flex items-center justify-end gap-2 lg:gap-2.5 min-w-0">
-
-          {/* Notifications Button */}
-          {user && (
-            <button
-              onClick={onOpenNotifications}
-              className="relative p-2.5 rounded-xl bg-slate-900 border border-white/10 hover:border-blue-500/50 text-slate-300 hover:text-white transition-all"
-              title="Notifications"
-            >
-              <Bell className="w-5 h-5" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-bounce">
-                  {unreadNotifications}
-                </span>
               )}
-            </button>
+            </nav>
           )}
 
-          {/* User Role Badge & Logout */}
-          {user ? (
-            <div className="flex items-center gap-2.5">
-              <div
-                className="flex min-w-0 items-center gap-2.5 rounded-full border border-white/10 bg-slate-900/80 py-1.5 pl-1.5 pr-3.5"
-                title={`${user.name} · ${profileRoleLabel}${user.usn ? ` · ${user.usn}` : ''}`}
-                aria-label={`${user.name}, ${profileRoleLabel}${user.usn ? `, ${user.usn}` : ''}`}
-              >
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${profileAccent}`}>
-                  {profileInitials}
-                </span>
-                <span className="flex min-w-0 flex-col items-start gap-1">
-                  <span className="max-w-[100px] truncate text-sm font-semibold leading-tight text-white sm:max-w-[140px]">
-                    {user.name}
-                  </span>
-                  <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[8px] font-bold uppercase leading-none tracking-wide sm:px-2 sm:text-[9px] ${profileRoleBadge}`}>
-                    {user.role || 'STUDENT'}
-                  </span>
-                </span>
-              </div>
-
+          {/* ── User Information + Log Out Action ── */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Notification Bell */}
+            {user && (
               <button
-                onClick={onLogout}
-                className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 font-bold text-xs transition-all"
-                title="Log Out Session"
+                onClick={onOpenNotifications}
+                className="relative p-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-white/50 hover:text-white transition-all cursor-pointer"
+                title="Notifications"
+                aria-label="View notifications"
               >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Log Out</span>
+                <Bell className="w-4 h-4" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute 1 top-1.5 right-1.5 w-2 h-2 bg-[#6D3DF5] rounded-full" />
+                )}
               </button>
-            </div>
-          ) : (
-            <Link
-              href="/login"
-              className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 transition-all"
-            >
-              <UserCheck className="w-4 h-4" />
-              <span>Sign In / Join</span>
-            </Link>
-          )}
+            )}
+
+            {user ? (
+              <div className="flex items-center gap-2 sm:gap-2.5">
+                {/* User Info Capsule: Avatar Initials + Name + Role */}
+                <div
+                  onClick={() => setActiveTab('profile')}
+                  className="flex items-center gap-2 py-1 pl-1 pr-2.5 rounded-lg border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/20 transition-all cursor-pointer"
+                  title={`${user.name || 'Preetam Rathod'} · ${user.role || 'STUDENT'}`}
+                >
+                  <div className="w-7 h-7 rounded-md bg-[#6D3DF5] flex items-center justify-center text-[11px] font-bold text-white tracking-wide shrink-0">
+                    {profileInitials || 'PR'}
+                  </div>
+                  <div className="hidden sm:flex flex-col items-start leading-tight">
+                    <span className="text-[12px] font-medium text-white/90 truncate max-w-[120px]">
+                      {user.name || 'Preetam Rathod'}
+                    </span>
+                    <span className="text-[9px] font-medium text-white/40 uppercase tracking-wider">
+                      {user.role || 'STUDENT'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Log Out Action */}
+                <button
+                  onClick={onLogout}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-white/[0.08] hover:border-rose-500/30 bg-white/[0.02] hover:bg-rose-500/10 text-white/50 hover:text-rose-300 text-xs font-medium transition-all cursor-pointer"
+                  title="Log Out action"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Log Out</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#6D3DF5] hover:bg-[#5B30E0] text-white font-medium text-xs shadow-sm transition-all"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Sign In / Join</span>
+              </Link>
+            )}
+          </div>
+
         </div>
+
+        {/* ── Mobile Nav Row ── */}
+        {user && activeTab !== 'competitions' && (
+          <div className="md:hidden flex items-center gap-1 py-2 border-t border-white/[0.04] overflow-x-auto scrollbar-none">
+            <button
+              onClick={() => setActiveTab('ideas')}
+              className={`px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap transition-all ${
+                activeTab === 'ideas' ? 'bg-white/[0.1] text-white' : 'text-white/40 hover:text-white'
+              }`}
+            >
+              Progress
+            </button>
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap transition-all ${
+                activeTab === 'leaderboard' ? 'bg-white/[0.1] text-white' : 'text-white/40 hover:text-white'
+              }`}
+            >
+              Leaderboard
+            </button>
+            <button
+              onClick={() => setActiveTab('privatechat')}
+              className={`px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap transition-all ${
+                activeTab === 'privatechat' ? 'bg-white/[0.1] text-white' : 'text-white/40 hover:text-white'
+              }`}
+            >
+              Open Desk
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-3 py-1 text-xs font-medium rounded-md whitespace-nowrap transition-all ${
+                activeTab === 'profile' ? 'bg-white/[0.1] text-white' : 'text-white/40 hover:text-white'
+              }`}
+            >
+              Profile
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

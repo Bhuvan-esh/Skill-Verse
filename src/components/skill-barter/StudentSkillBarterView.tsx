@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Plus, XCircle, User, BookOpen, Layers,
   GraduationCap, CheckCircle2, ShieldAlert, MessageSquare,
@@ -12,7 +12,8 @@ import {
   Download, ExternalLink, X, Link2, FileCode, CheckCheck,
   Smile, MoreVertical, PlaySquare, Phone, Mail, MessageCircle,
   ThumbsUp, ThumbsDown, MessageSquarePlus, Film, UploadCloud,
-  Play, Pause, Clock, UserCheck, UserX, Inbox
+  Play, Pause, Clock, UserCheck, UserX, Inbox,
+  LogOut, Menu, BarChart2, LayoutGrid, MonitorDot
 } from 'lucide-react';
 import {
   SKILLBARTER_BADGE_DEFINITIONS,
@@ -29,6 +30,7 @@ import { formatVideoFileSize, isValidVideoFile } from '@/lib/videoUtils';
 interface SkilloraProps {
   user: any;
   onRefresh: () => void;
+  onLogout?: () => void;
   initialTab?: 'requests' | 'sessions' | 'discover' | 'videos' | 'achievements' | 'profile';
 }
 
@@ -356,16 +358,42 @@ const DOMAIN_CHIP: Record<string, string> = {
 
 type ActiveTab = 'requests' | 'sessions' | 'discover' | 'videos' | 'achievements';
 
-export default function StudentSkillBarterView({ user, onRefresh, initialTab = 'requests' }: SkilloraProps) {
+export default function StudentSkillBarterView({ user, onRefresh, onLogout, initialTab = 'requests' }: SkilloraProps) {
   const isParticipant = user?.role === 'STUDENT' || user?.role === 'FOUNDER';
 
   const [activeTab, setActiveTab] = useState<ActiveTab>(
     initialTab === 'profile' ? 'requests' : (initialTab as ActiveTab)
   );
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
   const handleTabChange = (tabId: ActiveTab) => {
     setActiveTab(tabId);
+    setMobileMenuOpen(false);
   };
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  // Premium nav items mapped to internal tab IDs
+  const headerNavItems = [
+    { id: 'requests' as const,     label: 'Progress',    icon: BarChart2 },
+    { id: 'achievements' as const, label: 'Leaderboard', icon: Trophy },
+    { id: 'discover' as const,     label: 'Open Desk',   icon: LayoutGrid },
+    { id: 'sessions' as const,     label: 'Profile',     icon: User },
+  ] as const;
+
+
 
   const navItems = [
     { id: 'requests' as const, label: 'Peer Requests', icon: BookOpen },
@@ -1555,76 +1583,231 @@ export default function StudentSkillBarterView({ user, onRefresh, initialTab = '
         className="hidden"
       />
 
-      {/* Hero Banner */}
-      <div className="relative border-b border-white/[0.08] bg-[#0F1326]/70 backdrop-blur-xl px-4 sm:px-6 py-6 sm:py-8">
-        <div className="w-full px-6 lg:px-8 xl:px-10 flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              <span className="text-[11px] text-purple-400 uppercase tracking-widest font-semibold">
-                Skillora Peer Network
+      {/* ============================================================ */}
+      {/* SKILLORA PEER NETWORK — PREMIUM HEADER                       */}
+      {/* ============================================================ */}
+      <header className="sticky top-0 z-40 w-full bg-[#080A12]/95 backdrop-blur-xl border-b border-white/[0.06]">
+        <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12">
+          <div className="flex items-center justify-between h-16">
+
+            {/* ── Brand ───────────────────────────────────────────── */}
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#6D3DF5] to-[#4F28C4] flex items-center justify-center shadow-md shadow-purple-900/40">
+                <MonitorDot className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="text-[13px] font-semibold tracking-tight text-white/90">
+                Skillora <span className="text-white/40 font-normal">Peer Network</span>
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              Peer Skill Exchange & PeerVault Video Hub
-            </h1>
-            <p className="text-xs text-slate-400 max-w-xl font-normal">
-              Connect 1:1 with verified peer mentors, upload self-recorded video walkthroughs to PeerVault, and send requests directly to authors.
-            </p>
+
+            {/* ── Desktop Nav ─────────────────────────────────────── */}
+            <nav className="hidden md:flex items-center gap-1" aria-label="Primary navigation">
+              {headerNavItems.map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleTabChange(item.id as ActiveTab)}
+                    className={`relative px-4 py-2 text-[13px] font-medium tracking-[-0.01em] rounded-lg transition-all duration-150 cursor-pointer group ${
+                      isActive
+                        ? 'text-white'
+                        : 'text-white/45 hover:text-white/80'
+                    }`}
+                  >
+                    {item.label}
+                    {isActive && (
+                      <span className="absolute inset-x-2 bottom-0.5 h-[1.5px] rounded-full bg-[#6D3DF5]" />
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* ── Right Side: Quick Actions + User ────────────────── */}
+            <div className="flex items-center gap-2">
+
+              {/* Upload to PeerVault */}
+              <button
+                onClick={() => setIsUploadVideoModalOpen(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-white/55 hover:text-white/90 border border-white/[0.08] hover:border-white/20 rounded-lg transition-all duration-150 cursor-pointer"
+              >
+                <UploadCloud className="w-3.5 h-3.5" />
+                <span>Upload</span>
+              </button>
+
+              {/* Request Skill */}
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold bg-[#6D3DF5] hover:bg-[#5B30E0] text-white rounded-lg shadow-sm shadow-purple-900/40 transition-all duration-150 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Request Skill</span>
+              </button>
+
+              {/* User Profile Avatar + Dropdown */}
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  onClick={() => setProfileMenuOpen((v) => !v)}
+                  className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-xl border border-white/[0.08] hover:border-white/20 bg-white/[0.03] hover:bg-white/[0.06] transition-all duration-150 cursor-pointer group"
+                  aria-expanded={profileMenuOpen}
+                  aria-label="User menu"
+                >
+                  {/* Avatar */}
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#6D3DF5]/80 to-[#4F28C4]/80 flex items-center justify-center text-[11px] font-bold text-white tracking-wide shrink-0 border border-[#6D3DF5]/40">
+                    {user?.name
+                      ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+                      : 'PR'}
+                  </div>
+                  <div className="hidden sm:flex flex-col items-start leading-tight">
+                    <span className="text-[12px] font-medium text-white/85 leading-none">
+                      {user?.name || 'Preetam Rathod'}
+                    </span>
+                    <span className="text-[10px] text-white/35 font-medium uppercase tracking-wider leading-none mt-0.5">
+                      {user?.role || 'STUDENT'}
+                    </span>
+                  </div>
+                  <ChevronRight
+                    className={`w-3 h-3 text-white/30 ml-0.5 transition-transform duration-150 ${profileMenuOpen ? 'rotate-90' : ''}`}
+                  />
+                </button>
+
+                {/* Profile Dropdown */}
+                {profileMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-[#0E1020] border border-white/[0.08] rounded-xl shadow-2xl shadow-black/60 overflow-hidden z-50">
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6D3DF5]/70 to-[#4F28C4]/70 flex items-center justify-center text-[11px] font-bold text-white border border-[#6D3DF5]/30">
+                          {user?.name
+                            ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+                            : 'PR'}
+                        </div>
+                        <div>
+                          <p className="text-[12px] font-semibold text-white leading-tight">
+                            {user?.name || 'Preetam Rathod'}
+                          </p>
+                          <p className="text-[10px] text-white/40 font-mono uppercase tracking-wider">
+                            {user?.role || 'STUDENT'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Sessions Indicator */}
+                    <div className="px-4 py-2.5 border-b border-white/[0.06] flex items-center justify-between">
+                      <span className="text-[11px] text-white/40">Active Chats</span>
+                      <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        {sessions.filter(s => s.status === 'ACTIVE').length}
+                      </span>
+                    </div>
+
+                    {/* Log Out */}
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        if (onLogout) onLogout();
+                        else {
+                          // fallback: navigate to /join
+                          if (typeof window !== 'undefined') window.location.href = '/join';
+                        }
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-[12px] text-white/50 hover:text-white hover:bg-white/[0.04] transition-all cursor-pointer group"
+                    >
+                      <LogOut className="w-3.5 h-3.5 text-white/30 group-hover:text-white/70 transition-colors" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Hamburger */}
+              <button
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg border border-white/[0.08] text-white/50 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+                aria-label="Toggle menu"
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium backdrop-blur-md">
-              <span className="text-slate-400">Active Chats:</span>
-              <span className="text-emerald-400 font-semibold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                {sessions.filter(s => s.status === 'ACTIVE').length} active
-              </span>
+          {/* ── Mobile Nav Drawer ─────────────────────────────────── */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-white/[0.06] py-3 space-y-0.5">
+              {headerNavItems.map((item) => {
+                const isActive = activeTab === item.id;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleTabChange(item.id as ActiveTab)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all cursor-pointer ${
+                      isActive
+                        ? 'text-white bg-white/[0.06]'
+                        : 'text-white/45 hover:text-white/80 hover:bg-white/[0.03]'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-[#6D3DF5]' : 'text-white/25'}`} />
+                    {item.label}
+                    {isActive && (
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#6D3DF5]" />
+                    )}
+                  </button>
+                );
+              })}
+
+              {/* Mobile quick actions */}
+              <div className="pt-2 mt-1 border-t border-white/[0.06] flex flex-col gap-2 px-1">
+                <button
+                  onClick={() => { setIsUploadVideoModalOpen(true); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-white/55 border border-white/[0.08] rounded-lg cursor-pointer hover:border-white/20"
+                >
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  Upload to PeerVault
+                </button>
+                <button
+                  onClick={() => { setIsCreateModalOpen(true); setMobileMenuOpen(false); }}
+                  className="flex items-center gap-2 px-3 py-2 text-[12px] font-semibold bg-[#6D3DF5] text-white rounded-lg cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Request Skill
+                </button>
+              </div>
             </div>
+          )}
+        </div>
+      </header>
 
-            <button
-              onClick={() => setIsUploadVideoModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.06] border border-white/10 hover:bg-white/[0.1] text-white text-xs font-semibold shadow-sm transition-all cursor-pointer backdrop-blur-md"
-            >
-              <Film className="w-3.5 h-3.5 text-purple-400" />
-              <span>Upload to PeerVault</span>
-            </button>
-
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#6D3DF5] hover:bg-[#5B2FD8] text-white text-xs font-semibold shadow-lg shadow-purple-900/30 transition-all cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Request Skill</span>
-            </button>
+      {/* Sub-navigation Tabs (internal sections) */}
+      <div className="w-full border-b border-white/[0.05] bg-[#080A12]/80 backdrop-blur-md sticky top-16 z-30">
+        <div className="w-full max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12">
+          <div className="flex items-center gap-0 overflow-x-auto scrollbar-none">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleTabChange(item.id)}
+                  className={`relative flex items-center gap-1.5 px-4 py-3.5 text-[12px] font-medium whitespace-nowrap transition-all duration-150 cursor-pointer border-b-[1.5px] ${
+                    isActive
+                      ? 'text-white border-[#6D3DF5]'
+                      : 'text-white/35 border-transparent hover:text-white/65 hover:border-white/10'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#6D3DF5]' : 'text-white/25'}`} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="w-full px-5 sm:px-6 lg:px-8 xl:px-10 py-6 space-y-6 relative z-10">
-
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-[#0F1326]/80 backdrop-blur-md border border-white/[0.08] rounded-2xl overflow-x-auto shadow-xl">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleTabChange(item.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                  isActive
-                    ? 'bg-[#6D3DF5] text-white shadow-md shadow-purple-600/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
+      <div className="w-full px-5 sm:px-8 lg:px-12 py-6 space-y-6 relative z-10">
 
         {/* Global Feedback Banner */}
         {msg && (
